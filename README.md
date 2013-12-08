@@ -1,9 +1,11 @@
 # klingklang
-A minimal music player for Linux.
 ![alt tag](https://raw.github.com/slyrz/klingklang/master/img/klingklang.png)
+
+A minimal music player for Linux.
 
 ## Requirements
 You need to have the following libraries/programs installed:
+
 * cairo
 * libav or ffmpeg
 * xcb
@@ -14,10 +16,12 @@ You need to have the following libraries/programs installed:
 
 ## Supported Audio Backends
 You need to have one of the following libraries installed:
-* alsa (libasound)
+
+* alsa
 * ao
 * portaudio
 * pulseaudio
+
 Choosing alsa as audio backend on Linux systems with pulseaudio installed is not recommended.
 
 ## Installation
@@ -28,6 +32,7 @@ Choosing alsa as audio backend on Linux systems with pulseaudio installed is not
     make install
 
 ## Commands
+
 * `CTRL` + `A` - Add
 * `CTRL` + `C` - Clear
 * `CTRL` + `N` - Next
