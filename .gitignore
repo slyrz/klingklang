@@ -1,0 +1,29 @@
+*.bkp
+*.log
+*.o
+*.plist/
+*.sh
+*.status
+*~
+
+# Ignore everywhere
+.deps
+.libs
+.dirstamp
+stamp-h1
+
+# Ignore top-level
+/aclocal.m4
+/autom4te.cache
+/build-aux
+/compile
+/config.*
+/configure
+/depcomp
+/install-sh
+/libtool
+/missing
+/klingklang
+
+Makefile
+Makefile.in
