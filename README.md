@@ -6,29 +6,34 @@ A minimal music player for Linux.
 ## Requirements
 You need to have the following libraries/programs installed:
 
-* cairo
-* libav or ffmpeg
-* xcb
-* xcb-event
-* xcb-icccm
-* xcb-keysyms
-* dmenu
+* [cairo](http://cairographics.org/)
+* [dmenu](http://tools.suckless.org/dmenu/)
+* [libav](http://libav.org/) or [ffmpeg](http://www.ffmpeg.org/)
+* [xcb](http://xcb.freedesktop.org/)
+* [xcb-event](http://xcb.freedesktop.org/)
+* [xcb-icccm](http://xcb.freedesktop.org/)
+* [xcb-keysyms](http://xcb.freedesktop.org/)
+* [xcb-util](http://xcb.freedesktop.org/)
 
 ## Supported Audio Backends
 You need to have one of the following libraries installed:
 
-* alsa
-* ao
-* portaudio
-* pulseaudio
+* [alsa](http://www.alsa-project.org/)
+* [ao](http://www.xiph.org/ao/)
+* [portaudio](http://www.portaudio.com/)
+* [pulseaudio](http://www.freedesktop.org/wiki/Software/PulseAudio/)
 
-Choosing alsa as audio backend on Linux systems with pulseaudio installed is not recommended.
+Choosing *alsa* as audio backend on Linux systems with *pulseaudio* installed is not recommended.
 
 ## Installation
-
+The following command generates the missing Makefile and configure script:
     autoreconf --force --install
+
+To compile *klingklang*, run:
     ./configure --with-backend={alsa|ao|portaudio|pulseaudio}
     make
+
+To install *klingklang*, run:
     make install
 
 ## Commands
