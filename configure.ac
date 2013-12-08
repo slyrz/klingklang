@@ -45,7 +45,7 @@ AS_IF([test "x$backend" = "x"], AC_MSG_ERROR([No audio backend specified. See --
 AS_IF([test "x$logging" = "x"], AC_DEFINE(LOGGING, [1], [Compile with logging support]))
 AS_IF([test "x$debugging" = "xyes"], AC_DEFINE(DEBUGGING, [1], [Compile with debug support]))
 AS_IF([test "x$debugging" = "xyes"], [
-  CFLAGS=`echo "$CFLAGS -g" | sed -e "s/-O[0-9]//"`
+  CFLAGS=`echo "-g $CFLAGS" | sed -e "s/-O[0-9]//"`
 ])
 
 AM_CONDITIONAL([DEBUGGING], [test "x$debugging" = "xyes"])
@@ -120,6 +120,7 @@ AC_CHECK_HEADERS([xcb/xcb.h])
 AC_CHECK_HEADERS([xcb/xcb_event.h])
 AC_CHECK_HEADERS([xcb/xcb_icccm.h])
 AC_CHECK_HEADERS([xcb/xcb_keysyms.h])
+
 #-----------------------------------------------------------------------------
 # Checks For Types
 #-----------------------------------------------------------------------------
