@@ -14,11 +14,11 @@ struct kk_device_ao_s {
   int driver;
 };
 
-int kk_device_ao_init (kk_device_t * dev_base);
-int kk_device_ao_free (kk_device_t * dev_base);
-int kk_device_ao_drop (kk_device_t * dev_base);
-int kk_device_ao_setup (kk_device_t * dev_base, kk_format_t * format);
-int kk_device_ao_write (kk_device_t * dev_base, kk_frame_t * frame);
+int kk_device_ao_init (kk_device_t *dev_base);
+int kk_device_ao_free (kk_device_t *dev_base);
+int kk_device_ao_drop (kk_device_t *dev_base);
+int kk_device_ao_setup (kk_device_t *dev_base, kk_format_t *format);
+int kk_device_ao_write (kk_device_t *dev_base, kk_frame_t *frame);
 
 const kk_device_backend_t kk_device_backend = {
   .size = sizeof (kk_device_ao_t),
@@ -30,7 +30,7 @@ const kk_device_backend_t kk_device_backend = {
 };
 
 int
-kk_device_ao_init (kk_device_t * dev_base)
+kk_device_ao_init (kk_device_t *dev_base)
 {
   kk_device_ao_t *dev_impl = (kk_device_ao_t *) dev_base;
 
@@ -45,7 +45,7 @@ kk_device_ao_init (kk_device_t * dev_base)
 }
 
 int
-kk_device_ao_free (kk_device_t * dev_base)
+kk_device_ao_free (kk_device_t *dev_base)
 {
   kk_device_ao_t *dev_impl = (kk_device_ao_t *) dev_base;
 
@@ -57,7 +57,7 @@ kk_device_ao_free (kk_device_t * dev_base)
 }
 
 int
-kk_device_ao_drop (kk_device_t * dev_base)
+kk_device_ao_drop (kk_device_t *dev_base)
 {
   kk_device_ao_t *dev_impl = (kk_device_ao_t *) dev_base;
 
@@ -67,7 +67,7 @@ kk_device_ao_drop (kk_device_t * dev_base)
 }
 
 int
-kk_device_ao_setup (kk_device_t * dev_base, kk_format_t * format)
+kk_device_ao_setup (kk_device_t *dev_base, kk_format_t *format)
 {
   ao_sample_format ao_format = {
     .bits = kk_format_get_bits (format),
@@ -83,13 +83,13 @@ kk_device_ao_setup (kk_device_t * dev_base, kk_format_t * format)
     ao_close (dev_impl->device);
 
   /**
-   * libao might say that our sample rate isn't supported by the hardware. But
-   * sadly, libao only prints a warning to stderr instead of returning a
-   * meaningful error value or atleast changing the value of the erroneous field 
-   * in the format structure. 
-   * If libao would indicate an error, we could resample the audio 
-   * before writing it to the device. But right now there's no way to know 
-   * whether setting the format failed or succeeded.
+   *libao might say that our sample rate isn't supported by the hardware. But
+   *sadly, libao only prints a warning to stderr instead of returning a
+   *meaningful error value or atleast changing the value of the erroneous field 
+   *in the format structure. 
+   *If libao would indicate an error, we could resample the audio 
+   *before writing it to the device. But right now there's no way to know 
+   *whether setting the format failed or succeeded.
    */
   dev_impl->device = ao_open_live (dev_impl->driver, &ao_format, NULL);
   if (dev_impl->device == NULL) {
@@ -100,7 +100,7 @@ kk_device_ao_setup (kk_device_t * dev_base, kk_format_t * format)
 }
 
 int
-kk_device_ao_write (kk_device_t * dev_base, kk_frame_t * frame)
+kk_device_ao_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
   kk_device_ao_t *dev_impl = (kk_device_ao_t *) dev_base;
   int error = 0;
@@ -113,7 +113,7 @@ kk_device_ao_write (kk_device_t * dev_base, kk_frame_t * frame)
     else {
       size = (uint32_t) frame->size;
 
-      /* ao_play returns 0 on error */
+      /*ao_play returns 0 on error */
       switch (dev_base->format->layout) {
         case KK_LAYOUT_PLANAR:
           if ((error = kk_frame_interleave (dev_impl->buffer, frame, dev_base->format)) == 0)

@@ -21,8 +21,8 @@ struct kk_cover_s {
   char *path;
 };
 
-int kk_cover_init (kk_cover_t ** cover);
-int kk_cover_free (kk_cover_t * cover);
-int kk_cover_load (kk_cover_t * cover, kk_library_file_t * file);
+int kk_cover_init (kk_cover_t **cover);
+int kk_cover_free (kk_cover_t *cover);
+int kk_cover_load (kk_cover_t *cover, kk_library_file_t *file);
 
 #endif

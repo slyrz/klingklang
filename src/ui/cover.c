@@ -1,9 +1,9 @@
 #include <klingklang/ui/cover.h>
 
-static void _kk_cover_draw (kk_widget_t * widget, cairo_t * ctx);
+static void _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx);
 
 int
-kk_cover_init (kk_cover_t ** cover)
+kk_cover_init (kk_cover_t **cover)
 {
   kk_cover_t *result;
 
@@ -20,7 +20,7 @@ error:
 }
 
 int
-kk_cover_free (kk_cover_t * cover)
+kk_cover_free (kk_cover_t *cover)
 {
   if (cover == NULL)
     return 0;
@@ -40,7 +40,7 @@ kk_cover_free (kk_cover_t * cover)
 }
 
 int
-kk_cover_load (kk_cover_t * cover, kk_library_file_t * file)
+kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
 {
   char *path = NULL;
   size_t len;
@@ -56,10 +56,10 @@ kk_cover_load (kk_cover_t * cover, kk_library_file_t * file)
     if (out >= 8192)
       goto error;
 
-    /* Contains truncated stuff - useless */
+    /*Contains truncated stuff - useless */
     free (path);
 
-    /* Try one last time */
+    /*Try one last time */
     len = out + 1;
     path = calloc (len, sizeof (char));
     if (path == NULL)
@@ -70,12 +70,12 @@ kk_cover_load (kk_cover_t * cover, kk_library_file_t * file)
       goto error;
   }
 
-  /* No album cover found? We can stop */
+  /*No album cover found? We can stop */
   if (out == 0)
     goto error;
 
   if (cover->path) {
-    /* Not a real error, but we just don't need to change image */
+    /*Not a real error, but we just don't need to change image */
     if (strcmp (path, cover->path) == 0)
       goto error;
     if (cover->foreground)
@@ -97,19 +97,19 @@ error:
 }
 
 static void
-cairo_rounded_rectangle (cairo_t * cr, double x, double y, double width, double height, double radius)
+cairo_rounded_rectangle (cairo_t *cr, double x, double y, double width, double height, double radius)
 {
-  const double d = 0.0174533;     /* = pi / 180.0 */
+  const double d = 0.0174533;     /*= pi / 180.0 */
 
-  cairo_arc (cr, x + width - radius, y + radius, radius, -90.0 * d, 0.0);
-  cairo_arc (cr, x + width - radius, y + height - radius, radius, 0.0, 90.0 * d);
-  cairo_arc (cr, x + radius, y + height - radius, radius,  90.0 * d, 180.0 * d);
-  cairo_arc (cr, x + radius, y + radius, radius, 180.0 * d, 270.0 * d);
+  cairo_arc (cr, x + width - radius, y + radius, radius, -90.0 *d, 0.0);
+  cairo_arc (cr, x + width - radius, y + height - radius, radius, 0.0, 90.0 *d);
+  cairo_arc (cr, x + radius, y + height - radius, radius,  90.0 *d, 180.0 *d);
+  cairo_arc (cr, x + radius, y + radius, radius, 180.0 *d, 270.0 *d);
   cairo_line_to (cr, x + width - radius, y);
 }
 
 static void
-_kk_cover_resize (kk_cover_t * cover)
+_kk_cover_resize (kk_cover_t *cover)
 {
   const double cx = cover->x + (cover->width / 2);
   const double cy = cover->y + (cover->height / 2);
@@ -131,7 +131,7 @@ _kk_cover_resize (kk_cover_t * cover)
 }
 
 static void
-_kk_cover_draw (kk_widget_t * widget, cairo_t * ctx)
+_kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   kk_cover_t *cover = (kk_cover_t *) widget;
 
@@ -141,7 +141,7 @@ _kk_cover_draw (kk_widget_t * widget, cairo_t * ctx)
   if (widget->resized)
     _kk_cover_resize (cover);
 
-  /* Draw blurred background image */
+  /*Draw blurred background image */
   cairo_save (ctx);
   cairo_scale (ctx, 
     (double) cover->width / (double) cover->foreground->width, 
@@ -151,7 +151,7 @@ _kk_cover_draw (kk_widget_t * widget, cairo_t * ctx)
   cairo_paint (ctx);
   cairo_restore (ctx);
 
-  /* Draw dark gray with darnkess as alpha channel to darken background */
+  /*Draw dark gray with darnkess as alpha channel to darken background */
   cairo_save (ctx);
   cairo_set_source_rgba (ctx, 0.070, 0.082, 0.090, cover->darkness);
   cairo_rectangle (ctx,
@@ -163,16 +163,16 @@ _kk_cover_draw (kk_widget_t * widget, cairo_t * ctx)
   cairo_fill (ctx);
   cairo_restore (ctx);
 
-  /* Scale to stretch / shrink foreground image according to widget size */
-  const double scale = (2.0 * cover->radius + 8.0) / (double) cover->foreground->width;
+  /*Scale to stretch / shrink foreground image according to widget size */
+  const double scale = (2.0 *cover->radius + 8.0) / (double) cover->foreground->width;
 
-  /* Clip center + draw foreground */
+  /*Clip center + draw foreground */
   cairo_save (ctx);
   cairo_rounded_rectangle (ctx, 
     (double) cover->x + ((double) cover->width / 2.0 - cover->radius), 
     (double) cover->y + ((double) cover->height / 2.0 - cover->radius), 
-    cover->radius * 2.0, 
-    cover->radius * 2.0, 
+    cover->radius *2.0, 
+    cover->radius *2.0, 
     cover->radius / 30.0
   );
 
@@ -182,22 +182,22 @@ _kk_cover_draw (kk_widget_t * widget, cairo_t * ctx)
   cairo_set_operator (ctx, CAIRO_OPERATOR_SOURCE);
   cairo_set_source_surface (ctx, 
     cover->foreground->surface, 
-    (((double) cover->width - ((double) cover->foreground->width * scale)) / 2.0) / scale, 
-    (((double) cover->height - ((double) cover->foreground->height * scale)) / 2.0) / scale
+    (((double) cover->width - ((double) cover->foreground->width *scale)) / 2.0) / scale, 
+    (((double) cover->height - ((double) cover->foreground->height *scale)) / 2.0) / scale
   );
   cairo_paint (ctx);
   cairo_close_path (ctx);
   cairo_reset_clip (ctx);
   cairo_restore (ctx);
 
-  /* Draw unobtrusive border around foreground */
+  /*Draw unobtrusive border around foreground */
   if (cover->contour) {
     cairo_save (ctx);
     cairo_rounded_rectangle (ctx,
       (double) cover->width / 2.0 - cover->radius,
       (double) cover->height / 2.0 - cover->radius,
-      cover->radius * 2.0,
-      cover->radius * 2.0,
+      cover->radius *2.0,
+      cover->radius *2.0,
       cover->radius / 30.0
     );
     cairo_set_line_width (ctx, 1.0);

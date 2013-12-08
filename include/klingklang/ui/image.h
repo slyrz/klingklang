@@ -12,8 +12,8 @@ struct kk_image_s {
   int height;
 };
 
-int kk_image_init (kk_image_t ** img, const char *path);
-int kk_image_free (kk_image_t * img);
-int kk_image_blur (kk_image_t * img, double intensity);
+int kk_image_init (kk_image_t **img, const char *path);
+int kk_image_free (kk_image_t *img);
+int kk_image_blur (kk_image_t *img, double intensity);
 
 #endif

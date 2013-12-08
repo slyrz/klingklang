@@ -1,11 +1,11 @@
 /**
- * This file incorporates modified versions of work covered by the 
- * following copyright and permission notice:
+ *This file incorporates modified versions of work covered by the 
+ *following copyright and permission notice:
  *
- * kk_get_next_pow2
- * ----------------
- * Released into public domain 2001 Sean Eron Anderson <seander@cs.stanford.edu>
- * http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+ *kk_get_next_pow2
+ *----------------
+ *Released into public domain 2001 Sean Eron Anderson <seander@cs.stanford.edu>
+ *http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
  */
 
 #include <klingklang/util.h>
@@ -13,10 +13,10 @@
 #include <stdarg.h>
 
 #ifdef HAVE_UNISTD_H
-#  include <unistd.h> /* getpid */
+#  include <unistd.h> /*getpid */
 #endif
 /**
- * Definition of some terminal color codes
+ *Definition of some terminal color codes
  */
 #define KK_COL_NORM     "\x1b[0m"
 #define KK_COL_RED      "\x1b[31;1m"

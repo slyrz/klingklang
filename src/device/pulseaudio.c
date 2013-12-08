@@ -15,11 +15,11 @@ struct kk_device_pulseaudio_s {
   pa_simple *handle;
 };
 
-int kk_device_pulseaudio_init (kk_device_t * dev_base);
-int kk_device_pulseaudio_free (kk_device_t * dev_base);
-int kk_device_pulseaudio_drop (kk_device_t * dev_base);
-int kk_device_pulseaudio_setup (kk_device_t * dev_base, kk_format_t * format);
-int kk_device_pulseaudio_write (kk_device_t * dev_base, kk_frame_t * frame);
+int kk_device_pulseaudio_init (kk_device_t *dev_base);
+int kk_device_pulseaudio_free (kk_device_t *dev_base);
+int kk_device_pulseaudio_drop (kk_device_t *dev_base);
+int kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format);
+int kk_device_pulseaudio_write (kk_device_t *dev_base, kk_frame_t *frame);
 
 const kk_device_backend_t kk_device_backend = {
   .size = sizeof (kk_device_pulseaudio_t),
@@ -48,7 +48,7 @@ static const enum pa_sample_format sample_format[2][5] = {
 };
 
 int
-kk_device_pulseaudio_init (kk_device_t * dev_base)
+kk_device_pulseaudio_init (kk_device_t *dev_base)
 {
   kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
 
@@ -59,7 +59,7 @@ kk_device_pulseaudio_init (kk_device_t * dev_base)
 }
 
 int
-kk_device_pulseaudio_free (kk_device_t * dev_base)
+kk_device_pulseaudio_free (kk_device_t *dev_base)
 {
   kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
 
@@ -71,7 +71,7 @@ kk_device_pulseaudio_free (kk_device_t * dev_base)
 }
 
 int
-kk_device_pulseaudio_drop (kk_device_t * dev_base)
+kk_device_pulseaudio_drop (kk_device_t *dev_base)
 {
   kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
 
@@ -82,7 +82,7 @@ kk_device_pulseaudio_drop (kk_device_t * dev_base)
 }
 
 int
-kk_device_pulseaudio_setup (kk_device_t * dev_base, kk_format_t * format)
+kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format)
 {
   kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
 
@@ -152,7 +152,7 @@ error:
 }
 
 int
-kk_device_pulseaudio_write (kk_device_t * dev_base, kk_frame_t * frame)
+kk_device_pulseaudio_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
   kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
 

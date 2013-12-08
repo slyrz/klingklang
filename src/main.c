@@ -1,23 +1,23 @@
 /**
- * Copyright (c) 2013, the klingklang developers.
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ *Copyright (c) 2013, the klingklang developers.
+ *
+ *Permission is hereby granted, free of charge, to any person obtaining a copy
+ *of this software and associated documentation files (the "Software"), to deal
+ *in the Software without restriction, including without limitation the rights
+ *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *copies of the Software, and to permit persons to whom the Software is
+ *furnished to do so, subject to the following conditions:
+ *
+ *The above copyright notice and this permission notice shall be included in
+ *all copies or substantial portions of the Software.
+ *
+ *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *THE SOFTWARE.
  */
 #include <klingklang/base.h>
 #include <klingklang/library.h>
@@ -52,24 +52,24 @@ struct kk_context_s {
   kk_progressbar_t *progressbar;
 };
 
-static void on_player_pause (kk_context_t * ctx, kk_player_event_pause_t * event);
-static void on_player_progress (kk_context_t * ctx, kk_player_event_progress_t * event);
-static void on_player_start (kk_context_t * ctx, kk_player_event_start_t * event);
-static void on_player_stop (kk_context_t * ctx, kk_player_event_stop_t * event);
+static void on_player_pause (kk_context_t *ctx, kk_player_event_pause_t *event);
+static void on_player_progress (kk_context_t *ctx, kk_player_event_progress_t *event);
+static void on_player_start (kk_context_t *ctx, kk_player_event_start_t *event);
+static void on_player_stop (kk_context_t *ctx, kk_player_event_stop_t *event);
 
-static void on_timer_fired (kk_context_t * ctx, kk_timer_event_fired_t * event);
+static void on_timer_fired (kk_context_t *ctx, kk_timer_event_fired_t *event);
 
-static void on_window_expose (kk_context_t * ctx, kk_window_event_expose_t * event);
-static void on_window_input (kk_context_t * ctx, kk_window_event_input_t * event);
-static void on_window_key_press (kk_context_t * ctx, kk_window_event_key_press_t * event);
+static void on_window_expose (kk_context_t *ctx, kk_window_event_expose_t *event);
+static void on_window_input (kk_context_t *ctx, kk_window_event_input_t *event);
+static void on_window_key_press (kk_context_t *ctx, kk_window_event_key_press_t *event);
 
-/* Main event dispatchers */
-static void on_player_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx);
-static void on_timer_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx);
-static void on_window_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx);
+/*Main event dispatchers */
+static void on_player_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx);
+static void on_timer_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx);
+static void on_window_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx);
 
 static void
-on_player_pause (kk_context_t * ctx, kk_player_event_pause_t * event)
+on_player_pause (kk_context_t *ctx, kk_player_event_pause_t *event)
 {
   (void) ctx;
   (void) event;
@@ -79,14 +79,14 @@ on_player_pause (kk_context_t * ctx, kk_player_event_pause_t * event)
 }
 
 static void
-on_player_progress (kk_context_t * ctx, kk_player_event_progress_t * event)
+on_player_progress (kk_context_t *ctx, kk_player_event_progress_t *event)
 {
   kk_log (KK_LOG_INFO, "Player progress %f [0,1].", (double) event->progress);
   kk_progressbar_set_value (ctx->progressbar, event->progress);
 }
 
 static void
-on_player_start (kk_context_t * ctx, kk_player_event_start_t * event)
+on_player_start (kk_context_t *ctx, kk_player_event_start_t *event)
 {
   kk_log (KK_LOG_INFO, "Player started playing '%s'.", event->file->name);
 
@@ -97,7 +97,7 @@ on_player_start (kk_context_t * ctx, kk_player_event_start_t * event)
 }
 
 static void
-on_player_stop (kk_context_t * ctx, kk_player_event_stop_t * event)
+on_player_stop (kk_context_t *ctx, kk_player_event_stop_t *event)
 {
   (void) event;
 
@@ -107,7 +107,7 @@ on_player_stop (kk_context_t * ctx, kk_player_event_stop_t * event)
 }
 
 static void 
-on_timer_fired (kk_context_t * ctx, kk_timer_event_fired_t * event)
+on_timer_fired (kk_context_t *ctx, kk_timer_event_fired_t *event)
 {
   (void) event;
 
@@ -115,14 +115,14 @@ on_timer_fired (kk_context_t * ctx, kk_timer_event_fired_t * event)
 }
 
 static void
-on_window_expose (kk_context_t * ctx, kk_window_event_expose_t * event)
+on_window_expose (kk_context_t *ctx, kk_window_event_expose_t *event)
 {
   (void) event;
   (void) ctx;
 }
 
 static void
-on_window_input (kk_context_t * ctx, kk_window_event_input_t * event)
+on_window_input (kk_context_t *ctx, kk_window_event_input_t *event)
 {
   kk_list_t *sel = NULL;
 
@@ -156,7 +156,7 @@ cleanup:
 }
 
 static void
-on_window_resize (kk_context_t * ctx, kk_window_event_resize_t * event)
+on_window_resize (kk_context_t *ctx, kk_window_event_resize_t *event)
 {
   kk_widget_set_size ((kk_widget_t *) ctx->window, 
     event->width, 
@@ -178,7 +178,7 @@ on_window_resize (kk_context_t * ctx, kk_window_event_resize_t * event)
 }
 
 static void
-on_window_key_press (kk_context_t * ctx, kk_window_event_key_press_t * event)
+on_window_key_press (kk_context_t *ctx, kk_window_event_key_press_t *event)
 {
   if ((event->mod & KK_MOD_CONTROL) != KK_MOD_CONTROL)
     return;
@@ -202,7 +202,7 @@ on_window_key_press (kk_context_t * ctx, kk_window_event_key_press_t * event)
 }
 
 static void
-on_player_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx)
+on_player_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 {
   kk_event_t event;
 
@@ -230,7 +230,7 @@ on_player_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx)
 }
 
 static void
-on_timer_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx)
+on_timer_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 {
   kk_event_t event;
 
@@ -249,7 +249,7 @@ on_timer_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx)
 }
 
 static void
-on_window_event (kk_event_loop_t * loop, int fd, kk_context_t *ctx)
+on_window_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 {
   kk_event_t event;
 

@@ -15,10 +15,10 @@ struct kk_timer_s {
   kk_event_queue_t *events;
 };
 
-int kk_timer_init (kk_timer_t ** timer);
-int kk_timer_free (kk_timer_t * timer);
-int kk_timer_start (kk_timer_t * timer, int seconds);
+int kk_timer_init (kk_timer_t **timer);
+int kk_timer_free (kk_timer_t *timer);
+int kk_timer_start (kk_timer_t *timer, int seconds);
 
-int kk_timer_get_event_fd (kk_timer_t * timer);
+int kk_timer_get_event_fd (kk_timer_t *timer);
 
 #endif

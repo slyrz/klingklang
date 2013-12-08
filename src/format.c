@@ -2,13 +2,13 @@
 #include <klingklang/util.h>
 
 /**
- * I know, these switch statements are ugly, but directly returning values
- * with every case lead to dead code warnings at the end of the switch
- * statements. This is the only way gcc / clang don't warn about anything.
+ *I know, these switch statements are ugly, but directly returning values
+ *with every case lead to dead code warnings at the end of the switch
+ *statements. This is the only way gcc / clang don't warn about anything.
  */
 
 int
-kk_format_get_channels (kk_format_t * fmt)
+kk_format_get_channels (kk_format_t *fmt)
 {
   int result = -1;
 
@@ -24,7 +24,7 @@ kk_format_get_channels (kk_format_t * fmt)
 }
 
 int
-kk_format_get_bits (kk_format_t * fmt)
+kk_format_get_bits (kk_format_t *fmt)
 {
   int result = -1;
 
@@ -49,7 +49,7 @@ kk_format_get_bits (kk_format_t * fmt)
 }
 
 const char *
-kk_format_get_type_str (kk_format_t * fmt)
+kk_format_get_type_str (kk_format_t *fmt)
 {
   const char *result = NULL;
 
@@ -68,7 +68,7 @@ kk_format_get_type_str (kk_format_t * fmt)
 }
 
 const char *
-kk_format_get_layout_str (kk_format_t * fmt)
+kk_format_get_layout_str (kk_format_t *fmt)
 {
   const char *result = NULL;
 
@@ -84,7 +84,7 @@ kk_format_get_layout_str (kk_format_t * fmt)
 }
 
 const char *
-kk_format_get_byte_order_str (kk_format_t * fmt)
+kk_format_get_byte_order_str (kk_format_t *fmt)
 {
   const char *result = NULL;
 

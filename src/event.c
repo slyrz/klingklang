@@ -8,7 +8,7 @@
 #endif
 
 int
-kk_event_queue_init (kk_event_queue_t ** queue)
+kk_event_queue_init (kk_event_queue_t **queue)
 {
   kk_event_queue_t *result;
 
@@ -34,7 +34,7 @@ error:
 }
 
 int
-kk_event_queue_free (kk_event_queue_t * queue)
+kk_event_queue_free (kk_event_queue_t *queue)
 {
   if (queue == NULL)
     return 0;
@@ -48,7 +48,7 @@ kk_event_queue_free (kk_event_queue_t * queue)
 }
 
 int
-kk_event_queue_write (kk_event_queue_t * queue, void *ptr, size_t n)
+kk_event_queue_write (kk_event_queue_t *queue, void *ptr, size_t n)
 {
   kk_event_t event;
 
@@ -63,23 +63,23 @@ kk_event_queue_write (kk_event_queue_t * queue, void *ptr, size_t n)
 }
 
 int
-kk_event_queue_get_read_fd (kk_event_queue_t * queue)
+kk_event_queue_get_read_fd (kk_event_queue_t *queue)
 {
   return queue->fd[0];
 }
 
 int
-kk_event_queue_get_write_fd (kk_event_queue_t * queue)
+kk_event_queue_get_write_fd (kk_event_queue_t *queue)
 {
   return queue->fd[1];
 }
 
 int
-kk_event_loop_init (kk_event_loop_t ** loop, size_t cap)
+kk_event_loop_init (kk_event_loop_t **loop, size_t cap)
 {
   kk_event_loop_t *result;
 
-  result = calloc (1, sizeof (kk_event_loop_t) + cap * sizeof (kk_event_handler_t));
+  result = calloc (1, sizeof (kk_event_loop_t) + cap *sizeof (kk_event_handler_t));
   if (result == NULL)
     goto error;
 
@@ -94,14 +94,14 @@ error:
 }
 
 int
-kk_event_loop_free (kk_event_loop_t * loop)
+kk_event_loop_free (kk_event_loop_t *loop)
 {
   free (loop);
   return 0;
 }
 
 int
-kk_event_loop_exit (kk_event_loop_t * loop)
+kk_event_loop_exit (kk_event_loop_t *loop)
 {
   if (loop->running)
     loop->exit = 1;
@@ -109,7 +109,7 @@ kk_event_loop_exit (kk_event_loop_t * loop)
 }
 
 int
-kk_event_loop_add (kk_event_loop_t * loop, int fd, kk_event_func_f func, void *arg)
+kk_event_loop_add (kk_event_loop_t *loop, int fd, kk_event_func_f func, void *arg)
 {
   kk_event_handler_t *handler;
 
@@ -128,13 +128,13 @@ kk_event_loop_add (kk_event_loop_t * loop, int fd, kk_event_func_f func, void *a
 }
 
 /**
- * Note: With some older glibc versions (pre 2.16), the calls FD_SET and 
- * FD_ISSET will cause compiler warnings about conversions from int to 
- * unsigned long int conversions. There's nothing we can do about. This
- * was fixed in glibc 2.16.
+ *Note: With some older glibc versions (pre 2.16), the calls FD_SET and 
+ *FD_ISSET will cause compiler warnings about conversions from int to 
+ *unsigned long int conversions. There's nothing we can do about. This
+ *was fixed in glibc 2.16.
  */
 static inline int
-_kk_event_loop_dispatch (kk_event_loop_t * loop)
+_kk_event_loop_dispatch (kk_event_loop_t *loop)
 {
   kk_event_handler_t *handler;
   struct timeval tv;
@@ -161,7 +161,7 @@ _kk_event_loop_dispatch (kk_event_loop_t * loop)
 }
 
 int
-kk_event_loop_run (kk_event_loop_t * loop)
+kk_event_loop_run (kk_event_loop_t *loop)
 {
   int r;
 

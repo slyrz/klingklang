@@ -14,9 +14,9 @@ struct kk_frame_s {
   uint8_t *data[2];
 };
 
-int kk_frame_init (kk_frame_t ** frame);
-int kk_frame_free (kk_frame_t * frame);
+int kk_frame_init (kk_frame_t **frame);
+int kk_frame_free (kk_frame_t *frame);
 
-int kk_frame_interleave (kk_frame_t * restrict dst, kk_frame_t * restrict src, kk_format_t * fmt);
+int kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, kk_format_t *fmt);
 
 #endif

@@ -38,21 +38,21 @@ struct kk_player_item_s {
   kk_library_file_t *file;
 };
 
-int kk_player_queue_init (kk_player_queue_t ** queue);
-int kk_player_queue_free (kk_player_queue_t * queue);
-int kk_player_queue_clear (kk_player_queue_t * queue);
-int kk_player_queue_add (kk_player_queue_t * queue, kk_list_t * sel);
-int kk_player_queue_pop (kk_player_queue_t * queue, kk_player_item_t * dst);
-int kk_player_queue_is_empty (kk_player_queue_t * queue);
-int kk_player_queue_is_filled (kk_player_queue_t * queue);
+int kk_player_queue_init (kk_player_queue_t **queue);
+int kk_player_queue_free (kk_player_queue_t *queue);
+int kk_player_queue_clear (kk_player_queue_t *queue);
+int kk_player_queue_add (kk_player_queue_t *queue, kk_list_t *sel);
+int kk_player_queue_pop (kk_player_queue_t *queue, kk_player_item_t *dst);
+int kk_player_queue_is_empty (kk_player_queue_t *queue);
+int kk_player_queue_is_filled (kk_player_queue_t *queue);
 
-int kk_player_init (kk_player_t ** player);
-int kk_player_free (kk_player_t * player);
-int kk_player_start (kk_player_t * player);
-int kk_player_pause (kk_player_t * player);
-int kk_player_stop (kk_player_t * player);
-int kk_player_next (kk_player_t * player);
+int kk_player_init (kk_player_t **player);
+int kk_player_free (kk_player_t *player);
+int kk_player_start (kk_player_t *player);
+int kk_player_pause (kk_player_t *player);
+int kk_player_stop (kk_player_t *player);
+int kk_player_next (kk_player_t *player);
 
-int kk_player_get_event_fd (kk_player_t * player);
+int kk_player_get_event_fd (kk_player_t *player);
 
 #endif

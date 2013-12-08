@@ -27,14 +27,14 @@ struct kk_window_s {
   unsigned alive:1;
 };
 
-int kk_window_init (kk_window_t ** win, int width, int height);
-int kk_window_free (kk_window_t * win);
-int kk_window_show (kk_window_t * win);
-int kk_window_draw (kk_window_t * win);
+int kk_window_init (kk_window_t **win, int width, int height);
+int kk_window_free (kk_window_t *win);
+int kk_window_show (kk_window_t *win);
+int kk_window_draw (kk_window_t *win);
 
-int kk_window_get_input (kk_window_t * win);
-int kk_window_set_title (kk_window_t * win, const char *title);
+int kk_window_get_input (kk_window_t *win);
+int kk_window_set_title (kk_window_t *win, const char *title);
 
-int kk_window_get_event_fd (kk_window_t * win);
+int kk_window_get_event_fd (kk_window_t *win);
 
 #endif

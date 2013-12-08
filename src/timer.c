@@ -21,7 +21,7 @@ _kk_timer_fired (sigval_t val)
 }
 
 int
-kk_timer_init (kk_timer_t ** timer)
+kk_timer_init (kk_timer_t **timer)
 {
   kk_timer_t *result;
 
@@ -41,7 +41,7 @@ error:
 }
 
 int
-kk_timer_free (kk_timer_t * timer)
+kk_timer_free (kk_timer_t *timer)
 {
   if (timer == NULL)
     return 0;
@@ -65,12 +65,12 @@ kk_timer_free (kk_timer_t * timer)
 }
 
 int
-kk_timer_start (kk_timer_t * timer, int seconds)
+kk_timer_start (kk_timer_t *timer, int seconds)
 {
   struct sigevent sev;
   struct itimerspec its;
 
-  /* Muy  importante! */
+  /*Muy  importante! */
   memset (&sev, 0, sizeof (struct sigevent));
   memset (&its, 0, sizeof (struct itimerspec));
 
@@ -96,7 +96,7 @@ error:
 }
 
 int
-kk_timer_get_event_fd (kk_timer_t * timer)
+kk_timer_get_event_fd (kk_timer_t *timer)
 {
   return kk_event_queue_get_read_fd (timer->events);
 }

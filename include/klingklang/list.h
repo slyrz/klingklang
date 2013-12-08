@@ -4,10 +4,10 @@
 #include <klingklang/base.h>
 
 /**
- * Pass to kk_list_sort to compare list items. Return a value
- *    = 0 if items are equal
- *    < 0 if first item < second item
- *    > 0 if first item > second item
+ *Pass to kk_list_sort to compare list items. Return a value
+ * = 0 if items are equal
+ * < 0 if first item < second item
+ * > 0 if first item > second item
  */
 typedef int (*kk_list_cmp_f) (const void *, const void *);
 
@@ -19,13 +19,13 @@ struct kk_list_s {
   void **items;
 };
 
-int kk_list_init (kk_list_t ** list);
-int kk_list_free (kk_list_t * list);
+int kk_list_init (kk_list_t **list);
+int kk_list_free (kk_list_t *list);
 
-int kk_list_is_empty (kk_list_t * list);
-int kk_list_is_filled (kk_list_t * list);
+int kk_list_is_empty (kk_list_t *list);
+int kk_list_is_filled (kk_list_t *list);
 
-int kk_list_append (kk_list_t * list, void *item);
-int kk_list_sort (kk_list_t * list, kk_list_cmp_f cmp);
+int kk_list_append (kk_list_t *list, void *item);
+int kk_list_sort (kk_list_t *list, kk_list_cmp_f cmp);
 
 #endif

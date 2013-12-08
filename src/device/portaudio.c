@@ -12,11 +12,11 @@ struct kk_device_portaudio_s {
   PaStream *handle;
 };
 
-int kk_device_portaudio_init (kk_device_t * dev_base);
-int kk_device_portaudio_free (kk_device_t * dev_base);
-int kk_device_portaudio_drop (kk_device_t * dev_base);
-int kk_device_portaudio_setup (kk_device_t * dev_base, kk_format_t * format);
-int kk_device_portaudio_write (kk_device_t * dev_base, kk_frame_t * frame);
+int kk_device_portaudio_init (kk_device_t *dev_base);
+int kk_device_portaudio_free (kk_device_t *dev_base);
+int kk_device_portaudio_drop (kk_device_t *dev_base);
+int kk_device_portaudio_setup (kk_device_t *dev_base, kk_format_t *format);
+int kk_device_portaudio_write (kk_device_t *dev_base, kk_frame_t *frame);
 
 const kk_device_backend_t kk_device_backend = {
   .size = sizeof (kk_device_portaudio_t),
@@ -28,7 +28,7 @@ const kk_device_backend_t kk_device_backend = {
 };
 
 int
-kk_device_portaudio_init (kk_device_t * dev_base)
+kk_device_portaudio_init (kk_device_t *dev_base)
 {
   (void) dev_base;
 
@@ -38,7 +38,7 @@ kk_device_portaudio_init (kk_device_t * dev_base)
 }
 
 int
-kk_device_portaudio_free (kk_device_t * dev_base)
+kk_device_portaudio_free (kk_device_t *dev_base)
 {
   kk_device_portaudio_t *dev_impl = (kk_device_portaudio_t *) dev_base;
   PaError status;
@@ -57,7 +57,7 @@ kk_device_portaudio_free (kk_device_t * dev_base)
 }
 
 int
-kk_device_portaudio_drop (kk_device_t * dev_base)
+kk_device_portaudio_drop (kk_device_t *dev_base)
 {
   kk_device_portaudio_t *dev_impl = (kk_device_portaudio_t *) dev_base;
 
@@ -71,7 +71,7 @@ kk_device_portaudio_drop (kk_device_t * dev_base)
 }
 
 int
-kk_device_portaudio_setup (kk_device_t * dev_base, kk_format_t * format)
+kk_device_portaudio_setup (kk_device_t *dev_base, kk_format_t *format)
 {
   kk_device_portaudio_t *dev_impl = (kk_device_portaudio_t *) dev_base;
 
@@ -104,7 +104,7 @@ kk_device_portaudio_setup (kk_device_t * dev_base, kk_format_t * format)
     sample_format = paFloat32;
   }
   else {
-    /* It's an integer type */
+    /*It's an integer type */
     switch (format->bits) {
       case KK_BITS_8:
         sample_format = (format->type == KK_TYPE_SINT) ? paInt8 : paUInt8;
@@ -159,7 +159,7 @@ kk_device_portaudio_setup (kk_device_t * dev_base, kk_format_t * format)
 }
 
 int
-kk_device_portaudio_write (kk_device_t * dev_base, kk_frame_t * frame)
+kk_device_portaudio_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
   kk_device_portaudio_t *dev_impl = (kk_device_portaudio_t *) dev_base;
   PaError status = paNoError;

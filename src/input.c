@@ -3,10 +3,10 @@
 #include <klingklang/util.h>
 
 /**
- * Currently no plans to use any other decoders besides libav, so this isn't
- * as modular as the device interface. Also you aren't supposed to access
- * the fields of kk_input_t structs outside of this file, that's why the 
- * header doesn't contain the definition of struct kk_input_s.
+ *Currently no plans to use any other decoders besides libav, so this isn't
+ *as modular as the device interface. Also you aren't supposed to access
+ *the fields of kk_input_t structs outside of this file, that's why the 
+ *header doesn't contain the definition of struct kk_input_s.
  */
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -25,7 +25,7 @@ struct kk_input_s {
 };
 
 int
-kk_input_init (kk_input_t ** inp, const char *filename)
+kk_input_init (kk_input_t **inp, const char *filename)
 {
   kk_input_t *result;
 
@@ -58,8 +58,8 @@ kk_input_init (kk_input_t ** inp, const char *filename)
     goto error;
 
   /**
-   * We want to use these as unsigned values, therefore check if we can 
-   * convert them without changing signedness 
+   *We want to use these as unsigned values, therefore check if we can 
+   *convert them without changing signedness 
    */
   if (result->cctx->channels < 0)
     goto error;
@@ -70,7 +70,7 @@ kk_input_init (kk_input_t ** inp, const char *filename)
   result->time_div = (float) result->fctx->streams[result->sidx]->time_base.den;
   result->time_div *= (float) result->fctx->streams[result->sidx]->time_base.num;
   result->time_div *= (float) result->fctx->duration / AV_TIME_BASE;
-  /* result->time_div *= (float)(result->fctx->duration + 5000) / AV_TIME_BASE; */
+  /*result->time_div *= (float)(result->fctx->duration + 5000) / AV_TIME_BASE; */
 
   *inp = result;
   return 0;
@@ -81,7 +81,7 @@ error:
 }
 
 int
-kk_input_free (kk_input_t * inp)
+kk_input_free (kk_input_t *inp)
 {
   if (inp == NULL)
     return 0;
@@ -100,7 +100,7 @@ kk_input_free (kk_input_t * inp)
 }
 
 int
-kk_input_get_frame (kk_input_t * inp, kk_frame_t * frame)
+kk_input_get_frame (kk_input_t *inp, kk_frame_t *frame)
 {
   AVPacket packet;
   int ret = 0;
@@ -110,10 +110,10 @@ kk_input_get_frame (kk_input_t * inp, kk_frame_t * frame)
   memset (frame, 0, sizeof (kk_frame_t));
 
   /**
-   * What happens here? A loop reads packages until either av_read_frame
-   * returns a value less than zero or a package from the audio stream was
-   * read. Since every av_read_frame() call requires an av_free_packet()
-   * call, we have to free all the packages we aren't interested in.
+   *What happens here? A loop reads packages until either av_read_frame
+   *returns a value less than zero or a package from the audio stream was
+   *read. Since every av_read_frame() call requires an av_free_packet()
+   *call, we have to free all the packages we aren't interested in.
    */
   for (;;) {
     ret = av_read_frame (inp->fctx, &packet);
@@ -154,14 +154,14 @@ kk_input_get_frame (kk_input_t * inp, kk_frame_t * frame)
 
   if (av_sample_fmt_is_planar (inp->cctx->sample_fmt)) {
     frame->planes = (size_t) inp->cctx->channels;
-    frame->size = (size_t) ls * frame->planes;
+    frame->size = (size_t) ls *frame->planes;
   }
   else {
     frame->planes = 1;
     frame->size = (size_t) ls;
   }
 
-  /* Intendet fallthroughs, not a bug */
+  /*Intendet fallthroughs, not a bug */
   switch (frame->planes) {
     case 2:
       frame->data[1] = inp->frame->extended_data[1];
@@ -184,7 +184,7 @@ cleanup:
 }
 
 int
-kk_input_get_format (kk_input_t * inp, kk_format_t * format)
+kk_input_get_format (kk_input_t *inp, kk_format_t *format)
 {
   switch (inp->cctx->channels) {
     case 1:

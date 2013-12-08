@@ -3,7 +3,7 @@
 extern const kk_device_backend_t kk_device_backend;
 
 int
-kk_device_init (kk_device_t ** dev)
+kk_device_init (kk_device_t **dev)
 {
   kk_device_t *result;
 
@@ -26,7 +26,7 @@ error:
 }
 
 int
-kk_device_free (kk_device_t * dev)
+kk_device_free (kk_device_t *dev)
 {
   if (dev == NULL)
     return 0;
@@ -40,7 +40,7 @@ kk_device_free (kk_device_t * dev)
 }
 
 int
-kk_device_drop (kk_device_t * dev)
+kk_device_drop (kk_device_t *dev)
 {
   int ret;
 
@@ -51,7 +51,7 @@ kk_device_drop (kk_device_t * dev)
 }
 
 int
-kk_device_setup (kk_device_t * dev, kk_format_t * format)
+kk_device_setup (kk_device_t *dev, kk_format_t *format)
 {
   int ret;
 
@@ -64,7 +64,7 @@ kk_device_setup (kk_device_t * dev, kk_format_t * format)
 }
 
 int
-kk_device_write (kk_device_t * dev, kk_frame_t * frame)
+kk_device_write (kk_device_t *dev, kk_frame_t *frame)
 {
   int ret;
 

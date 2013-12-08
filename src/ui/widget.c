@@ -1,9 +1,9 @@
 #include <klingklang/ui/widget.h>
 
 int 
-kk_widget_init (kk_widget_t ** widget, size_t size, kk_widget_draw_f draw)
+kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
 {
-  kk_widget_t * result;
+  kk_widget_t *result;
 
   if (size < sizeof (kk_widget_t))
     goto error;
@@ -27,14 +27,14 @@ error:
 }
 
 int
-kk_widget_free (kk_widget_t * widget)
+kk_widget_free (kk_widget_t *widget)
 {
   kk_list_free (widget->children);
   return 0;
 }
 
 int
-kk_widget_draw (kk_widget_t * widget, cairo_t * ctx)
+kk_widget_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   size_t i;
 
@@ -50,7 +50,7 @@ kk_widget_draw (kk_widget_t * widget, cairo_t * ctx)
 }
 
 int 
-kk_widget_invalidate (kk_widget_t * widget)
+kk_widget_invalidate (kk_widget_t *widget)
 {
   size_t i;
 
@@ -62,7 +62,7 @@ kk_widget_invalidate (kk_widget_t * widget)
 }
 
 int
-kk_widget_set_position (kk_widget_t * widget, int x, int y)
+kk_widget_set_position (kk_widget_t *widget, int x, int y)
 {
   if ((widget->x != x) | (widget->y != y))
     widget->resized = 1;
@@ -73,7 +73,7 @@ kk_widget_set_position (kk_widget_t * widget, int x, int y)
 }
 
 int
-kk_widget_set_size (kk_widget_t * widget, int width, int height)
+kk_widget_set_size (kk_widget_t *widget, int width, int height)
 {
   if ((widget->width != width) | (widget->height != height))
     widget->resized = 1;
@@ -84,7 +84,7 @@ kk_widget_set_size (kk_widget_t * widget, int width, int height)
 }
 
 int
-kk_widget_add_child (kk_widget_t * widget, kk_widget_t * child)
+kk_widget_add_child (kk_widget_t *widget, kk_widget_t *child)
 {
   return kk_list_append (widget->children, child);
 }

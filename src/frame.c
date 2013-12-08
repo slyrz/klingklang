@@ -2,7 +2,7 @@
 #include <klingklang/util.h>
 
 int
-kk_frame_init (kk_frame_t ** frame)
+kk_frame_init (kk_frame_t **frame)
 {
   kk_frame_t *result;
 
@@ -18,7 +18,7 @@ error:
 }
 
 int
-kk_frame_free (kk_frame_t * frame)
+kk_frame_free (kk_frame_t *frame)
 {
   size_t i;
 
@@ -32,7 +32,7 @@ kk_frame_free (kk_frame_t * frame)
 }
 
 static int
-_kk_frame_realloc (kk_frame_t * frame, size_t planes, size_t size)
+_kk_frame_realloc (kk_frame_t *frame, size_t planes, size_t size)
 {
   size_t i;
 
@@ -53,7 +53,7 @@ _kk_frame_realloc (kk_frame_t * frame, size_t planes, size_t size)
 }
 
 static inline void
-_kk_frame_interleave (kk_frame_t * restrict dst, kk_frame_t * restrict src, size_t byte)
+_kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, size_t byte)
 {
   register uint8_t *restrict ilp = dst->data[0];
   register uint8_t *restrict pla = src->data[0];
@@ -62,7 +62,7 @@ _kk_frame_interleave (kk_frame_t * restrict dst, kk_frame_t * restrict src, size
   size_t i;
   size_t j;
 
-  for (i = 0; i < (src->size / (2 * byte)); i++) {
+  for (i = 0; i < (src->size / (2 *byte)); i++) {
     for (j = 0; j < byte; j++)
       *ilp++ = *pla++;
 
@@ -72,7 +72,7 @@ _kk_frame_interleave (kk_frame_t * restrict dst, kk_frame_t * restrict src, size
 }
 
 int
-kk_frame_interleave (kk_frame_t * restrict dst, kk_frame_t * restrict src, kk_format_t * fmt)
+kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, kk_format_t *fmt)
 {
   if ((src->size > dst->size) | (dst->planes != 1))
     if (_kk_frame_realloc (dst, 1, src->size) != 0)

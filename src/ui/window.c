@@ -17,7 +17,7 @@
 #define KK_WINDOW_MAX_PROPERTY_LEN      0xffu
 
 static xcb_atom_t
-_kk_window_get_atom (kk_window_t * win, const char *name)
+_kk_window_get_atom (kk_window_t *win, const char *name)
 {
   xcb_intern_atom_cookie_t cookie;
   xcb_intern_atom_reply_t *reply;
@@ -45,7 +45,7 @@ _kk_window_get_atom (kk_window_t * win, const char *name)
 }
 
 static int
-_kk_window_get_property (kk_window_t * win, xcb_atom_t property, char **dst)
+_kk_window_get_property (kk_window_t *win, xcb_atom_t property, char **dst)
 {
   xcb_get_property_cookie_t cookie;
   xcb_get_property_reply_t *reply = NULL;
@@ -66,8 +66,8 @@ _kk_window_get_property (kk_window_t * win, xcb_atom_t property, char **dst)
     goto error;
 
   /**
-   * Copy property value into buffer. We can't use strl{cat,cpy} here 
-   * because the property value isn't null-terminated.
+   *Copy property value into buffer. We can't use strl{cat,cpy} here 
+   *because the property value isn't null-terminated.
    */
   {
     register char *out;
@@ -93,7 +93,7 @@ error:
 }
 
 static int
-_kk_window_get_xid_str (kk_window_t * win, char *dst, size_t n)
+_kk_window_get_xid_str (kk_window_t *win, char *dst, size_t n)
 {
   int ret;
 
@@ -107,7 +107,7 @@ _kk_window_get_xid_str (kk_window_t * win, char *dst, size_t n)
 }
 
 static xcb_visualtype_t *
-_kk_window_get_visual_type (kk_window_t * win)
+_kk_window_get_visual_type (kk_window_t *win)
 {
   xcb_visualtype_t *visual_type;
   xcb_depth_iterator_t depth_iter;
@@ -128,7 +128,7 @@ _kk_window_get_visual_type (kk_window_t * win)
 }
 
 static void
-_kk_window_event_key_press (kk_window_t * window, int modifier, int key)
+_kk_window_event_key_press (kk_window_t *window, int modifier, int key)
 {
   kk_window_event_key_press_t event;
 
@@ -140,7 +140,7 @@ _kk_window_event_key_press (kk_window_t * window, int modifier, int key)
 }
 
 static void
-_kk_window_event_expose (kk_window_t * window, int width, int height)
+_kk_window_event_expose (kk_window_t *window, int width, int height)
 {
   kk_window_event_expose_t event;
 
@@ -152,7 +152,7 @@ _kk_window_event_expose (kk_window_t * window, int width, int height)
 }
 
 static void
-_kk_window_event_close (kk_window_t * window)
+_kk_window_event_close (kk_window_t *window)
 {
   kk_window_event_close_t event;
 
@@ -162,7 +162,7 @@ _kk_window_event_close (kk_window_t * window)
 }
 
 static void
-_kk_window_event_input (kk_window_t * window, char *text)
+_kk_window_event_input (kk_window_t *window, char *text)
 {
   kk_window_event_input_t event;
 
@@ -173,7 +173,7 @@ _kk_window_event_input (kk_window_t * window, char *text)
 }
 
 static void
-_kk_window_event_resize (kk_window_t * window, int width, int height)
+_kk_window_event_resize (kk_window_t *window, int width, int height)
 {
   kk_window_event_resize_t event;
 
@@ -185,13 +185,13 @@ _kk_window_event_resize (kk_window_t * window, int width, int height)
 }
 
 static void
-_kk_window_handle_configure_notify_event (kk_window_t * win, xcb_configure_notify_event_t * event)
+_kk_window_handle_configure_notify_event (kk_window_t *win, xcb_configure_notify_event_t *event)
 {
   _kk_window_event_resize (win, event->width, event->height);
 }
 
 static void
-_kk_window_handle_expose_event (kk_window_t * win, xcb_expose_event_t * event)
+_kk_window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
 {
   (void) event;
 
@@ -200,14 +200,14 @@ _kk_window_handle_expose_event (kk_window_t * win, xcb_expose_event_t * event)
 }
 
 static void
-_kk_window_handle_key_press_event (kk_window_t * win, xcb_key_press_event_t * event)
+_kk_window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
 {
   xcb_keysym_t sym = xcb_key_symbols_get_keysym (win->syms, event->detail, 0);
   _kk_window_event_key_press (win, event->state, (int) sym);
 }
 
 static void
-_kk_window_handle_property_notify_event (kk_window_t * win, xcb_property_notify_event_t * event)
+_kk_window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_event_t *event)
 {
   static char *value;
 
@@ -223,13 +223,13 @@ _kk_window_handle_property_notify_event (kk_window_t * win, xcb_property_notify_
 }
 
 static void
-_kk_window_handle_mapping_notify_event (kk_window_t * win, xcb_mapping_notify_event_t * event)
+_kk_window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_event_t *event)
 {
   xcb_refresh_keyboard_mapping (win->syms, event);
 }
 
 static void *
-_kk_window_event_handler (kk_window_t * win)
+_kk_window_event_handler (kk_window_t *win)
 {
   xcb_generic_event_t *event;
 
@@ -267,7 +267,7 @@ _kk_window_event_handler (kk_window_t * win)
 }
 
 int
-kk_window_init (kk_window_t ** win, int width, int height)
+kk_window_init (kk_window_t **win, int width, int height)
 {
   kk_window_t *result;
 
@@ -304,7 +304,7 @@ error:
 }
 
 int
-kk_window_free (kk_window_t * win)
+kk_window_free (kk_window_t *win)
 {
   if (win == NULL)
     return 0;
@@ -331,12 +331,12 @@ kk_window_free (kk_window_t * win)
     xcb_destroy_window (win->conn, win->win);
 
   /**
-   * Disconnecting causes a memory leak if the connection had an error,
-   * but there's nothing we can do about it. The function xcb_disconnect doesn't
-   * do anything if the has_error flag of the xcb_connection_t struct is true. 
-   * However, we can't set this field to false since xcb.h exports xcb_connection_t 
-   * as opaque struct.
-   * And besides ruining our valgrind reports, it really doesn't affect us.
+   *Disconnecting causes a memory leak if the connection had an error,
+   *but there's nothing we can do about it. The function xcb_disconnect doesn't
+   *do anything if the has_error flag of the xcb_connection_t struct is true. 
+   *However, we can't set this field to false since xcb.h exports xcb_connection_t 
+   *as opaque struct.
+   *And besides ruining our valgrind reports, it really doesn't affect us.
    */
   if (win->conn)
     xcb_disconnect (win->conn);
@@ -349,7 +349,7 @@ kk_window_free (kk_window_t * win)
 }
 
 int
-kk_window_set_title (kk_window_t * win, const char *title)
+kk_window_set_title (kk_window_t *win, const char *title)
 {
   size_t len;
 
@@ -367,7 +367,7 @@ kk_window_set_title (kk_window_t * win, const char *title)
 
 /*
 int 
-kk_window_set_draw_function (kk_window_t * win, kk_window_draw_f draw, void *arg)
+kk_window_set_draw_function (kk_window_t *win, kk_window_draw_f draw, void *arg)
 {
   win->draw = draw;
   win->arg = arg;
@@ -376,7 +376,7 @@ kk_window_set_draw_function (kk_window_t * win, kk_window_draw_f draw, void *arg
 */
 
 int
-kk_window_show (kk_window_t * win)
+kk_window_show (kk_window_t *win)
 {
   xcb_visualtype_t *visual_type;
   uint32_t value_mask;
@@ -414,9 +414,9 @@ kk_window_show (kk_window_t * win)
       value_list);
 
   /**
-   * The following code allows us to receive a XCB_CLIENT_MESSAGE
-   * event when the window get's closed. This allows us to shut down
-   * the xcb session gracefully. 
+   *The following code allows us to receive a XCB_CLIENT_MESSAGE
+   *event when the window get's closed. This allows us to shut down
+   *the xcb session gracefully. 
    */
   xcb_atom_t del = _kk_window_get_atom (win, "WM_DELETE_WINDOW");
   xcb_atom_t prt = _kk_window_get_atom (win, "WM_PROTOCOLS");
@@ -442,7 +442,7 @@ kk_window_show (kk_window_t * win)
 }
 
 int
-kk_window_draw (kk_window_t * win)
+kk_window_draw (kk_window_t *win)
 {
   if (win->resized)
     cairo_xcb_surface_set_size (win->srf, win->width, win->height);
@@ -452,7 +452,7 @@ kk_window_draw (kk_window_t * win)
 }
 
 int
-kk_window_get_input (kk_window_t * win)
+kk_window_get_input (kk_window_t *win)
 {
   static char xid[32];
 
@@ -480,7 +480,7 @@ kk_window_get_input (kk_window_t * win)
 }
 
 int
-kk_window_get_event_fd (kk_window_t * win)
+kk_window_get_event_fd (kk_window_t *win)
 {
   return kk_event_queue_get_read_fd (win->events);
 }

@@ -17,8 +17,8 @@ typedef enum kk_layout_e kk_layout_t;
 typedef enum kk_type_e kk_type_t;
 
 /**
- * Important Note: Adding, removing or rearranging enum members will most 
- * likely fuck shit up. What I'm trying to say is: don't touch this.
+ *Important Note: Adding, removing or rearranging enum members will most 
+ *likely fuck shit up. What I'm trying to say is: don't touch this.
  */
 enum kk_bits_e {
   KK_BITS_8,
@@ -58,13 +58,13 @@ struct kk_format_s {
   unsigned int sample_rate;
 };
 
-int kk_format_get_channels (kk_format_t * fmt);
-int kk_format_get_bits (kk_format_t * fmt);
+int kk_format_get_channels (kk_format_t *fmt);
+int kk_format_get_bits (kk_format_t *fmt);
 
-const char *kk_format_get_type_str (kk_format_t * fmt);
-const char *kk_format_get_layout_str (kk_format_t * fmt);
-const char *kk_format_get_byte_order_str (kk_format_t * fmt);
+const char *kk_format_get_type_str (kk_format_t *fmt);
+const char *kk_format_get_layout_str (kk_format_t *fmt);
+const char *kk_format_get_byte_order_str (kk_format_t *fmt);
 
-void kk_format_print (kk_format_t * fmt);
+void kk_format_print (kk_format_t *fmt);
 
 #endif

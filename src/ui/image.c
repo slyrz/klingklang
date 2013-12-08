@@ -1,11 +1,11 @@
 /**
- * This file incorporates modified versions of work covered by the 
- * following copyright and permission notice:
+ *This file incorporates modified versions of work covered by the 
+ *following copyright and permission notice:
  *
- * kk_image_blur
- * -------------
- * Copyright (c) 2010 Mattias Fagerlund
- * http://lotsacode.wordpress.com/2010/12/08/fast-blur-box-blur-with-accumulator/
+ *kk_image_blur
+ *-------------
+ *Copyright (c) 2010 Mattias Fagerlund
+ *http://lotsacode.wordpress.com/2010/12/08/fast-blur-box-blur-with-accumulator/
  */
 #include <klingklang/base.h>
 #include <klingklang/ui/image.h>
@@ -32,8 +32,8 @@
   ((((r) & 0xff) << 16) | (((g) & 0xff) << 8) | ((b) & 0xff))
 
 /**
- * libavutil versions >= 51.42.0
- * Renamed PixelFormat to AVPixelFormat and all PIX_FMT_* to AV_PIX_FMT_*.
+ *libavutil versions >= 51.42.0
+ *Renamed PixelFormat to AVPixelFormat and all PIX_FMT_*to AV_PIX_FMT_*.
  */
 #if !((LIBAVUTIL_VERSION_MAJOR >= 51) && (LIBAVUTIL_VERSION_MINOR >= 42))
 #  define AVPixelFormat PixelFormat
@@ -41,9 +41,9 @@
 #endif
 
 /**
- * libavcodec versions >= 54.28.0: 
- * Introduced avcodec_free_frame() function which must now be used for freeing an 
- * AVFrame. 
+ *libavcodec versions >= 54.28.0: 
+ *Introduced avcodec_free_frame() function which must now be used for freeing an 
+ *AVFrame. 
  */
 #if !((LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 28))
 #  define avcodec_free_frame(x) av_free(*(x)) 
@@ -52,7 +52,7 @@
 extern int libav_initialized;
 
 static int
-kk_image_surface_load_nativ (kk_image_t * img, const char *path)
+kk_image_surface_load_nativ (kk_image_t *img, const char *path)
 {
   img->surface = cairo_image_surface_create_from_png (path);
   if (cairo_surface_status (img->surface) != CAIRO_STATUS_SUCCESS)
@@ -61,7 +61,7 @@ kk_image_surface_load_nativ (kk_image_t * img, const char *path)
 }
 
 static int
-kk_image_surface_decode (kk_image_t * img, AVFormatContext *fctx, AVCodecContext * cctx, int stream_index)
+kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext *cctx, int stream_index)
 {
   const int w = cctx->width;
   const int h = cctx->height;
@@ -70,7 +70,7 @@ kk_image_surface_decode (kk_image_t * img, AVFormatContext *fctx, AVCodecContext
   const enum AVPixelFormat pixfmt = AV_PIX_FMT_RGB24;
 
   const size_t buffer_size = (size_t) avpicture_get_size (pixfmt, w, h);
-  const size_t image_size = (size_t)w * (size_t)h;
+  const size_t image_size = (size_t)w *(size_t)h;
 
   struct SwsContext *sctx = NULL;
   AVFrame *iframe = NULL;
@@ -91,10 +91,10 @@ kk_image_surface_decode (kk_image_t * img, AVFormatContext *fctx, AVCodecContext
   if ((iframe == NULL) || (oframe == NULL))
     goto error;
 
-  /** 
-   * Somehow the function swscale() performs an invalid write of size 1 at the 
-   * end of this buffer. I'm not sure why but adding additional 4 Bytes makes 
-   * sure this does no harm.
+  /**
+   *Somehow the function swscale() performs an invalid write of size 1 at the 
+   *end of this buffer. I'm not sure why but adding additional 4 Bytes makes 
+   *sure this does no harm.
    */
   buffer = calloc (buffer_size + 4, sizeof (uint8_t));
   if (buffer == NULL)
@@ -115,25 +115,25 @@ kk_image_surface_decode (kk_image_t * img, AVFormatContext *fctx, AVCodecContext
     goto error;
 
   /**
-   * We read a frame. Now we use libswscale to convert the pixel format
-   * to rgb24, because cairo won't like our frame's pixel format.
+   *We read a frame. Now we use libswscale to convert the pixel format
+   *to rgb24, because cairo won't like our frame's pixel format.
    */
   sctx = sws_getContext (w, h, cctx->pix_fmt, w, h, pixfmt, SWS_FAST_BILINEAR, NULL, NULL, NULL);
   if (sctx == NULL)
     goto error;
 
-  sws_scale (sctx, (const uint8_t * const *) iframe->data, iframe->linesize, 0, h, oframe->data, oframe->linesize);
+  sws_scale (sctx, (const uint8_t *const *) iframe->data, iframe->linesize, 0, h, oframe->data, oframe->linesize);
 
   cdata = calloc (image_size, sizeof (uint32_t));
   fdata = oframe->data[0];
 
   /**
-   * Okay, so libavcodec / libswscale uses 3 bytes to store a pixel of 
-   * rgb24 format, but cairo uses 4. That's why we have to create another 
+   *Okay, so libavcodec / libswscale uses 3 bytes to store a pixel of 
+   *rgb24 format, but cairo uses 4. That's why we have to create another 
    ' buffer for our cairo surface and transform the RGBRGBRGB... data
-   * into RGB_RGB_RGB_...
+   *into RGB_RGB_RGB_...
    */
-  for (i = j = 0; i < (cctx->width * cctx->height); i++, j += 3)
+  for (i = j = 0; i < (cctx->width *cctx->height); i++, j += 3)
     cdata[i] = ((fdata[j] & 0xffu) << 16) | ((fdata[j + 1] & 0xffu) << 8) | (fdata[j + 2] & 0xffu);
 
   img->surface = cairo_image_surface_create_for_data ((unsigned char*)cdata, CAIRO_FORMAT_RGB24, w, h, s);
@@ -159,7 +159,7 @@ error:
 }
 
 static int
-kk_image_surface_load_other (kk_image_t * img, const char *path)
+kk_image_surface_load_other (kk_image_t *img, const char *path)
 {
   AVCodecContext *cctx = NULL;
   AVFormatContext *fctx = NULL;
@@ -180,7 +180,7 @@ kk_image_surface_load_other (kk_image_t * img, const char *path)
 
   ifmt = av_find_input_format (ofmt->name);
   if (ifmt == NULL) {
-    /* One last chance: we can open gif with image2. Let's try that... */
+    /*One last chance: we can open gif with image2. Let's try that... */
     if (strncmp (ofmt->name, "gif", 3) == 0)
       ifmt = av_find_input_format ("image2");
     if (ifmt == NULL)
@@ -223,9 +223,9 @@ error:
 }
 
 static int
-kk_image_surface_load (kk_image_t * img, const char *path)
+kk_image_surface_load (kk_image_t *img, const char *path)
 {
-  char *ext = strrchr (path, '.');      /* No need to error check */
+  char *ext = strrchr (path, '.');      /*No need to error check */
 
   if (strcmp (ext, ".png") == 0)
     return kk_image_surface_load_nativ (img, path);
@@ -234,7 +234,7 @@ kk_image_surface_load (kk_image_t * img, const char *path)
 }
 
 int
-kk_image_init (kk_image_t ** img, const char *path)
+kk_image_init (kk_image_t **img, const char *path)
 {
   kk_image_t *result;
 
@@ -257,7 +257,7 @@ error:
 }
 
 int
-kk_image_free (kk_image_t * img)
+kk_image_free (kk_image_t *img)
 {
   if (img == NULL)
     return 0;
@@ -272,11 +272,11 @@ kk_image_free (kk_image_t * img)
 }
 
 int
-kk_image_blur (kk_image_t * img, double intensity)
+kk_image_blur (kk_image_t *img, double intensity)
 {
-  const int hr = (int)(intensity * (double) img->width) / 2;
-  const int opo = -(hr + 1) * img->width;
-  const int npo = hr * img->width;
+  const int hr = (int)(intensity *(double) img->width) / 2;
+  const int opo = -(hr + 1) *img->width;
+  const int npo = hr *img->width;
 
   int x;
   int y;
@@ -329,7 +329,7 @@ kk_image_blur (kk_image_t * img, double intensity)
     int g = 0;
     int b = 0;
 
-    i = -hr * img->width + x;
+    i = -hr *img->width + x;
 
     for (y = -hr; y < img->height; y++) {
       int op = y - hr - 1;
@@ -352,7 +352,7 @@ kk_image_blur (kk_image_t * img, double intensity)
     }
 
     for (y = 0; y < img->height; y++)
-      pixels[y * img->width + x] = colors[y];
+      pixels[y *img->width + x] = colors[y];
   }
 
   free (colors);

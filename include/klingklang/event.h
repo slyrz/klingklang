@@ -42,16 +42,16 @@ struct kk_event_loop_s {
   kk_event_handler_t handler[];
 };
 
-int kk_event_queue_init (kk_event_queue_t ** queue);
-int kk_event_queue_free (kk_event_queue_t * queue);
-int kk_event_queue_write (kk_event_queue_t * queue, void *ptr, size_t n);
-int kk_event_queue_get_read_fd (kk_event_queue_t * queue);
-int kk_event_queue_get_write_fd (kk_event_queue_t * queue);
+int kk_event_queue_init (kk_event_queue_t **queue);
+int kk_event_queue_free (kk_event_queue_t *queue);
+int kk_event_queue_write (kk_event_queue_t *queue, void *ptr, size_t n);
+int kk_event_queue_get_read_fd (kk_event_queue_t *queue);
+int kk_event_queue_get_write_fd (kk_event_queue_t *queue);
 
-int kk_event_loop_init (kk_event_loop_t ** loop, size_t cap);
-int kk_event_loop_free (kk_event_loop_t * loop);
-int kk_event_loop_exit (kk_event_loop_t * loop);
-int kk_event_loop_add (kk_event_loop_t * loop, int fd, kk_event_func_f func, void *arg);
-int kk_event_loop_run (kk_event_loop_t * loop);
+int kk_event_loop_init (kk_event_loop_t **loop, size_t cap);
+int kk_event_loop_free (kk_event_loop_t *loop);
+int kk_event_loop_exit (kk_event_loop_t *loop);
+int kk_event_loop_add (kk_event_loop_t *loop, int fd, kk_event_func_f func, void *arg);
+int kk_event_loop_run (kk_event_loop_t *loop);
 
 #endif

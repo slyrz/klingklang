@@ -11,8 +11,8 @@ struct kk_progressbar_s {
   double progress;
 };
 
-int kk_progressbar_init (kk_progressbar_t ** progressbar);
-int kk_progressbar_free (kk_progressbar_t * progressbar);
-int kk_progressbar_set_value (kk_progressbar_t * progressbar, double value);
+int kk_progressbar_init (kk_progressbar_t **progressbar);
+int kk_progressbar_free (kk_progressbar_t *progressbar);
+int kk_progressbar_set_value (kk_progressbar_t *progressbar, double value);
 
 #endif
