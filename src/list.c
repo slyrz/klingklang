@@ -5,11 +5,11 @@ static int _kk_list_compare (const void *a, const void *b, void *arg);
 static int _kk_list_enlarge (kk_list_t *list);
 
 /**
- *kk_list_t stores void*pointers. Calling qsort,
- *we receive pointers to those pointers in this function. Function parameters
- *are declared void*to not break the qsort compare function prototype. 
- *So we cast them to void**, dereference them and cast them to
- *actual void*pointers and call the user-defined compare function.
+ * kk_list_t stores void*pointers. Calling qsort,
+ * we receive pointers to those pointers in this function. Function parameters
+ * are declared void*to not break the qsort compare function prototype. 
+ * So we cast them to void**, dereference them and cast them to
+ * actual void*pointers and call the user-defined compare function.
  */
 static int
 _kk_list_compare (const void *a, const void *b, void *arg)
@@ -22,7 +22,7 @@ _kk_list_enlarge (kk_list_t *list)
 {
   const size_t cap = kk_get_next_pow2 (list->cap);
 
-  /*Sanity check ... who needs 32k list items? */
+  /* Sanity check ... who needs 32k list items? */
   if (cap > 0x8000)
     return -1;
 

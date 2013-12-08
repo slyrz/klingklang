@@ -70,7 +70,7 @@ kk_timer_start (kk_timer_t *timer, int seconds)
   struct sigevent sev;
   struct itimerspec its;
 
-  /*Muy  importante! */
+  /* Muy  importante! */
   memset (&sev, 0, sizeof (struct sigevent));
   memset (&its, 0, sizeof (struct itimerspec));
 

@@ -1,44 +1,44 @@
 /**
- *This file incorporates modified versions of work covered by the 
- *following copyright and permission notice:
- *
- *digit_count, digit_compare, kk_str_natcmp
- *-----------------------------------------
- *Copyright (c) 2011 Jan Varho <jan at varho dot org>
- *
- *Permission is hereby granted, free of charge, to any person obtaining a copy
- *of this software and associated documentation files (the "Software"), to deal
- *in the Software without restriction, including without limitation the rights
- *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *copies of the Software, and to permit persons to whom the Software is
- *furnished to do so, subject to the following conditions:
- *
- *The above copyright notice and this permission notice shall be included in
- *all copies or substantial portions of the Software.
- *
- *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *THE SOFTWARE.
- *
- *strlcpy, strlcat
- *----------------
- *Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
- *
- *Permission to use, copy, modify, and distribute this software for any
- *purpose with or without fee is hereby granted, provided that the above
- *copyright notice and this permission notice appear in all copies.
- *
- *THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * This file incorporates modified versions of work covered by the 
+ * following copyright and permission notice:
+ * 
+ * digit_count, digit_compare, kk_str_natcmp
+ * -----------------------------------------
+ * Copyright (c) 2011 Jan Varho <jan at varho dot org>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * 
+ * strlcpy, strlcat
+ * ----------------
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include <klingklang/str.h>
 
@@ -48,29 +48,29 @@
 #  define isdigit(c) (((c) >= '0') & ((c) <= '9'))
 #endif
 
- /**
- *What is a Buzhash table?
- *Basically just random numbers satisfiying the following property: If you 
- *think of the array as 32 columns of bits, each column contains exactly 128
- *zeros and 128 ones in a random order.
- *
- *A Python code to generate those constants might look like
- *
- *>>> columns = [ shuffle([0] *128 + [1] * 128) for i in range(32) ]
- *... for i in range(256):
- *...   value = 0
- *...   for j, column in enumerate(columns):
- *...     value |= column.pop () << j
- *...   print("0x{:08x}ul, ".format(value))
- *
- *where shuffle is a function that shuffles list items. To perform 
- *case-insensitve search, we use a slighty modified Buzhash table:
- *The lowercase and uppercase values of an alphabetic character share the
- *same constants
- *
- *buzhash_table[lower(C)] == buzhash_table[upper(C)] for C in 'a' ... 'z'
- *
- *without breaking the 128 zeros / 128 ones per column property.
+/**
+ * What is a Buzhash table?
+ * Basically just random numbers satisfiying the following property: If you 
+ * think of the array as 32 columns of bits, each column contains exactly 128
+ * zeros and 128 ones in a random order.
+ * 
+ * A Python code to generate those constants might look like
+ * 
+ * >>> columns = [ shuffle([0] *128 + [1] * 128) for i in range(32) ]
+ * ... for i in range(256):
+ * ...   value = 0
+ * ...   for j, column in enumerate(columns):
+ * ...     value |= column.pop () << j
+ * ...   print("0x{:08x}ul, ".format(value))
+ * 
+ * where shuffle is a function that shuffles list items. To perform 
+ * case-insensitve search, we use a slighty modified Buzhash table:
+ * The lowercase and uppercase values of an alphabetic character share the
+ * same constants
+ * 
+ * buzhash_table[lower(C)] == buzhash_table[upper(C)] for C in 'a' ... 'z'
+ * 
+ * without breaking the 128 zeros / 128 ones per column property.
  */
 static uint32_t buzhash_table[256] = {
   0xae56688cul, 0x99531140ul, 0x030f64acul, 0x519951ccul,
@@ -147,8 +147,8 @@ buzhash_init (uint32_t *hash, const unsigned char *data, size_t len)
   size_t i;
 
   /**
-   *Clang doesn't compute the right hash value if the last step get's pulled
-   *into the loop (rol32(..., 0) is the problem).
+   * Clang doesn't compute the right hash value if the last step get's pulled
+   * into the loop (rol32(..., 0) is the problem).
    */
   *hash = 0ul;
   for (i = 1; i < len; i++, data++)
@@ -168,10 +168,10 @@ bloom_mask (uint32_t val)
   return (1ull << (val % 23)) | (1ull << (val % 47)) | (1ull << (val % 61));
 }
 
-/*
- *Copy src to string dst of size len.  At most len-1 characters
- *will be copied.  Always NUL terminates (unless len == 0).
- *Returns strlen(src); if retval >= len, truncation occurred.
+/**
+ * Copy src to string dst of size len.  At most len-1 characters
+ * will be copied.  Always NUL terminates (unless len == 0).
+ * Returns strlen(src); if retval >= len, truncation occurred.
  */
 #ifndef HAVE_STRLCPY
 static inline size_t
@@ -181,29 +181,29 @@ strlcpy (char *dst, const char *src, size_t len)
   char *d = dst;
   size_t n = len;
 
-  /*Copy as many bytes as will fit */
+  /* Copy as many bytes as will fit */
   if (n != 0) {
     while (--n != 0) {
       if ((*d++ = *s++) == '\0')
         break;
     }
   }
-  /*Not enough room in dst, add NUL and traverse rest of src */
+  /* Not enough room in dst, add NUL and traverse rest of src */
   if (n == 0) {
     if (len != 0)
-      *d = '\0';                /*NUL-terminate dst */
+      *d = '\0';                /* NUL-terminate dst */
     while (*s++);
   }
-  return (size_t) (s - src) - 1;        /*count does not include NUL */
+  return (size_t) (s - src) - 1;        /* count does not include NUL */
 }
 #endif
 
-/*
- *Appends src to string dst of size len (unlike strncat, len is the
- *full size of dst, not space left).  At most len-1 characters
- *will be copied.  Always NUL terminates (unless len <= strlen(dst)).
- *Returns strlen(src) + MIN(len, strlen(initial dst)).
- *If retval >= len, truncation occurred.
+/**
+ * Appends src to string dst of size len (unlike strncat, len is the
+ * full size of dst, not space left).  At most len-1 characters
+ * will be copied.  Always NUL terminates (unless len <= strlen(dst)).
+ * Returns strlen(src) + MIN(len, strlen(initial dst)).
+ * If retval >= len, truncation occurred.
  */
 #ifndef HAVE_STRLCAT
 static inline size_t
@@ -214,7 +214,7 @@ strlcat (char *dst, const char *src, size_t len)
   size_t n = len;
   size_t dlen;
 
-  /*Find the end of dst and adjust bytes left but don't go past end */
+  /* Find the end of dst and adjust bytes left but don't go past end */
   while (n-- != 0 && *d != '\0')
     d++;
   dlen = (size_t) (d - dst);
@@ -232,14 +232,14 @@ strlcat (char *dst, const char *src, size_t len)
   }
   *d = '\0';
 
-  return dlen + (size_t) (s - src);     /*count does not include NUL */
+  return dlen + (size_t) (s - src);     /* count does not include NUL */
 }
 #endif
 
 #ifndef HAVE_STRNLEN
 /**
- *Tries to determine strlen by looping over the first len bytes of str.
- *If no null byte is found, len is returned.
+ * Tries to determine strlen by looping over the first len bytes of str.
+ * If no null byte is found, len is returned.
  */
 static inline size_t
 strnlen (const char *str, size_t len) 
@@ -328,7 +328,7 @@ kk_str_search_init (kk_str_search_t **search, const char *pattern, const char *d
   if (dup == NULL)
     goto error;
 
-  /*Count the number of patterns */
+  /* Count the number of patterns */
   if (delim == NULL) {
     cap = 1;
   }
@@ -412,7 +412,7 @@ kk_str_search_find_any (kk_str_search_t *search, const char *haystack, kk_str_ma
   uint32_t h;
   size_t i;
 
-  /*Make sure haystack isn't smaller than our minimum required length */
+  /* Make sure haystack isn't smaller than our minimum required length */
   for (i = 0; i < search->m; i++)
     if (haystack[i] == '\0')
       return 0;
@@ -445,11 +445,11 @@ kk_str_search_find_all (kk_str_search_t *search, const char *haystack, kk_str_ma
   uint32_t h;
   size_t i;
 
-  /*Already found all patterns? */
+  /* Already found all patterns? */
   if (*match == search->bloom)
     return 0;
 
-  /*Make sure haystack isn't smaller than our minimum required length */
+  /* Make sure haystack isn't smaller than our minimum required length */
   for (i = 0; i < search->m; i++)
     if (haystack[i] == '\0')
       return 0;

@@ -7,7 +7,7 @@
 typedef struct kk_library_dir_s kk_library_dir_t;
 typedef struct kk_library_file_s kk_library_file_t;
 
-typedef kk_library_dir_t kk_library_t;  /*shh.. don't tell anyone */
+typedef kk_library_dir_t kk_library_t;  /* shh.. don't tell anyone */
 
 struct kk_library_dir_s {
   kk_library_dir_t *next;

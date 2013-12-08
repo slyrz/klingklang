@@ -35,9 +35,7 @@
 #  include <string.h>
 #endif
 
-/**
- *Honestly, this might be totally useless...
- */
+/* Honestly, this might be totally useless... */
 #ifndef INT32_MAX
 #  if (defined __WORDSIZE) && (__WORDSIZE == 64)
 #    define INT32_MAX INT_MAX

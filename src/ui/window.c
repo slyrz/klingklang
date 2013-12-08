@@ -66,8 +66,8 @@ _kk_window_get_property (kk_window_t *win, xcb_atom_t property, char **dst)
     goto error;
 
   /**
-   *Copy property value into buffer. We can't use strl{cat,cpy} here 
-   *because the property value isn't null-terminated.
+   * Copy property value into buffer. We can't use strl{cat,cpy} here 
+   * because the property value isn't null-terminated.
    */
   {
     register char *out;
@@ -331,12 +331,12 @@ kk_window_free (kk_window_t *win)
     xcb_destroy_window (win->conn, win->win);
 
   /**
-   *Disconnecting causes a memory leak if the connection had an error,
-   *but there's nothing we can do about it. The function xcb_disconnect doesn't
-   *do anything if the has_error flag of the xcb_connection_t struct is true. 
-   *However, we can't set this field to false since xcb.h exports xcb_connection_t 
-   *as opaque struct.
-   *And besides ruining our valgrind reports, it really doesn't affect us.
+   * Disconnecting causes a memory leak if the connection had an error,
+   * but there's nothing we can do about it. The function xcb_disconnect doesn't
+   * do anything if the has_error flag of the xcb_connection_t struct is true. 
+   * However, we can't set this field to false since xcb.h exports xcb_connection_t 
+   * as opaque struct.
+   * And besides ruining our valgrind reports, it really doesn't affect us.
    */
   if (win->conn)
     xcb_disconnect (win->conn);
@@ -364,16 +364,6 @@ kk_window_set_title (kk_window_t *win, const char *title)
   xcb_flush (win->conn);
   return 0;
 }
-
-/*
-int 
-kk_window_set_draw_function (kk_window_t *win, kk_window_draw_f draw, void *arg)
-{
-  win->draw = draw;
-  win->arg = arg;
-  return 0;
-}
-*/
 
 int
 kk_window_show (kk_window_t *win)
@@ -414,9 +404,9 @@ kk_window_show (kk_window_t *win)
       value_list);
 
   /**
-   *The following code allows us to receive a XCB_CLIENT_MESSAGE
-   *event when the window get's closed. This allows us to shut down
-   *the xcb session gracefully. 
+   * The following code allows us to receive a XCB_CLIENT_MESSAGE
+   * event when the window get's closed. This allows us to shut down
+   * the xcb session gracefully. 
    */
   xcb_atom_t del = _kk_window_get_atom (win, "WM_DELETE_WINDOW");
   xcb_atom_t prt = _kk_window_get_atom (win, "WM_PROTOCOLS");

@@ -28,52 +28,52 @@ const kk_device_backend_t kk_device_backend = {
 };
 
 /**
- *This array allows snd_pcm_format_t lookup via indexes.
- *The index describes a sample format and consists of the following 
- *bit-fields:
+ * This array allows snd_pcm_format_t lookup via indexes.
+ * The index describes a sample format and consists of the following 
+ * bit-fields:
+ * 
+ *                 | [unused] [BBB] [TT] [E] |
+ *                 31         5              0
  *
- *                | [unused] [BBB] [TT] [E] |
- *                31         5              0
+ * E, 1 bit to indicate endianness: 
+ *   0 = little endian
+ *   1 = big endian
  *
- *E, 1 bit to indicate endianness: 
- *  0 = little endian
- *  1 = big endian
+ * T, 2 bits to indicate data type:
+ *   00 = unsigned integer
+ *   01 = signed integer
+ *   10 = float
  *
- *T, 2 bits to indicate data type:
- *  00 = unsigned integer
- *  01 = signed integer
- *  10 = float
- *
- *B, 3 bits to indicate sample format:
- *  000 =  8 sample bits
- *  001 = 16 sample bits
- *  010 = 24 sample bits
- *  011 = 32 sample bits
- *  100 = 64 sample bits
+ * B, 3 bits to indicate sample format:
+ *   000 =  8 sample bits
+ *   001 = 16 sample bits
+ *   010 = 24 sample bits
+ *   011 = 32 sample bits
+ *   100 = 64 sample bits
  *
  */
  /**INDENT-OFF**/
 static const snd_pcm_format_t sample_format[42] = {
-  [ 0] = SND_PCM_FORMAT_U8,          /*index = 000|00|0 */
-  [ 1] = SND_PCM_FORMAT_U8,          /*index = 000|00|1 */
-  [ 2] = SND_PCM_FORMAT_S8,          /*index = 000|01|0 */
-  [ 3] = SND_PCM_FORMAT_S8,          /*index = 000|01|1 */
-  [ 8] = SND_PCM_FORMAT_U16_LE,      /*index = 001|00|0 */
-  [ 9] = SND_PCM_FORMAT_U16_BE,      /*index = 001|00|1 */
-  [10] = SND_PCM_FORMAT_S16_LE,      /*index = 001|01|0 */
-  [11] = SND_PCM_FORMAT_S16_BE,      /*index = 001|01|1 */
-  [16] = SND_PCM_FORMAT_U24_LE,      /*index = 010|00|0 */
-  [17] = SND_PCM_FORMAT_U24_BE,      /*index = 010|00|1 */
-  [18] = SND_PCM_FORMAT_S24_LE,      /*index = 010|01|0 */
-  [19] = SND_PCM_FORMAT_S24_BE,      /*index = 010|01|1 */
-  [24] = SND_PCM_FORMAT_U32_LE,      /*index = 011|00|0 */
-  [25] = SND_PCM_FORMAT_U32_BE,      /*index = 011|00|1 */
-  [26] = SND_PCM_FORMAT_S32_LE,      /*index = 011|01|0 */
-  [27] = SND_PCM_FORMAT_S32_BE,      /*index = 011|01|1 */
-  [28] = SND_PCM_FORMAT_FLOAT_LE,    /*index = 011|10|0 */
-  [29] = SND_PCM_FORMAT_FLOAT_BE,    /*index = 011|10|1 */
-  [36] = SND_PCM_FORMAT_FLOAT64_LE,  /*index = 100|10|0 */
-  [37] = SND_PCM_FORMAT_FLOAT64_BE,  /*index = 100|10|1 */
+  [ 0] = SND_PCM_FORMAT_U8,          /* index = 000|00|0 */
+  [ 1] = SND_PCM_FORMAT_U8,          /* index = 000|00|1 */
+  [ 2] = SND_PCM_FORMAT_S8,          /* index = 000|01|0 */
+  [ 3] = SND_PCM_FORMAT_S8,          /* index = 000|01|1 */
+  [ 8] = SND_PCM_FORMAT_U16_LE,      /* index = 001|00|0 */
+  [ 9] = SND_PCM_FORMAT_U16_BE,      /* index = 001|00|1 */
+  [10] = SND_PCM_FORMAT_S16_LE,      /* index = 001|01|0 */
+  [11] = SND_PCM_FORMAT_S16_BE,      /* index = 001|01|1 */
+  [16] = SND_PCM_FORMAT_U24_LE,      /* index = 010|00|0 */
+  [17] = SND_PCM_FORMAT_U24_BE,      /* index = 010|00|1 */
+  [18] = SND_PCM_FORMAT_S24_LE,      /* index = 010|01|0 */
+  [19] = SND_PCM_FORMAT_S24_BE,      /* index = 010|01|1 */
+  [24] = SND_PCM_FORMAT_U32_LE,      /* index = 011|00|0 */
+  [25] = SND_PCM_FORMAT_U32_BE,      /* index = 011|00|1 */
+  [26] = SND_PCM_FORMAT_S32_LE,      /* index = 011|01|0 */
+  [27] = SND_PCM_FORMAT_S32_BE,      /* index = 011|01|1 */
+  [28] = SND_PCM_FORMAT_FLOAT_LE,    /* index = 011|10|0 */
+  [29] = SND_PCM_FORMAT_FLOAT_BE,    /* index = 011|10|1 */
+  [36] = SND_PCM_FORMAT_FLOAT64_LE,  /* index = 100|10|0 */
+  [37] = SND_PCM_FORMAT_FLOAT64_BE,  /* index = 100|10|1 */
 };
 /**INDENT-ON**/
 
@@ -118,7 +118,7 @@ kk_device_alsa_free (kk_device_t *dev_base)
   snd_pcm_close (dev_impl->handle);
   dev_impl->handle = NULL;
 
-  /*... because valgrind errors */
+  /* ... because valgrind errors */
   snd_config_update_free_global ();
 
   return 0;

@@ -98,7 +98,7 @@ kk_player_queue_add (kk_player_queue_t *queue, kk_list_t *sel)
     if (next == NULL)
       goto error;
 
-    /*Remember this in case we have to set fst/cur pointers */
+    /* Remember this in case we have to set fst/cur pointers */
     if (i == 0)
       start = next;
 
@@ -111,10 +111,10 @@ kk_player_queue_add (kk_player_queue_t *queue, kk_list_t *sel)
   }
 
   /**
-   *Special cases:
-   *1) Queue is empty: We have to set fst and cur pointer, too.
-   *2) Queue is filled but cur pointer was NULL: we set cur pointer to the
-   * first item of the newly added selection.
+   * Special cases:
+   * 1) Queue is empty: We have to set fst and cur pointer, too.
+   * 2) Queue is filled but cur pointer was NULL: we set cur pointer to the
+   *  first item of the newly added selection.
    */
   if (queue->fst == NULL)
     queue->cur = queue->fst = start;
@@ -145,9 +145,9 @@ error:
 }
 
 /**
- *The way the following functions initialize the event structs is the only way
- *gcc/clang don't complain about type punning and valgrind doesn't report some
- *mysterious uninitialized bytes.
+ * The way the following functions initialize the event structs is the only way
+ * gcc/clang don't complain about type punning and valgrind doesn't report some
+ * mysterious uninitialized bytes.
  */
 static void
 kk_player_event_start (kk_player_t *player, kk_library_file_t *file)
@@ -214,16 +214,16 @@ kk_player_worker (kk_player_t *player)
       kk_frame_t frame;
 
       /**
-       *We lock our mutex and check if the input field is NULL. If it is, 
-       *we call pthread_cond_wait (with mutex still locked). Every call of 
-       *pthread_cond_wait releases the mutex and locks our thread on the 
-       *condition variable. Thus other threads are able to aquire the mutex. 
-       *These other threads hopefully assign something to input and wake us 
-       *with a pthread_cond_signal call. This call causes pthread_cond_wait
-       *to return with mutex locked. Then we try to read a frame from input
-       *and write it to the output device. Releasing the mutex before writing 
-       *our frame to the input device allows other threads to change input
-       *in the meantime.
+       * We lock our mutex and check if the input field is NULL. If it is, 
+       * we call pthread_cond_wait (with mutex still locked). Every call of 
+       * pthread_cond_wait releases the mutex and locks our thread on the 
+       * condition variable. Thus other threads are able to aquire the mutex. 
+       * These other threads hopefully assign something to input and wake us 
+       * with a pthread_cond_signal call. This call causes pthread_cond_wait
+       * to return with mutex locked. Then we try to read a frame from input
+       * and write it to the output device. Releasing the mutex before writing 
+       * our frame to the input device allows other threads to change input
+       * in the meantime.
        */
       pthread_mutex_lock (&player->mutex);
       while ((player->input == NULL) || (player->pause)) {
@@ -231,10 +231,10 @@ kk_player_worker (kk_player_t *player)
       }
 
       /**
-       *Done decoding a frame. This should work on the first try,
-       *but sometimes it doesn't. In this case the loop handles these
-       *errors pretty well and the user won't notice them at all. Unless
-       *something is very wrong and we give up.
+       * Done decoding a frame. This should work on the first try,
+       * but sometimes it doesn't. In this case the loop handles these
+       * errors pretty well and the user won't notice them at all. Unless
+       * something is very wrong and we give up.
        */
       pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL);
 
@@ -246,20 +246,20 @@ kk_player_worker (kk_player_t *player)
       pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
       pthread_mutex_unlock (&player->mutex);
 
-      /*No data read? Stop */
+      /* No data read? Stop */
       if (s == 0)
         break;
 
       /**
-       *Now if this happened we really failed reading and decoding another 
-       *frame.
+       * Now if this happened we really failed reading and decoding another 
+       * frame.
        */
       if (e == max_retries) {
         kk_log (KK_LOG_WARNING, "Reading frame failed %d times. I'm giving up now.", max_retries);
         break;
       }
 
-      /*Don't send this event too often */
+      /* Don't send this event too often */
       if ((++d & 0x7f) == 0)
         kk_player_event_progress (player, frame.prog);
 
@@ -269,7 +269,7 @@ kk_player_worker (kk_player_t *player)
     kk_player_next (player);
   }
 
-  /*Basically unreachable, yes */
+  /* Basically unreachable, yes */
   pthread_cleanup_pop (0);
   return NULL;
 }
@@ -359,10 +359,10 @@ _kk_player_start (kk_player_t *player)
     if (out >= 8192)
       goto error;
 
-    /*Contains truncated stuff - useless */
+    /* Contains truncated stuff - useless */
     free (path);
 
-    /*Try one last time */
+    /* Try one last time */
     len = out + 1;
     path = calloc (len, sizeof (char));
     if (path == NULL)
@@ -434,7 +434,7 @@ kk_player_pause (kk_player_t *player)
 
   kk_player_event_pause (player);
   pthread_mutex_lock (&player->mutex);
-  /*Toggle lowest bit */
+  /* Toggle lowest bit */
   player->pause = (player->pause ^ 1) & 1;
   if (was_paused)
     pthread_cond_signal (&player->cond);

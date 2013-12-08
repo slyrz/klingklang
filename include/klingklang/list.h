@@ -4,10 +4,10 @@
 #include <klingklang/base.h>
 
 /**
- *Pass to kk_list_sort to compare list items. Return a value
- * = 0 if items are equal
- * < 0 if first item < second item
- * > 0 if first item > second item
+ * Pass to kk_list_sort to compare list items. Return a value
+ *  = 0 if items are equal
+ *  < 0 if first item < second item
+ *  > 0 if first item > second item
  */
 typedef int (*kk_list_cmp_f) (const void *, const void *);
 

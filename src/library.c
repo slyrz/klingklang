@@ -3,15 +3,15 @@
 #include <klingklang/str.h>
 
 #ifdef HAVE_DIRENT_H
-#include <dirent.h>
+#  include <dirent.h>
 #endif
 
 #ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
+#  include <sys/stat.h>
 #endif
 
 #ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+#  include <sys/types.h>
 #endif
 
 #define get_array_len(x) \
@@ -36,16 +36,16 @@ is_regular_file (const char *path)
 }
 
 /**
- *Crude check if a file is an audio file. It's based on the filename only (!!!)
- *and just based checks for known file extension. Since we use it on
- *readdir results only, we already know filename belongs to a regular file.
+ * Crude check if a file is an audio file. It's based on the filename only (!!!)
+ * and just based checks for known file extension. Since we use it on
+ * readdir results only, we already know filename belongs to a regular file.
  */
 static int
 is_audio_file (const char *filename)
 {
   size_t i;
 
-  /*Find extension part */
+  /* Find extension part */
   filename = strrchr (filename, '.');
   if (filename == NULL)
     return 0;
@@ -75,7 +75,7 @@ kk_append_path (char *dst, const char *src, size_t len, int append_pathsep)
         dst[out++] = '/';
     }
     else
-      out++;                    /*dst too small. We need a buffer of src + 1x '/' + 1x '\0' */
+      out++;                    /* dst too small. We need a buffer of src + 1x '/' + 1x '\0' */
   }
   return out;
 }
@@ -128,7 +128,7 @@ kk_library_file_get_album_cover_path (kk_library_file_t *file, char *dst, size_t
   }
   return 0;
 error:
-  return out + 32;              /*32 = space for album cover filename */
+  return out + 32;              /* 32 = space for album cover filename */
 }
 
 static int
@@ -148,27 +148,27 @@ kk_library_dir_load (kk_library_dir_t *dir)
   len_base = strlen (dir->base);
 
   /**
-   *If these two paths don't end with a slash, we have to add one
-   *for each and the required buffer size increases.
+   * If these two paths don't end with a slash, we have to add one
+   * for each and the required buffer size increases.
    */
   len_root += (len_root > 0) && (dir->root[len_root - 1] != '/');
   len_base += (len_base > 0) && (dir->base[len_base - 1] != '/');
 
   /**
-   *Build string "root/base/", so that we can append the names of the 
-   *directory entries to get a valid path.
-   *
-   *                   root/base/\0
-   *                   ^         ^
-   *                   pfst      plst
-   *
-   *pfst points to the first char of the path. plst points to the terminating
-   *zero char. Calling strcpy (plst, dirent->d_name) leads to the full path 
-   *of a given dirent.
+   * Build string "root/base/", so that we can append the names of the 
+   * directory entries to get a valid path.
+   * 
+   *                    root/base/\0
+   *                    ^         ^
+   *                    pfst      plst
+   * 
+   * pfst points to the first char of the path. plst points to the terminating
+   * zero char. Calling strcpy (plst, dirent->d_name) leads to the full path 
+   * of a given dirent.
    */
   len = len_root + len_base + NAME_MAX + 1;
 
-  /*TODO: Rewrite this shit... */
+  /* TODO: Rewrite this shit... */
   pfst = calloc (len, sizeof (char));
   len_root = kk_append_path (pfst, dir->root, len, 1);
   len_base = kk_append_path (pfst, dir->base, len, 1);
@@ -184,7 +184,7 @@ kk_library_dir_load (kk_library_dir_t *dir)
     if (ent == NULL)
       break;
 
-    /*Ignore "." and ".." */
+    /* Ignore "." and ".." */
     if (ent->d_name[0] == '.') {
       if ((ent->d_name[1] == '\0') || ((ent->d_name[1] == '.') & (ent->d_name[2] == '\0')))
         continue;
@@ -199,8 +199,8 @@ kk_library_dir_load (kk_library_dir_t *dir)
         goto error;
 
       /**
-       *kk_str_cpy () should never cause this error, but if it does, just 
-       *ignore this entry instead of giving up...
+       * kk_str_cpy () should never cause this error, but if it does, just 
+       * ignore this entry instead of giving up...
        */
       if (kk_str_cpy (plst, ent->d_name, NAME_MAX) >= NAME_MAX) {
         free (next);
@@ -212,8 +212,8 @@ kk_library_dir_load (kk_library_dir_t *dir)
       kk_library_dir_load (next);
 
       /**
-       *If the result has no children, it doesn't dirain any regular files but it 
-       *might dirain directories diraining regular files.
+       * If the result has no children, it doesn't dirain any regular files but it 
+       * might dirain directories diraining regular files.
        */
       if (next->children == NULL) {
         temp = next;
@@ -263,7 +263,7 @@ kk_library_init (kk_library_t **lib, const char *path)
   if (result == NULL)
     goto error;
 
-  /*strdup' these so we can later call free on all strings */
+  /* strdup' these so we can later call free on all strings */
   result->root = strdup (path);
   result->base = strdup ("");
 
@@ -301,7 +301,7 @@ kk_library_free (kk_library_t *lib)
   if (lib == NULL)
     return 0;
 
-  /*All dir structs share the same root pointer, so we only free it once */
+  /* All dir structs share the same root pointer, so we only free it once */
   free (dir->root);
 
   while (dir) {
@@ -321,8 +321,8 @@ kk_library_free (kk_library_t *lib)
   }
 
   /**
-   *No need to free lib since we already freed it in the first 
-   *while-iteration 
+   * No need to free lib since we already freed it in the first 
+   * while-iteration 
    */
   return 0;
 }

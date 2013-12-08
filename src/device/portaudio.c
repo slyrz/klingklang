@@ -104,7 +104,7 @@ kk_device_portaudio_setup (kk_device_t *dev_base, kk_format_t *format)
     sample_format = paFloat32;
   }
   else {
-    /*It's an integer type */
+    /* It's an integer type */
     switch (format->bits) {
       case KK_BITS_8:
         sample_format = (format->type == KK_TYPE_SINT) ? paInt8 : paUInt8;

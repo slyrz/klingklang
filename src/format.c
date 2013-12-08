@@ -2,11 +2,10 @@
 #include <klingklang/util.h>
 
 /**
- *I know, these switch statements are ugly, but directly returning values
- *with every case lead to dead code warnings at the end of the switch
- *statements. This is the only way gcc / clang don't warn about anything.
+ * I know, these switch statements are ugly, but directly returning values
+ * with every case lead to dead code warnings at the end of the switch
+ * statements. This is the only way gcc / clang don't warn about anything.
  */
-
 int
 kk_format_get_channels (kk_format_t *fmt)
 {

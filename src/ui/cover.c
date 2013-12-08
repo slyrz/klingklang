@@ -56,10 +56,10 @@ kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
     if (out >= 8192)
       goto error;
 
-    /*Contains truncated stuff - useless */
+    /* Contains truncated stuff - useless */
     free (path);
 
-    /*Try one last time */
+    /* Try one last time */
     len = out + 1;
     path = calloc (len, sizeof (char));
     if (path == NULL)
@@ -70,12 +70,12 @@ kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
       goto error;
   }
 
-  /*No album cover found? We can stop */
+  /* No album cover found? We can stop */
   if (out == 0)
     goto error;
 
   if (cover->path) {
-    /*Not a real error, but we just don't need to change image */
+    /* Not a real error, but we just don't need to change image */
     if (strcmp (path, cover->path) == 0)
       goto error;
     if (cover->foreground)
@@ -141,7 +141,7 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   if (widget->resized)
     _kk_cover_resize (cover);
 
-  /*Draw blurred background image */
+  /* Draw blurred background image */
   cairo_save (ctx);
   cairo_scale (ctx, 
     (double) cover->width / (double) cover->foreground->width, 
@@ -151,7 +151,7 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_paint (ctx);
   cairo_restore (ctx);
 
-  /*Draw dark gray with darnkess as alpha channel to darken background */
+  /* Draw dark gray with darnkess as alpha channel to darken background */
   cairo_save (ctx);
   cairo_set_source_rgba (ctx, 0.070, 0.082, 0.090, cover->darkness);
   cairo_rectangle (ctx,
@@ -163,10 +163,10 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_fill (ctx);
   cairo_restore (ctx);
 
-  /*Scale to stretch / shrink foreground image according to widget size */
+  /* Scale to stretch / shrink foreground image according to widget size */
   const double scale = (2.0 *cover->radius + 8.0) / (double) cover->foreground->width;
 
-  /*Clip center + draw foreground */
+  /* Clip center + draw foreground */
   cairo_save (ctx);
   cairo_rounded_rectangle (ctx, 
     (double) cover->x + ((double) cover->width / 2.0 - cover->radius), 
@@ -190,7 +190,7 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_reset_clip (ctx);
   cairo_restore (ctx);
 
-  /*Draw unobtrusive border around foreground */
+  /* Draw unobtrusive border around foreground */
   if (cover->contour) {
     cairo_save (ctx);
     cairo_rounded_rectangle (ctx,
