@@ -27,13 +27,16 @@ Choosing *alsa* as audio backend on Linux systems with *pulseaudio* installed is
 
 ## Installation
 The following command generates the missing Makefile and configure script:
+
     autoreconf --force --install
 
 To compile *klingklang*, run:
+
     ./configure --with-backend={alsa|ao|portaudio|pulseaudio}
     make
 
 To install *klingklang*, run:
+
     make install
 
 ## Commands
