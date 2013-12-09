@@ -15,6 +15,8 @@ You need to have the following libraries/programs installed:
 * [xcb-keysyms](http://xcb.freedesktop.org/)
 * [xcb-util](http://xcb.freedesktop.org/)
 
+Please make sure your *cairo* library was build with *xcb* support.
+
 ## Supported Audio Backends
 You need to have one of the following libraries installed:
 
