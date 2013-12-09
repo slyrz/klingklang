@@ -15,7 +15,7 @@ kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
   if (kk_list_init (&result->children) != 0)
     goto error;
 
-  result->_draw = draw;
+  result->draw = draw;
   result->resized = 1;
   result->redraw = 1;
 
@@ -38,8 +38,8 @@ kk_widget_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   size_t i;
 
-  if (widget->_draw)
-    widget->_draw (widget, ctx);
+  if (((widget->resized) | (widget->redraw)) && (widget->draw))
+    widget->draw (widget, ctx);
 
   for (i = 0; i < widget->children->len; i++)
     kk_widget_draw ((kk_widget_t *) widget->children->items[i], ctx);

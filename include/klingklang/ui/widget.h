@@ -8,7 +8,7 @@
 
 #define kk_widget_fields \
   kk_list_t *children; \
-  kk_widget_draw_f _draw; \
+  kk_widget_draw_f draw; \
   int x; \
   int y; \
   int width; \
