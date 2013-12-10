@@ -9,12 +9,6 @@
 #  include <unistd.h>
 #endif
 
-#ifdef HAVE_POSIX_TIMER_API
-#  include <time.h>
-#else
-#  include <sys/time.h>
-#endif
-
 static kk_timer_t *active = NULL;
 
 static void
