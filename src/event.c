@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <signal.h>
+#include <errno.h>
 
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>
@@ -147,9 +148,15 @@ _kk_event_loop_dispatch (kk_event_loop_t *loop)
 
   tv.tv_sec = 10;
   tv.tv_usec = 0;
+
+  /**
+   * Timers might interrupt our select call. In this case errno gets set to
+   * EINTR and we won't return a value < 0 to avoid exiting the event loop.
+   */
+  errno = 0;
   r = select (loop->mfd + 1, &rfds, NULL, NULL, &tv);
   if (r <= 0)
-    return r;
+    return -(errno != EINTR);
 
   for (handler = loop->handler; handler < loop->handler + loop->len; handler++) {
     if (FD_ISSET (handler->fd, &rfds))

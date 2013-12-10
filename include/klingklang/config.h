@@ -43,6 +43,9 @@
 /* Define to 1 if you have the memset function */
 #define HAVE_MEMSET 1
 
+/* Define to 1 if you have the strstr function */
+#define HAVE_POSIX_TIMER_API 1
+
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
 #define HAVE_REALLOC 1
