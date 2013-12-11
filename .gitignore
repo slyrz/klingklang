@@ -8,8 +8,10 @@
 
 # Ignore everywhere
 .deps
-.libs
 .dirstamp
+.libs
+config.h
+config.h.in
 stamp-h1
 
 # Ignore top-level
