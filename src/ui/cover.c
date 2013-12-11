@@ -1,3 +1,5 @@
+#include <klingklang/base.h>
+#include <klingklang/util.h>
 #include <klingklang/ui/cover.h>
 
 static void _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx);
@@ -42,9 +44,10 @@ kk_cover_free (kk_cover_t *cover)
 int
 kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
 {
-  char *path = NULL;
   size_t len;
   size_t out;
+
+  char *path = NULL;
 
   len = 512;
   path = calloc (len, sizeof (char));
@@ -75,9 +78,9 @@ kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
     goto error;
 
   if (cover->path) {
-    /* Not a real error, but we just don't need to change image */
+    /* Image already loaded. No need to change it. */
     if (strcmp (path, cover->path) == 0)
-      goto error;
+      goto cleanup;
     if (cover->foreground)
       kk_image_free (cover->foreground);
     if (cover->background)
@@ -86,12 +89,23 @@ kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
   }
 
   cover->path = path;
-  kk_image_init (&cover->foreground, cover->path);
-  kk_image_init (&cover->background, cover->path);
+
+  if (kk_image_init (&cover->foreground, cover->path) != 0)
+    goto error;
+
+  if (kk_image_init (&cover->background, cover->path) != 0)
+    goto error;
+
   kk_image_blur (cover->background, cover->blur);
   kk_widget_invalidate ((kk_widget_t *) cover);
   return 0;
 error:
+  if ((path) && (*path))
+    kk_log (KK_LOG_WARNING, "Could not load cover '%s'.", path);
+  cover->path = NULL;
+  cover->foreground = NULL;
+  cover->background = NULL;
+cleanup:
   free (path);
   return -1;
 }

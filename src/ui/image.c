@@ -8,6 +8,7 @@
  * http://lotsacode.wordpress.com/2010/12/08/fast-blur-box-blur-with-accumulator/
  */
 #include <klingklang/base.h>
+#include <klingklang/util.h>
 #include <klingklang/ui/image.h>
 
 #include <libavutil/avutil.h>
@@ -54,9 +55,15 @@ extern int libav_initialized;
 static int
 kk_image_surface_load_nativ (kk_image_t *img, const char *path)
 {
+  cairo_status_t status;
+
   img->surface = cairo_image_surface_create_from_png (path);
-  if (cairo_surface_status (img->surface) != CAIRO_STATUS_SUCCESS)
+  
+  status = cairo_surface_status (img->surface);
+  if (status != CAIRO_STATUS_SUCCESS) {
+    kk_log (KK_LOG_WARNING, "Failed to load file '%s'. Cairo returned '%s'.", path, cairo_status_to_string (status));
     return -1;
+  }
   return 0;
 }
 
