@@ -24,6 +24,7 @@ You need to have one of the following libraries installed:
 * [ao](http://www.xiph.org/ao/)
 * [portaudio](http://www.portaudio.com/)
 * [pulseaudio](http://www.freedesktop.org/wiki/Software/PulseAudio/)
+* [sndio](http://www.sndio.org/)
 
 Choosing *alsa* as audio backend on Linux systems with *pulseaudio* installed is not recommended.
 
@@ -34,7 +35,7 @@ The following command generates the missing Makefile and configure script:
 
 To compile *klingklang*, run:
 
-    ./configure --with-backend={alsa|ao|portaudio|pulseaudio}
+    ./configure --with-backend={alsa|ao|portaudio|pulseaudio|sndio}
     make
 
 To install *klingklang*, run:

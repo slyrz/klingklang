@@ -84,3 +84,8 @@ if BACKEND_PULSEAUDIO
   klingklang_CFLAGS += $(pulseaudio_CFLAGS)
   klingklang_LDADD += $(pulseaudio_LIBS)
 endif
+
+if BACKEND_SNDIO
+  klingklang_SOURCES += src/device/sndio.c
+  klingklang_LDADD += -lsndio
+endif

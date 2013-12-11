@@ -21,11 +21,12 @@ AM_MAINTAINER_MODE([enable])
 #-----------------------------------------------------------------------------
 # Define Package Options
 #-----------------------------------------------------------------------------
-AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=ao|alsa], [use audio backend]), [
+AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|portaudio|pulseaudio|sndio], [use audio backend]), [
   AS_IF([test "x$with_backend" = "xalsa"], [backend="alsa"])
   AS_IF([test "x$with_backend" = "xao"], [backend="ao"])
   AS_IF([test "x$with_backend" = "xportaudio"], [backend="portaudio"])
   AS_IF([test "x$with_backend" = "xpulseaudio"], [backend="pulseaudio"])
+  AS_IF([test "x$with_backend" = "xsndio"], [backend="sndio"])
 ])
 
 # We really need this option
@@ -99,6 +100,7 @@ AM_CONDITIONAL([BACKEND_ALSA], [test "x$backend" = "xalsa"])
 AM_CONDITIONAL([BACKEND_AO], [test "x$backend" = "xao"])
 AM_CONDITIONAL([BACKEND_PORTAUDIO], [test "x$backend" = "xportaudio"])
 AM_CONDITIONAL([BACKEND_PULSEAUDIO], [test "x$backend" = "xpulseaudio"])
+AM_CONDITIONAL([BACKEND_SNDIO], [test "x$backend" = "xsndio"])
 
 #-----------------------------------------------------------------------------
 # Checks For Header Files
