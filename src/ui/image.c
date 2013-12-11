@@ -63,14 +63,31 @@ kk_image_surface_load_nativ (kk_image_t *img, const char *path)
 static int
 kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext *cctx, int stream_index)
 {
-  const int w = cctx->width;
-  const int h = cctx->height;
-  const int s = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, w);
+  const int iw = cctx->width;
+  const int ih = cctx->height;
 
-  const enum AVPixelFormat pixfmt = AV_PIX_FMT_RGB24;
+  /**
+   * Now this is kind of a long story. We use swsscale to transform any
+   * pixelformat to RGB24, not to scale images. That's why the output
+   * dimension equaled the input dimension at first. However, this lead
+   * to a strange bug. The sws_scale'd output buffer contained some black
+   * pixels at the end of each row. These pixels caused a visible, vertical
+   * black strip on the right side of the output image. To this day I have
+   * no idea how this function should be responsible for this. Anyway, after
+   * a long debugging session I noticed that the following combination
+   *
+   *    output width = input width - 1, output height = input height
+   *
+   * prevents this from happening. I tested it quite a bit and it seems to
+   * work. Again, I have no idea why. Btw. this is definitly not cairo
+   * related. The sws_scale() just returns a really strange buffer.
+   */
+  const int ow = iw - 1;
+  const int oh = ih;
 
-  const size_t buffer_size = (size_t) avpicture_get_size (pixfmt, w, h);
-  const size_t image_size = (size_t)w *(size_t)h;
+  const int os = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, ow);
+
+  const size_t buffer_size = (size_t) avpicture_get_size (AV_PIX_FMT_RGB24, ow, oh);
 
   struct SwsContext *sctx = NULL;
   AVFrame *iframe = NULL;
@@ -100,7 +117,7 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
   if (buffer == NULL)
     goto error;
 
-  avpicture_fill ((AVPicture *) oframe, buffer, pixfmt, w, h);
+  avpicture_fill ((AVPicture *) oframe, buffer, AV_PIX_FMT_RGB24, ow, oh);
 
   for (;;) {
     r = av_read_frame (fctx, &packet);
@@ -118,14 +135,16 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
    * We read a frame. Now we use libswscale to convert the pixel format
    * to rgb24, because cairo won't like our frame's pixel format.
    */
-  sctx = sws_getContext (w, h, cctx->pix_fmt, w, h, pixfmt, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+  sctx = sws_getCachedContext (NULL, iw, ih, cctx->pix_fmt, ow, oh, AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR , NULL, NULL, NULL);
   if (sctx == NULL)
     goto error;
 
-  sws_scale (sctx, (const uint8_t *const *) iframe->data, iframe->linesize, 0, h, oframe->data, oframe->linesize);
+  sws_scale (sctx, (const uint8_t *const *) iframe->data, iframe->linesize, 0, oh, oframe->data, oframe->linesize);
 
-  cdata = calloc (image_size, sizeof (uint32_t));
   fdata = oframe->data[0];
+  cdata = calloc ((size_t) ow * (size_t) oh, sizeof (uint32_t));
+  if (cdata == NULL)
+    goto error;
 
   /**
    * Okay, so libavcodec / libswscale uses 3 bytes to store a pixel of 
@@ -133,11 +152,11 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
    * buffer for our cairo surface and transform the RGBRGBRGB... data
    * into RGB_RGB_RGB_...
    */
-  for (i = j = 0; i < (cctx->width *cctx->height); i++, j += 3)
-    cdata[i] = ((fdata[j] & 0xffu) << 16) | ((fdata[j + 1] & 0xffu) << 8) | (fdata[j + 2] & 0xffu);
+  for (i = j = 0; i < (ow * oh); i++, j += 3)
+    cdata[i] = rgb_build (fdata[j], fdata[j + 1], fdata[j + 2]); // ((fdata[j] & 0xffu) << 16) | ((fdata[j + 1] & 0xffu) << 8) | (fdata[j + 2] & 0xffu);
 
-  img->surface = cairo_image_surface_create_for_data ((unsigned char*)cdata, CAIRO_FORMAT_RGB24, w, h, s);
-  img->buffer = (unsigned char*)cdata;
+  img->surface = cairo_image_surface_create_for_data ((unsigned char*) cdata, CAIRO_FORMAT_RGB24, ow, oh, os);
+  img->buffer = (unsigned char*) cdata;
 
   sws_freeContext (sctx);
   avcodec_free_frame (&iframe);
