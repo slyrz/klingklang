@@ -159,12 +159,22 @@ kk_input_get_frame (kk_input_t *inp, kk_frame_t *frame)
     frame->size = (size_t) ls;
   }
 
+  uint8_t **planes;
+
+  if (inp->frame->extended_data)
+    planes = inp->frame->extended_data;
+  else
+    planes = inp->frame->data;
+
+  if (planes == NULL)
+    return -1;
+
   /* Intendet fallthroughs, not a bug */
   switch (frame->planes) {
     case 2:
-      frame->data[1] = inp->frame->extended_data[1];
+      frame->data[1] = planes[1];
     case 1:
-      frame->data[0] = inp->frame->extended_data[0];
+      frame->data[0] = planes[0];
     default:
       break;
   }

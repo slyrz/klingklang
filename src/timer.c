@@ -9,15 +9,19 @@
 #  include <unistd.h>
 #endif
 
+static kk_timer_t *active = NULL;
+
 static void
-_kk_timer_fired (sigval_t val)
+_kk_timer_signal_handler (void)
 {
   kk_timer_event_fired_t event;
-  kk_timer_t *timer = (kk_timer_t *) val.sival_ptr;
+
+  if (active == NULL)
+    return;
 
   memset (&event, 0, sizeof (kk_timer_event_fired_t));
   event.type = KK_TIMER_FIRED;
-  kk_event_queue_write (timer->events, (void *) &event, sizeof (kk_timer_event_fired_t));
+  kk_event_queue_write (active->events, (void *) &event, sizeof (kk_timer_event_fired_t));
 }
 
 int
@@ -49,6 +53,7 @@ kk_timer_free (kk_timer_t *timer)
   if (timer->events)
     kk_event_queue_free (timer->events);
 
+#ifdef HAVE_POSIX_TIMER_API
   if (timer->id) {
     struct itimerspec its;
     
@@ -59,6 +64,15 @@ kk_timer_free (kk_timer_t *timer)
     if (timer_delete (timer->id) != 0)
       kk_log (KK_LOG_WARNING, "Deleting timer failed.");
   }
+#else
+  struct itimerval its;
+
+  memset (&its, 0, sizeof (struct itimerval));
+  if (setitimer (ITIMER_REAL, &its, NULL) != 0)
+    kk_log (KK_LOG_WARNING, "Disarming timer failed.");
+#endif
+  if (timer == active)
+    active = NULL;
 
   free (timer);
   return 0;
@@ -67,31 +81,62 @@ kk_timer_free (kk_timer_t *timer)
 int
 kk_timer_start (kk_timer_t *timer, int seconds)
 {
-  struct sigevent sev;
-  struct itimerspec its;
+  struct sigaction sac;
 
-  /* Muy  importante! */
+#ifdef HAVE_POSIX_TIMER_API
+  struct itimerspec its;
+  struct sigevent sev;
+#else
+  struct itimerval its;
+#endif
+
+  /**
+   * The timer implementation used SIGEV_THREAD at first. This would have
+   * allowed multipled timers. Sadly, some systems don't offer this functionality.
+   * So we had to switch to plain simple signal handlers. And to avoid 
+   * needless complexity, these work best with one timer at a time.
+   */
+  if ((active) && (timer != active)) {
+    kk_log (KK_LOG_WARNING, "Timer %p currently active.", active);
+    return -1;
+  }
+
+  memset (&sac, 0, sizeof (struct sigaction));
+#ifdef HAVE_POSIX_TIMER_API
   memset (&sev, 0, sizeof (struct sigevent));
   memset (&its, 0, sizeof (struct itimerspec));
+#else
+  memset (&its, 0, sizeof (struct itimerval));
+#endif
 
-  sev.sigev_notify = SIGEV_THREAD;
-  sev.sigev_notify_function = _kk_timer_fired;
-  sev.sigev_value.sival_ptr = (void *) timer;
-
-  if (timer_create (CLOCK_MONOTONIC, &sev, &timer->id) != 0)
+  sac.sa_handler = (void (*)(int)) _kk_timer_signal_handler;
+  sigemptyset (&sac.sa_mask);
+  if (sigaction (SIGALRM, &sac, NULL) != 0)
     goto error;
 
   its.it_value.tv_sec = seconds;
   its.it_interval.tv_sec = seconds;
 
-  if (timer_settime (timer->id, 0, &its, NULL) != 0)
+#ifdef HAVE_POSIX_TIMER_API
+  sev.sigev_notify = SIGEV_SIGNAL;
+  sev.sigev_signo = SIGALRM;
+  if (timer_create (CLOCK_MONOTONIC, &sev, &timer->id) != 0)
     goto error;
 
+  if (timer_settime (timer->id, 0, &its, NULL) != 0)
+    goto error;
+#else
+  if (setitimer (ITIMER_REAL, &its, NULL) != 0)
+    goto error;
+#endif
+  active = timer;
   return 0;
 error:
+#ifdef HAVE_POSIX_TIMER_API
   if (timer->id)
     timer_delete (timer->id);
   timer->id = NULL;
+#endif
   return -1;
 }
 

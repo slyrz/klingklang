@@ -4,14 +4,18 @@
 #include <klingklang/base.h>
 #include <klingklang/timer-events.h>
 
-#ifdef HAVE_TIME_H
+#ifdef HAVE_POSIX_TIMER_API
 #  include <time.h>
+#else
+#  include <sys/time.h>
 #endif
 
 typedef struct kk_timer_s kk_timer_t;
 
 struct kk_timer_s {
+#ifdef HAVE_POSIX_TIMER_API
   timer_t id;
+#endif
   kk_event_queue_t *events;
 };
 

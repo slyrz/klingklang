@@ -43,6 +43,12 @@
 /* Define to 1 if you have the memset function */
 #define HAVE_MEMSET 1
 
+/* Define to 1 if you have the strstr function */
+#define HAVE_POSIX_TIMER_API 1
+
+/* Define to 1 if you have the qsort_r function */
+#define HAVE_QSORT_R 1
+
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
 #define HAVE_REALLOC 1
@@ -118,6 +124,9 @@
 
 /* Define to 1 if `vfork' works. */
 #define HAVE_WORKING_VFORK 1
+
+/* Define to 1 if xcb-icccm function prefix is "xcb_icccm_" */
+#define HAVE_XCB_ICCCM_PREFIX 1
 
 /* Define to 1 if you have the <xcb/xcb_event.h> header file. */
 #define HAVE_XCB_XCB_EVENT_H 1

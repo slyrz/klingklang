@@ -11,6 +11,10 @@
 #include <xcb/xcb_icccm.h>
 #include <cairo-xcb.h>
 
+#ifdef HAVE_XCB_ICCCM_PREFIX
+#  define xcb_set_wm_protocols xcb_icccm_set_wm_protocols
+#endif
+
 #define KK_WINDOW_INPUT_PROP            "_KK_INPUT"
 #define KK_WINDOW_MAX_TITLE_LEN         0x80u
 #define KK_WINDOW_MAX_ATOM_LEN          0x80u
@@ -262,6 +266,10 @@ _kk_window_event_handler (kk_window_t *win)
     if (!win->alive)
       break;
   }
+
+  if (win->alive)
+    _kk_window_event_close (win);
+
   win->alive = 0;
   return NULL;
 }
@@ -412,7 +420,7 @@ kk_window_show (kk_window_t *win)
   xcb_atom_t prt = _kk_window_get_atom (win, "WM_PROTOCOLS");
 
   if ((del != XCB_NONE) && (prt != XCB_NONE))
-    xcb_icccm_set_wm_protocols (win->conn, win->win, prt, 1, &del);
+    xcb_set_wm_protocols (win->conn, win->win, prt, 1, &del);
 
   win->input = _kk_window_get_atom (win, KK_WINDOW_INPUT_PROP);
 

@@ -10,6 +10,7 @@ AC_INIT([klingklang],[0.1])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([include/klingklang/config.h])
 AC_CONFIG_MACRO_DIR([m4])
+AC_LANG([C])
 
 m4_include([m4/ax_compiler_vendor.m4])
 m4_include([m4/ax_check_compile_flag.m4])
@@ -20,11 +21,12 @@ AM_MAINTAINER_MODE([enable])
 #-----------------------------------------------------------------------------
 # Define Package Options
 #-----------------------------------------------------------------------------
-AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=ao|alsa], [use audio backend]), [
+AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|portaudio|pulseaudio|sndio], [use audio backend]), [
   AS_IF([test "x$with_backend" = "xalsa"], [backend="alsa"])
   AS_IF([test "x$with_backend" = "xao"], [backend="ao"])
   AS_IF([test "x$with_backend" = "xportaudio"], [backend="portaudio"])
   AS_IF([test "x$with_backend" = "xpulseaudio"], [backend="pulseaudio"])
+  AS_IF([test "x$with_backend" = "xsndio"], [backend="sndio"])
 ])
 
 # We really need this option
@@ -98,6 +100,7 @@ AM_CONDITIONAL([BACKEND_ALSA], [test "x$backend" = "xalsa"])
 AM_CONDITIONAL([BACKEND_AO], [test "x$backend" = "xao"])
 AM_CONDITIONAL([BACKEND_PORTAUDIO], [test "x$backend" = "xportaudio"])
 AM_CONDITIONAL([BACKEND_PULSEAUDIO], [test "x$backend" = "xpulseaudio"])
+AM_CONDITIONAL([BACKEND_SNDIO], [test "x$backend" = "xsndio"])
 
 #-----------------------------------------------------------------------------
 # Checks For Header Files
@@ -174,6 +177,38 @@ AC_CHECK_FUNCS([strndup], [AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you ha
 AC_CHECK_FUNCS([strnlen], [AC_DEFINE([HAVE_STRNLEN], [1], [Define to 1 if you have the strnlen function])])
 AC_CHECK_FUNCS([strrchr], [AC_DEFINE([HAVE_STRRCHR], [1], [Define to 1 if you have the strrchr function])])
 AC_CHECK_FUNCS([strstr], [AC_DEFINE([HAVE_STRSTR], [1], [Define to 1 if you have the strstr function])])
+AC_CHECK_FUNCS([qsort_r], [AC_DEFINE([HAVE_QSORT_R], [1], [Define to 1 if you have the qsort_r function])])
+
+# Older xcb-icccm version provide functions without _icccm prefix
+AC_CHECK_LIB([xcb-icccm], [xcb_icccm_set_wm_protocols], [AC_DEFINE([HAVE_XCB_ICCCM_PREFIX], [1], [Define to 1 if xcb-icccm function prefix is "xcb_icccm_"])])
+
+OLFLAGS="$LDFLAGS"
+LDFLAGS="$LDFLAGS -lrt"
+AC_MSG_CHECKING([for usable per-process timers])
+AC_RUN_IFELSE([
+  AC_LANG_SOURCE([[
+    #include <errno.h>
+    #include <signal.h>
+    #include <time.h>
+    int
+    main (void)
+    {
+      struct sigevent s;
+      timer_t t;
+      errno = 0;
+      timer_create (CLOCK_REALTIME, &s, &t);
+      return ((errno == ENOTSUP) | (errno == ENOSYS));
+    }
+  ]])
+], [
+  AC_MSG_RESULT([yes])
+  AC_SUBST([timer_LIBS], [-lrt])
+  AC_DEFINE([HAVE_POSIX_TIMER_API], [1], [Define to 1 if you have the strstr function])
+], [
+  AC_MSG_RESULT([no])
+  AC_SUBST([timer_LIBS], [])
+])
+LDFLAGS="$OLFLAGS"
 
 #-----------------------------------------------------------------------------
 # End

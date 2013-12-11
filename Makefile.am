@@ -51,7 +51,7 @@ if DEBUGGING
 endif
 
 klingklang_CFLAGS = -pthread -I$(top_builddir)/include
-klingklang_LDADD = -lrt $(libavcodec_LIBS) $(libavformat_LIBS) $(libavutil_LIBS) 
+klingklang_LDADD = $(timer_LIBS) $(libavcodec_LIBS) $(libavformat_LIBS) $(libavutil_LIBS) 
 
 klingklang_CFLAGS += $(xcb_CFLAGS) $(xcb_keysyms_CFLAGS)  $(xcb_icccm_CFLAGS)  $(xcb_event_CFLAGS)  
 klingklang_LDADD += $(xcb_LIBS) $(xcb_keysyms_LIBS) $(xcb_icccm_LIBS) $(xcb_event_LIBS) 
@@ -83,4 +83,9 @@ if BACKEND_PULSEAUDIO
   klingklang_SOURCES += src/device/pulseaudio.c
   klingklang_CFLAGS += $(pulseaudio_CFLAGS)
   klingklang_LDADD += $(pulseaudio_LIBS)
+endif
+
+if BACKEND_SNDIO
+  klingklang_SOURCES += src/device/sndio.c
+  klingklang_LDADD += -lsndio
 endif
