@@ -45,6 +45,9 @@
 /* Define to 1 if you have the strstr function */
 #undef HAVE_POSIX_TIMER_API
 
+/* Define to 1 if you have the qsort_r function */
+#undef HAVE_QSORT_R
+
 /* Define to 1 if your system has a GNU libc compatible `realloc' function,
    and to 0 otherwise. */
 #undef HAVE_REALLOC
@@ -120,6 +123,9 @@
 
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
+
+/* Define to 1 if xcb-icccm function prefix is "xcb_icccm_" */
+#undef HAVE_XCB_ICCCM_PREFIX
 
 /* Define to 1 if you have the <xcb/xcb_event.h> header file. */
 #undef HAVE_XCB_XCB_EVENT_H

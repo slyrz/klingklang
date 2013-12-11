@@ -175,6 +175,10 @@ AC_CHECK_FUNCS([strndup], [AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you ha
 AC_CHECK_FUNCS([strnlen], [AC_DEFINE([HAVE_STRNLEN], [1], [Define to 1 if you have the strnlen function])])
 AC_CHECK_FUNCS([strrchr], [AC_DEFINE([HAVE_STRRCHR], [1], [Define to 1 if you have the strrchr function])])
 AC_CHECK_FUNCS([strstr], [AC_DEFINE([HAVE_STRSTR], [1], [Define to 1 if you have the strstr function])])
+AC_CHECK_FUNCS([qsort_r], [AC_DEFINE([HAVE_QSORT_R], [1], [Define to 1 if you have the qsort_r function])])
+
+# Older xcb-icccm version provide functions without _icccm prefix
+AC_CHECK_LIB([xcb-icccm], [xcb_icccm_set_wm_protocols], [AC_DEFINE([HAVE_XCB_ICCCM_PREFIX], [1], [Define to 1 if xcb-icccm function prefix is "xcb_icccm_"])])
 
 OLFLAGS="$LDFLAGS"
 LDFLAGS="$LDFLAGS -lrt"
