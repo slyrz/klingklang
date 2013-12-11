@@ -65,6 +65,9 @@ PKG_PROG_PKG_CONFIG
 #-----------------------------------------------------------------------------
 # Checks For Libraries
 #-----------------------------------------------------------------------------
+AC_SEARCH_LIBS([timer_create],[rt posix4])
+AC_SEARCH_LIBS([fabs],[m])
+
 PKG_CHECK_MODULES([libavcodec], [libavcodec], [], AC_MSG_ERROR([libavcodec not found.]))
 PKG_CHECK_MODULES([libavformat], [libavformat], [], AC_MSG_ERROR([libavformat not found.]))
 PKG_CHECK_MODULES([libavutil], [libavutil], [], AC_MSG_ERROR([libavutil not found.]))
@@ -180,35 +183,30 @@ AC_CHECK_FUNCS([strstr], [AC_DEFINE([HAVE_STRSTR], [1], [Define to 1 if you have
 AC_CHECK_FUNCS([qsort_r], [AC_DEFINE([HAVE_QSORT_R], [1], [Define to 1 if you have the qsort_r function])])
 
 # Older xcb-icccm version provide functions without _icccm prefix
-AC_CHECK_LIB([xcb-icccm], [xcb_icccm_set_wm_protocols], [AC_DEFINE([HAVE_XCB_ICCCM_PREFIX], [1], [Define to 1 if xcb-icccm function prefix is "xcb_icccm_"])])
+AC_CHECK_LIB([xcb-icccm], [xcb_icccm_set_wm_protocols], [
+  AC_DEFINE([HAVE_XCB_ICCCM_PREFIX], [1], [Define to 1 if xcb-icccm function prefix is "xcb_icccm_"])
+])
 
-OLFLAGS="$LDFLAGS"
-LDFLAGS="$LDFLAGS -lrt"
 AC_MSG_CHECKING([for usable per-process timers])
 AC_RUN_IFELSE([
-  AC_LANG_SOURCE([[
+  AC_LANG_PROGRAM([[
     #include <errno.h>
     #include <signal.h>
     #include <time.h>
-    int
-    main (void)
-    {
-      struct sigevent s;
-      timer_t t;
-      errno = 0;
-      timer_create (CLOCK_REALTIME, &s, &t);
-      return ((errno == ENOTSUP) | (errno == ENOSYS));
-    }
+  ]],
+  [[
+    struct sigevent s;
+    timer_t t;
+    errno = 0;
+    timer_create (CLOCK_REALTIME, &s, &t);
+    return ((errno == ENOTSUP) | (errno == ENOSYS));
   ]])
 ], [
   AC_MSG_RESULT([yes])
-  AC_SUBST([timer_LIBS], [-lrt])
-  AC_DEFINE([HAVE_POSIX_TIMER_API], [1], [Define to 1 if you have the strstr function])
+  AC_DEFINE([HAVE_POSIX_TIMER_API], [1], [Define to 1 if you have usable timer_create, timer_delete and timer_settime functions])
 ], [
   AC_MSG_RESULT([no])
-  AC_SUBST([timer_LIBS], [])
 ])
-LDFLAGS="$OLFLAGS"
 
 #-----------------------------------------------------------------------------
 # End
