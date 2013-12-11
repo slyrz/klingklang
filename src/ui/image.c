@@ -16,20 +16,20 @@
 
 #define rgb_iadd(r,g,b,col) \
   do { \
-    (r) += ((col) >> 16) & 0xff; \
-    (g) += ((col) >>  8) & 0xff; \
-    (b) += ((col)      ) & 0xff; \
+    (r) += (uint8_t) (((col) >> 16) & 0xffu); \
+    (g) += (uint8_t) (((col) >>  8) & 0xffu); \
+    (b) += (uint8_t) (((col)      ) & 0xffu); \
   } while (0)
 
 #define rgb_isub(r,g,b,col) \
   do { \
-    (r) -= ((col) >> 16) & 0xff; \
-    (g) -= ((col) >>  8) & 0xff; \
-    (b) -= ((col)      ) & 0xff; \
+    (r) -= (uint8_t) (((col) >> 16) & 0xffu); \
+    (g) -= (uint8_t) (((col) >>  8) & 0xffu); \
+    (b) -= (uint8_t) (((col)      ) & 0xffu); \
   } while (0)
 
 #define rgb_build(r,g,b) \
-  ((((r) & 0xff) << 16) | (((g) & 0xff) << 8) | ((b) & 0xff))
+  ((((uint32_t)(r) & 0xffu) << 16) | (((uint32_t)(g) & 0xffu) << 8) | ((uint32_t)(b) & 0xffu))
 
 /**
  * libavutil versions >= 51.42.0:
@@ -274,23 +274,26 @@ kk_image_free (kk_image_t *img)
 int
 kk_image_blur (kk_image_t *img, double intensity)
 {
-  const int hr = (int)(intensity *(double) img->width) / 2;
-  const int opo = -(hr + 1) *img->width;
-  const int npo = hr *img->width;
+  const int hr = (int)(intensity * (double) img->width) >> 1;
+  const int opo = -(hr + 1) * img->width;
+  const int npo = hr * img->width;
+
+  uint32_t *colors = NULL;
+  uint32_t *pixels = NULL;
 
   int x;
   int y;
   int i;
 
-  int *colors;
-  int *pixels;
-
-  pixels = (int *) cairo_image_surface_get_data (img->surface);
+  pixels = (uint32_t *) cairo_image_surface_get_data (img->surface);
 
   if (img->width > img->height)
-    colors = calloc (sizeof (int), (size_t) img->width);
+    colors = calloc ((size_t) img->width, sizeof (uint32_t));
   else
-    colors = calloc (sizeof (int), (size_t) img->height);
+    colors = calloc ((size_t) img->height, sizeof (uint32_t));
+
+  if ((pixels == NULL) | (colors == NULL))
+    goto error;
 
   i = 0;
   for (y = 0; y < img->height; y++) {
@@ -313,8 +316,9 @@ kk_image_blur (kk_image_t *img, double intensity)
         hits++;
       }
 
-      if ((x >= 0) && (hits != 0))
+      if ((x >= 0) && (hits != 0)) {
         colors[x] = rgb_build ((r / hits), (g / hits), (b / hits));
+      }
     }
 
     for (x = 0; x < img->width; x++)
@@ -323,13 +327,13 @@ kk_image_blur (kk_image_t *img, double intensity)
     i += img->width;
   }
 
-  for (x = 0; x < img->height; x++) {
+  for (x = 0; x < img->width; x++) {
     int hits = 0;
     int r = 0;
     int g = 0;
     int b = 0;
 
-    i = -hr *img->width + x;
+    i = -hr * img->width + x;
 
     for (y = -hr; y < img->height; y++) {
       int op = y - hr - 1;
@@ -345,17 +349,20 @@ kk_image_blur (kk_image_t *img, double intensity)
         hits++;
       }
 
-      if ((y >= 0) && (hits != 0))
+      if ((y >= 0) && (hits != 0)) {
         colors[y] = rgb_build ((r / hits), (g / hits), (b / hits));
+      }
 
       i += img->width;
     }
 
     for (y = 0; y < img->height; y++)
-      pixels[y *img->width + x] = colors[y];
+      pixels[y * img->width + x] = colors[y];
   }
 
   free (colors);
   return 0;
+error:
+  free (colors);
+  return -1;
 }
-
