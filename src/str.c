@@ -168,128 +168,6 @@ bloom_mask (uint32_t val)
   return (1ull << (val % 23)) | (1ull << (val % 47)) | (1ull << (val % 61));
 }
 
-/**
- * Copy src to string dst of size len.  At most len-1 characters
- * will be copied.  Always NUL terminates (unless len == 0).
- * Returns strlen(src); if retval >= len, truncation occurred.
- */
-#ifndef HAVE_STRLCPY
-static inline size_t
-strlcpy (char *dst, const char *src, size_t len)
-{
-  const char *s = src;
-  char *d = dst;
-  size_t n = len;
-
-  /* Copy as many bytes as will fit */
-  if (n != 0) {
-    while (--n != 0) {
-      if ((*d++ = *s++) == '\0')
-        break;
-    }
-  }
-  /* Not enough room in dst, add NUL and traverse rest of src */
-  if (n == 0) {
-    if (len != 0)
-      *d = '\0';                /* NUL-terminate dst */
-    while (*s++);
-  }
-  return (size_t) (s - src) - 1;        /* count does not include NUL */
-}
-#endif
-
-/**
- * Appends src to string dst of size len (unlike strncat, len is the
- * full size of dst, not space left).  At most len-1 characters
- * will be copied.  Always NUL terminates (unless len <= strlen(dst)).
- * Returns strlen(src) + MIN(len, strlen(initial dst)).
- * If retval >= len, truncation occurred.
- */
-#ifndef HAVE_STRLCAT
-static inline size_t
-strlcat (char *dst, const char *src, size_t len)
-{
-  const char *s = src;
-  char *d = dst;
-  size_t n = len;
-  size_t dlen;
-
-  /* Find the end of dst and adjust bytes left but don't go past end */
-  while (n-- != 0 && *d != '\0')
-    d++;
-  dlen = (size_t) (d - dst);
-  n = len - dlen;
-
-  if (n == 0)
-    return dlen + strlen (s);
-
-  while (*s != '\0') {
-    if (n != 1) {
-      *d++ = *s;
-      n--;
-    }
-    s++;
-  }
-  *d = '\0';
-
-  return dlen + (size_t) (s - src);     /* count does not include NUL */
-}
-#endif
-
-#ifndef HAVE_STRNLEN
-/**
- * Tries to determine strlen by looping over the first len bytes of str.
- * If no null byte is found, len is returned.
- */
-static inline size_t
-strnlen (const char *str, size_t len) 
-{
-  size_t ret;
-
-  ret = 0;
-  while ((*str) & (ret < len)) {
-    ret++;
-    str++;
-  }
-  return ret;
-}
-#endif
-
-static size_t
-digit_count (const char **p)
-{
-  const char *s;
-
-  while (**p == '0')
-    (*p)++;
-
-  s = *p;
-  while (isdigit (*s))
-    s++;
-
-  return (size_t) (s - *p);
-}
-
-static int
-digit_compare (const char **p1, const char **p2)
-{
-  const size_t c1 = digit_count (p1);
-  const size_t c2 = digit_count (p2);
-  const size_t n = (c1 < c2) ? c1 : c2;
-
-  int c;
-
-  if (c1 != c2)
-    return (int) (c1 - c2);
-
-  if ((c = strncmp (*p1, *p2, n)) != 0)
-    return c;
-
-  *p1 += c1;
-  *p2 += c2;
-  return 0;
-}
-
 static int
 _kk_str_search_add (kk_str_search_t *search, const char *pattern)
 {
@@ -490,11 +368,79 @@ kk_str_search_matches_all (kk_str_search_t *search, kk_str_match_t match)
   return (match == search->bloom);
 }
 
+/**
+ * Appends src to string dst of size len (unlike strncat, len is the
+ * full size of dst, not space left).  At most len-1 characters
+ * will be copied.  Always NUL terminates (unless len <= strlen(dst)).
+ * Returns strlen(src) + MIN(len, strlen(initial dst)).
+ * If retval >= len, truncation occurred.
+ */
+#ifndef HAVE_STRLCAT
+static inline size_t
+strlcat (char *dst, const char *src, size_t len)
+{
+  const char *s = src;
+  char *d = dst;
+  size_t n = len;
+  size_t dlen;
+
+  /* Find the end of dst and adjust bytes left but don't go past end */
+  while (n-- != 0 && *d != '\0')
+    d++;
+  dlen = (size_t) (d - dst);
+  n = len - dlen;
+
+  if (n == 0)
+    return dlen + strlen (s);
+
+  while (*s != '\0') {
+    if (n != 1) {
+      *d++ = *s;
+      n--;
+    }
+    s++;
+  }
+  *d = '\0';
+
+  return dlen + (size_t) (s - src);     /* count does not include NUL */
+}
+#endif
+
 size_t
 kk_str_cat (char *dst, const char *src, size_t len)
 {
   return strlcat (dst, src, len);
 }
+
+/**
+ * Copy src to string dst of size len.  At most len-1 characters
+ * will be copied.  Always NUL terminates (unless len == 0).
+ * Returns strlen(src); if retval >= len, truncation occurred.
+ */
+#ifndef HAVE_STRLCPY
+static inline size_t
+strlcpy (char *dst, const char *src, size_t len)
+{
+  const char *s = src;
+  char *d = dst;
+  size_t n = len;
+
+  /* Copy as many bytes as will fit */
+  if (n != 0) {
+    while (--n != 0) {
+      if ((*d++ = *s++) == '\0')
+        break;
+    }
+  }
+  /* Not enough room in dst, add NUL and traverse rest of src */
+  if (n == 0) {
+    if (len != 0)
+      *d = '\0';                /* NUL-terminate dst */
+    while (*s++);
+  }
+  return (size_t) (s - src) - 1;        /* count does not include NUL */
+}
+#endif
 
 size_t
 kk_str_cpy (char *dst, const char *src, size_t len)
@@ -502,10 +448,64 @@ kk_str_cpy (char *dst, const char *src, size_t len)
   return strlcpy (dst, src, len);
 }
 
+/**
+ * Tries to determine strlen by looping over the first len bytes of str.
+ * If no null byte is found, len is returned.
+ */
+#ifndef HAVE_STRNLEN
+static inline size_t
+strnlen (const char *str, size_t len) 
+{
+  size_t ret;
+
+  ret = 0;
+  while ((*str) & (ret < len)) {
+    ret++;
+    str++;
+  }
+  return ret;
+}
+#endif
+
 size_t 
 kk_str_len (const char *str, size_t len)
 {
   return strnlen (str, len);
+}
+
+static size_t
+digit_count (const char **p)
+{
+  const char *s;
+
+  while (**p == '0')
+    (*p)++;
+
+  s = *p;
+  while (isdigit (*s))
+    s++;
+
+  return (size_t) (s - *p);
+}
+
+static int
+digit_compare (const char **p1, const char **p2)
+{
+  const size_t c1 = digit_count (p1);
+  const size_t c2 = digit_count (p2);
+  const size_t n = (c1 < c2) ? c1 : c2;
+
+  int c;
+
+  if (c1 != c2)
+    return (int) (c1 - c2);
+
+  if ((c = strncmp (*p1, *p2, n)) != 0)
+    return c;
+
+  *p1 += c1;
+  *p2 += c2;
+  return 0;
 }
 
 int
@@ -527,7 +527,6 @@ kk_str_natcmp (const char *s1, const char *s2)
       s2++;
     }
   }
-
   return 0;
 }
 
