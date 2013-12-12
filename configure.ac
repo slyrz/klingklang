@@ -2,21 +2,17 @@
 # Autoconf Requirements
 #-----------------------------------------------------------------------------
 AC_PREREQ(2.61)
-
-#-----------------------------------------------------------------------------
-# Autoconf Requirements
-#-----------------------------------------------------------------------------
 AC_INIT([klingklang],[0.1])
+AC_LANG([C])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([include/klingklang/config.h])
 AC_CONFIG_MACRO_DIR([m4])
-AC_LANG([C])
-
-m4_include([m4/ax_compiler_vendor.m4])
-m4_include([m4/ax_check_compile_flag.m4])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects silent-rules])
 AM_MAINTAINER_MODE([enable])
+
+m4_include([m4/ax_compiler_vendor.m4])
+m4_include([m4/ax_check_compile_flag.m4])
 
 #-----------------------------------------------------------------------------
 # Define Package Options
