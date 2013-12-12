@@ -278,18 +278,21 @@ kk_str_search_free (kk_str_search_t *search)
 }
 
 static inline int
-kk_str_pattern_match (uint32_t h, const char *haystack, kk_str_pattern_t *pattern)
+_kk_str_pattern_is_match (kk_str_pattern_t *pattern, const char *haystack, uint32_t h)
 {
   return (pattern->h == h) && (strncasecmp (haystack, (const char *) pattern->s, pattern->l) == 0);
 }
 
-int
-kk_str_search_find_any (kk_str_search_t *search, const char *haystack, kk_str_match_t *match)
+static inline int
+_kk_str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match_t *match, int return_on_first_match)
 {
   uint64_t m;
   uint32_t h;
   size_t i;
 
+  /* Clear results of previous calls */
+  *match = 0ull;
+
   /* Make sure haystack isn't smaller than our minimum required length */
   for (i = 0; i < search->m; i++)
     if (haystack[i] == '\0')
@@ -298,11 +301,17 @@ kk_str_search_find_any (kk_str_search_t *search, const char *haystack, kk_str_ma
   buzhash_init (&h, (const unsigned char *) haystack, search->m);
   for (;;) {
     m = bloom_mask (h);
+
+    /**
+     * Current position in haystack might math one of our patterns (needles).
+     * We go through each pattern and check if it really matches.
+     */
     if ((search->bloom & m) == m) {
       for (i = 0; i < search->len; i++)
-        if (kk_str_pattern_match (h, haystack, search->pattern + i)) {
+        if (_kk_str_pattern_is_match (search->pattern + i, haystack, h)) {
           *match |= m;
-          return 1;
+          if ((return_on_first_match) || ((search->bloom & *match) == *match))
+            return 1;
         }
     }
 
@@ -313,53 +322,24 @@ kk_str_search_find_any (kk_str_search_t *search, const char *haystack, kk_str_ma
     haystack++;
   }
   return 0;
+}
+
+int
+kk_str_search_find_any (kk_str_search_t *search, const char *haystack, kk_str_match_t *match)
+{
+  return _kk_str_search_find (search, haystack, match, 1);
 }
 
 int
 kk_str_search_find_all (kk_str_search_t *search, const char *haystack, kk_str_match_t *match)
 {
-  uint64_t m = 0ull;
-  uint64_t t = 0ull;
-  uint32_t h;
-  size_t i;
-
-  /* Already found all patterns? */
-  if (*match == search->bloom)
-    return 0;
-
-  /* Make sure haystack isn't smaller than our minimum required length */
-  for (i = 0; i < search->m; i++)
-    if (haystack[i] == '\0')
-      return 0;
-
-  buzhash_init (&h, (const unsigned char *) haystack, search->m);
-  for (;;) {
-    m = bloom_mask (h);
-    if ((search->bloom & m) == m) {
-      for (i = 0; i < search->len; i++) {
-        if (kk_str_pattern_match (h, haystack, search->pattern + i)) {
-          *match |= m;
-          if (search->bloom == t)
-            return 1;
-          break;
-        }
-      }
-    }
-
-    if (haystack[search->m] == '\0')
-      break;
-
-    buzhash_update (&h, (const unsigned char *) haystack, search->m);
-    haystack++;
-  }
-  return 0;
+  return _kk_str_search_find (search, haystack, match, 0);
 }
 
 int
 kk_str_search_matches_any (kk_str_search_t *search, kk_str_match_t match)
 {
-  (void) search;
-  return (match > 0);
+  return ((match & search->bloom) > 0);
 }
 
 int
@@ -529,4 +509,3 @@ kk_str_natcmp (const char *s1, const char *s2)
   }
   return 0;
 }
-

@@ -352,9 +352,8 @@ kk_library_find (kk_library_t *lib, const char *keyword, kk_list_t **sel)
 
   kk_str_match_t match_base;
   kk_str_match_t match_file;
-  kk_str_match_t match;
 
-  if (keyword == NULL)
+  if ((keyword == NULL) || (*keyword == '\0'))
     goto error;
 
   if (kk_list_init (&result) != 0)
@@ -364,23 +363,24 @@ kk_library_find (kk_library_t *lib, const char *keyword, kk_list_t **sel)
     goto error;
 
   for (dir = lib; dir != NULL; dir = dir->next) {
-    match_base = 0ull;
-    if (kk_str_search_find_all (search, dir->base, &match_base) != 0)
-      continue;
+    /* Search directory name */
+    kk_str_search_find_all (search, dir->base, &match_base);
 
     for (file = dir->children; file != NULL; file = file->next) {
-      match_file = 0ull;
-      if (kk_str_search_find_all (search, file->name, &match_file) != 0)
-        continue;
+      /* Search file name */
+      kk_str_search_find_all (search, file->name, &match_file);
 
-      match = (match_base | match_file);
-      if (kk_str_search_matches_all (search, match) && (kk_list_append (result, file) != 0))
-        goto error;
+      /* If matches in directory name and file name contain all patterns */
+      if (kk_str_search_matches_all (search, match_base | match_file)) {
+        if (kk_list_append (result, file) != 0)
+          goto error;
+      }
     }
   }
 
   kk_str_search_free (search);
-  kk_list_sort (result, kk_library_file_cmp);
+  if (result->len)
+    kk_list_sort (result, kk_library_file_cmp);
   *sel = result;
   return 0;
 error:
