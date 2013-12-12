@@ -34,7 +34,7 @@
 
 /**
  * libavutil versions >= 51.42.0:
- * Renamed PixelFormat to AVPixelFormat and all PIX_FMT_*to AV_PIX_FMT_*.
+ * Renamed PixelFormat to AVPixelFormat and all PIX_FMT_* to AV_PIX_FMT_*.
  */
 #if !((LIBAVUTIL_VERSION_MAJOR >= 51) && (LIBAVUTIL_VERSION_MINOR >= 42))
 #  define AVPixelFormat PixelFormat
@@ -160,7 +160,7 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
    * into RGB_RGB_RGB_...
    */
   for (i = j = 0; i < (ow * oh); i++, j += 3)
-    cdata[i] = rgb_build (fdata[j], fdata[j + 1], fdata[j + 2]); // ((fdata[j] & 0xffu) << 16) | ((fdata[j + 1] & 0xffu) << 8) | (fdata[j + 2] & 0xffu);
+    cdata[i] = rgb_build (fdata[j], fdata[j + 1], fdata[j + 2]);
 
   img->surface = cairo_image_surface_create_for_data ((unsigned char*) cdata, CAIRO_FORMAT_RGB24, ow, oh, os);
   img->buffer = (unsigned char*) cdata;
@@ -225,11 +225,10 @@ kk_image_surface_load_other (kk_image_t *img, const char *path)
       break;
   }
 
-  if (sidx < fctx->nb_streams)
-    cctx = fctx->streams[sidx]->codec;
-  else
+  if (sidx >= fctx->nb_streams)
     goto error;
 
+  cctx = fctx->streams[sidx]->codec;
   if (avcodec_open2 (cctx, avcodec_find_decoder (cctx->codec_id), NULL) < 0)
     goto error;
 
@@ -392,3 +391,4 @@ error:
   free (colors);
   return -1;
 }
+
