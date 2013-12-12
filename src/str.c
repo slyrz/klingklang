@@ -310,7 +310,7 @@ _kk_str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match
       for (i = 0; i < search->len; i++)
         if (_kk_str_pattern_is_match (search->pattern + i, haystack, h)) {
           *match |= m;
-          if ((return_on_first_match) || ((search->bloom & *match) == *match))
+          if ((return_on_first_match) || ((search->bloom & *match) == search->bloom))
             return 1;
         }
     }
