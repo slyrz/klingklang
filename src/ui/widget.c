@@ -1,10 +1,15 @@
 #include <klingklang/ui/widget.h>
 
-int 
+int
 kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
 {
-  kk_widget_t *result;
+  kk_widget_t *result = NULL;
 
+  /**
+   * We could set size to sizeof (kk_widget_t) and continue like nothing
+   * happend, but this is not a good idea. If caller forgot to acquire enough
+   * size, he probably declared the struct without our widget fields.
+   */
   if (size < sizeof (kk_widget_t))
     goto error;
 
@@ -22,6 +27,7 @@ kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
   *widget = result;
   return 0;
 error:
+  kk_widget_free (result);
   *widget = NULL;
   return -1;
 }
@@ -29,7 +35,11 @@ error:
 int
 kk_widget_free (kk_widget_t *widget)
 {
+  if (widget == NULL)
+    return 0;
+
   kk_list_free (widget->children);
+  free (widget);
   return 0;
 }
 
@@ -49,7 +59,7 @@ kk_widget_draw (kk_widget_t *widget, cairo_t *ctx)
   return 0;
 }
 
-int 
+int
 kk_widget_invalidate (kk_widget_t *widget)
 {
   size_t i;
