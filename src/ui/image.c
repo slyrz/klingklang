@@ -1,7 +1,7 @@
 /**
  * This file incorporates modified versions of work covered by the 
  * following copyright and permission notice:
- * 
+ *
  * kk_image_blur
  * -------------
  * Copyright (c) 2010 Mattias Fagerlund
@@ -42,12 +42,12 @@
 #endif
 
 /**
- * libavcodec versions >= 54.28.0: 
- * Introduced avcodec_free_frame() function which must now be used for freeing an 
- * AVFrame. 
+ * libavcodec versions >= 54.28.0:
+ * Introduced avcodec_free_frame() function which must now be used for freeing an
+ * AVFrame.
  */
 #if !((LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 28))
-#  define avcodec_free_frame(x) av_free(*(x)) 
+#  define avcodec_free_frame(x) av_free(*(x))
 #endif
 
 extern int libav_initialized;
@@ -58,7 +58,7 @@ kk_image_surface_load_nativ (kk_image_t *img, const char *path)
   cairo_status_t status;
 
   img->surface = cairo_image_surface_create_from_png (path);
-  
+
   status = cairo_surface_status (img->surface);
   if (status != CAIRO_STATUS_SUCCESS) {
     kk_log (KK_LOG_WARNING, "Failed to load file '%s'. Cairo returned '%s'.", path, cairo_status_to_string (status));
@@ -116,8 +116,8 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
     goto error;
 
   /**
-   * Somehow the function swscale() performs an invalid write of size 1 at the 
-   * end of this buffer. I'm not sure why but adding additional 4 Bytes makes 
+   * Somehow the function swscale() performs an invalid write of size 1 at the
+   * end of this buffer. I'm not sure why but adding additional 4 Bytes makes
    * sure this does no harm.
    */
   buffer = calloc (buffer_size + 4, sizeof (uint8_t));
@@ -154,8 +154,8 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
     goto error;
 
   /**
-   * Okay, so libavcodec / libswscale uses 3 bytes to store a pixel of 
-   * rgb24 format, but cairo uses 4. That's why we have to create another 
+   * Okay, so libavcodec / libswscale uses 3 bytes to store a pixel of
+   * rgb24 format, but cairo uses 4. That's why we have to create another
    * buffer for our cairo surface and transform the RGBRGBRGB... data
    * into RGB_RGB_RGB_...
    */

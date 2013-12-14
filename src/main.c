@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2013, the klingklang developers.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -106,7 +106,7 @@ on_player_stop (kk_context_t *ctx, kk_player_event_stop_t *event)
   kk_window_draw (ctx->window);
 }
 
-static void 
+static void
 on_timer_fired (kk_context_t *ctx, kk_timer_event_fired_t *event)
 {
   (void) event;
@@ -150,7 +150,7 @@ on_window_input (kk_context_t *ctx, kk_window_event_input_t *event)
   if (kk_player_start (ctx->player) != 0)
     kk_log (KK_LOG_ERROR, "Player start failed.");
 
-cleanup:  
+cleanup:
   kk_list_free (sel);
   free (event->text);
 }
@@ -158,18 +158,18 @@ cleanup:
 static void
 on_window_resize (kk_context_t *ctx, kk_window_event_resize_t *event)
 {
-  kk_widget_set_size ((kk_widget_t *) ctx->window, 
-    event->width, 
+  kk_widget_set_size ((kk_widget_t *) ctx->window,
+    event->width,
     event->height
   );
 
-  kk_widget_set_size ((kk_widget_t *) ctx->cover, 
-    event->width, 
+  kk_widget_set_size ((kk_widget_t *) ctx->cover,
+    event->width,
     event->height - KK_PROGRESSBAR_HEIGHT
   );
 
-  kk_widget_set_size ((kk_widget_t *) ctx->progressbar, 
-    event->width, 
+  kk_widget_set_size ((kk_widget_t *) ctx->progressbar,
+    event->width,
     KK_PROGRESSBAR_HEIGHT
   );
 

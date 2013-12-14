@@ -29,13 +29,13 @@ const kk_device_backend_t kk_device_backend = {
 
 /**
  * This array allows snd_pcm_format_t lookup via indexes.
- * The index describes a sample format and consists of the following 
+ * The index describes a sample format and consists of the following
  * bit-fields:
- * 
+ *
  *                 | [unused] [BBB] [TT] [E] |
  *                 31         5              0
  *
- * E, 1 bit to indicate endianness: 
+ * E, 1 bit to indicate endianness:
  *   0 = little endian
  *   1 = big endian
  *
@@ -166,7 +166,7 @@ kk_device_alsa_write (kk_device_t *dev_base, kk_frame_t *frame)
 
   sframes = snd_pcm_bytes_to_frames (dev_impl->handle, (ssize_t) frame->size);
   uframes = (snd_pcm_uframes_t) sframes;
-  
+
   if (sframes <= 0)
     return -1;
 

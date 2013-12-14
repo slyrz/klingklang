@@ -83,7 +83,7 @@ kk_device_sndio_setup (kk_device_t *dev_base, kk_format_t *format)
 
   if (sio_setpar (dev_impl->device, &param) == 0)
     return -1;
-  
+
   if (sio_start (dev_impl->device) == 0)
     return -1;
 

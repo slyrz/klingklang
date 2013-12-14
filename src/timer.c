@@ -56,7 +56,7 @@ kk_timer_free (kk_timer_t *timer)
 #ifdef HAVE_POSIX_TIMER_API
   if (timer->id) {
     struct itimerspec its;
-    
+
     memset (&its, 0, sizeof (struct itimerspec));
     if (timer_settime (timer->id, 0, &its, NULL) != 0)
       kk_log (KK_LOG_WARNING, "Disarming timer failed.");
@@ -93,7 +93,7 @@ kk_timer_start (kk_timer_t *timer, int seconds)
   /**
    * The timer implementation used SIGEV_THREAD at first. This would have
    * allowed multipled timers. Sadly, some systems don't offer this functionality.
-   * So we had to switch to plain simple signal handlers. And to avoid 
+   * So we had to switch to plain simple signal handlers. And to avoid
    * needless complexity, these work best with one timer at a time.
    */
   if ((active) && (timer != active)) {
