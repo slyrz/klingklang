@@ -170,6 +170,9 @@ kk_library_dir_load (kk_library_dir_t *dir)
 
   /* TODO: Rewrite this shit... */
   pfst = calloc (len, sizeof (char));
+  if (pfst == NULL)
+    goto error;
+
   len_root = kk_append_path (pfst, dir->root, len, 1);
   len_base = kk_append_path (pfst, dir->base, len, 1);
   plst = pfst + len_base;
