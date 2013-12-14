@@ -205,10 +205,17 @@ static void
 on_player_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 {
   kk_event_t event;
+  ssize_t rs;
 
   (void) loop;
 
-  while (read (fd, &event, sizeof (kk_event_t)) > 0) {
+  while (rs = read (fd, &event, sizeof (kk_event_t)), rs > 0) {
+    /* Sanity check... should not be necessary */
+    if (rs != sizeof (kk_event_t)) {
+      kk_log (KK_LOG_WARNING, "Read %d bytes from event loop. Expected %lu.", rs, sizeof (kk_event_t));
+      continue;
+    }
+
     switch (event.type) {
       case KK_PLAYER_START:
         on_player_start (ctx, (kk_player_event_start_t *) & event);
@@ -233,10 +240,17 @@ static void
 on_timer_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 {
   kk_event_t event;
+  ssize_t rs;
 
   (void) loop;
 
-  while (read (fd, &event, sizeof (kk_event_t)) > 0) {
+  while (rs = read (fd, &event, sizeof (kk_event_t)), rs > 0) {
+    /* Sanity check... should not be necessary */
+    if (rs != sizeof (kk_event_t)) {
+      kk_log (KK_LOG_WARNING, "Read %d bytes from event loop. Expected %lu.", rs, sizeof (kk_event_t));
+      continue;
+    }
+
     switch (event.type) {
       case KK_TIMER_FIRED:
         on_timer_fired (ctx, (kk_timer_event_fired_t *) &  event);
@@ -252,8 +266,15 @@ static void
 on_window_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 {
   kk_event_t event;
+  ssize_t rs;
 
-  while (read (fd, &event, sizeof (kk_event_t)) > 0) {
+  while (rs = read (fd, &event, sizeof (kk_event_t)), rs > 0) {
+    /* Sanity check... should not be necessary */
+    if (rs != sizeof (kk_event_t)) {
+      kk_log (KK_LOG_WARNING, "Read %d bytes from event loop. Expected %lu.", rs, sizeof (kk_event_t));
+      continue;
+    }
+
     switch (event.type) {
       case KK_WINDOW_KEY_PRESS:
         on_window_key_press (ctx, (kk_window_event_key_press_t *) & event);
