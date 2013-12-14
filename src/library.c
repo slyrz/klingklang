@@ -138,8 +138,8 @@ kk_library_dir_load (kk_library_dir_t *dir)
   size_t len_base;
   size_t len;
 
-  struct dirent *ent;
-  DIR *dirst;
+  struct dirent *ent = NULL;
+  DIR *dirst = NULL;
 
   char *pfst;
   char *plst;
@@ -155,15 +155,15 @@ kk_library_dir_load (kk_library_dir_t *dir)
   len_base += (len_base > 0) && (dir->base[len_base - 1] != '/');
 
   /**
-   * Build string "root/base/", so that we can append the names of the 
+   * Build string "root/base/", so that we can append the names of the
    * directory entries to get a valid path.
-   * 
+   *
    *                    root/base/\0
    *                    ^         ^
    *                    pfst      plst
-   * 
+   *
    * pfst points to the first char of the path. plst points to the terminating
-   * zero char. Calling strcpy (plst, dirent->d_name) leads to the full path 
+   * zero char. Calling strcpy (plst, dirent->d_name) leads to the full path
    * of a given dirent.
    */
   len = len_root + len_base + NAME_MAX + 1;
@@ -202,7 +202,7 @@ kk_library_dir_load (kk_library_dir_t *dir)
         goto error;
 
       /**
-       * kk_str_cpy () should never cause this error, but if it does, just 
+       * kk_str_cpy () should never cause this error, but if it does, just
        * ignore this entry instead of giving up...
        */
       if (kk_str_cpy (plst, ent->d_name, NAME_MAX) >= NAME_MAX) {
@@ -215,7 +215,7 @@ kk_library_dir_load (kk_library_dir_t *dir)
       kk_library_dir_load (next);
 
       /**
-       * If the result has no children, it doesn't dirain any regular files but it 
+       * If the result has no children, it doesn't dirain any regular files but it
        * might dirain directories diraining regular files.
        */
       if (next->children == NULL) {
@@ -324,8 +324,8 @@ kk_library_free (kk_library_t *lib)
   }
 
   /**
-   * No need to free lib since we already freed it in the first 
-   * while-iteration 
+   * No need to free lib since we already freed it in the first
+   * while-iteration
    */
   return 0;
 }
