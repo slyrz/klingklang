@@ -7,8 +7,9 @@ kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
 
   /**
    * We could set size to sizeof (kk_widget_t) and continue like nothing
-   * happend, but this is not a good idea. If caller forgot to acquire enough
-   * size, he probably declared the struct without our widget fields.
+   * happened, but this is not a good idea: if the caller forgot to allocate
+   * large enough memory, he probably declared the struct without our
+   * kk_widget_t fields.
    */
   if (size < sizeof (kk_widget_t))
     goto error;
