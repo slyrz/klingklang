@@ -86,10 +86,16 @@ on_player_progress (kk_context_t *ctx, kk_player_event_progress_t *event)
 }
 
 static void
+on_player_seek (kk_context_t *ctx, kk_player_event_seek_t *event)
+{
+  kk_log (KK_LOG_INFO, "Player seeked position %f [0,1].", (double) event->perc);
+  kk_widget_invalidate ((kk_widget_t*) ctx->progressbar);
+}
+
+static void
 on_player_start (kk_context_t *ctx, kk_player_event_start_t *event)
 {
   kk_log (KK_LOG_INFO, "Player started playing '%s'.", event->file->name);
-
   kk_progressbar_set_value (ctx->progressbar, 0.0);
   kk_cover_load (ctx->cover, event->file);
   kk_window_set_title (ctx->window, event->file->name);
@@ -184,6 +190,9 @@ on_window_key_press (kk_context_t *ctx, kk_window_event_key_press_t *event)
     return;
 
   switch (event->key) {
+    case KK_KEY_R:
+      kk_player_seek (ctx->player, 0.0f);
+      break;
     case KK_KEY_A:
       kk_window_get_input (ctx->window);
       break;
@@ -217,17 +226,20 @@ on_player_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
     }
 
     switch (event.type) {
+      case KK_PLAYER_SEEK:
+        on_player_seek (ctx, (kk_player_event_seek_t *) &event);
+        break;
       case KK_PLAYER_START:
-        on_player_start (ctx, (kk_player_event_start_t *) & event);
+        on_player_start (ctx, (kk_player_event_start_t *) &event);
         break;
       case KK_PLAYER_STOP:
-        on_player_stop (ctx, (kk_player_event_stop_t *) & event);
+        on_player_stop (ctx, (kk_player_event_stop_t *) &event);
         break;
       case KK_PLAYER_PAUSE:
-        on_player_pause (ctx, (kk_player_event_pause_t *) & event);
+        on_player_pause (ctx, (kk_player_event_pause_t *) &event);
         break;
       case KK_PLAYER_PROGRESS:
-        on_player_progress (ctx, (kk_player_event_progress_t *) & event);
+        on_player_progress (ctx, (kk_player_event_progress_t *) &event);
         break;
       default:
         kk_log (KK_LOG_DEBUG, "Read unkown player event.");

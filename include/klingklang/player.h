@@ -51,6 +51,7 @@ int kk_player_free (kk_player_t *player);
 int kk_player_start (kk_player_t *player);
 int kk_player_pause (kk_player_t *player);
 int kk_player_stop (kk_player_t *player);
+int kk_player_seek (kk_player_t *player, float perc);
 int kk_player_next (kk_player_t *player);
 
 int kk_player_get_event_fd (kk_player_t *player);

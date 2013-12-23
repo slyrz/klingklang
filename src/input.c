@@ -5,7 +5,7 @@
 /**
  * Currently no plans to use any other decoders besides libav, so this isn't
  * as modular as the device interface. Also you aren't supposed to access
- * the fields of kk_input_t structs outside of this file, that's why the 
+ * the fields of kk_input_t structs outside of this file, that's why the
  * header doesn't contain the definition of struct kk_input_s.
  */
 #include <libavcodec/avcodec.h>
@@ -20,7 +20,8 @@ struct kk_input_s {
   AVFormatContext *fctx;
   AVFrame *frame;
   int32_t sidx;
-  int64_t time;
+  float time_end;
+  float time_cur;
   float time_div;
 };
 
@@ -58,8 +59,8 @@ kk_input_init (kk_input_t **inp, const char *filename)
     goto error;
 
   /**
-   * We want to use these as unsigned values, therefore check if we can 
-   * convert them without changing signedness 
+   * We want to use these as unsigned values, therefore check if we can
+   * convert them without changing signedness
    */
   if (result->cctx->channels < 0)
     goto error;
@@ -67,9 +68,12 @@ kk_input_init (kk_input_t **inp, const char *filename)
   if (result->cctx->sample_rate < 0)
     goto error;
 
-  result->time_div = (float) result->fctx->streams[result->sidx]->time_base.den;
-  result->time_div *= (float) result->fctx->streams[result->sidx]->time_base.num;
-  result->time_div *= (float) result->fctx->duration / AV_TIME_BASE;
+  result->time_end = (float) result->fctx->duration / AV_TIME_BASE;
+  result->time_cur = 0.0f;
+
+  result->time_div = (float) result->fctx->streams[result->sidx]->time_base.den \
+                   * (float) result->fctx->streams[result->sidx]->time_base.num;
+
   *inp = result;
   return 0;
 error:
@@ -94,6 +98,23 @@ kk_input_free (kk_input_t *inp)
     avformat_close_input (&inp->fctx);
 
   free (inp);
+  return 0;
+}
+
+int
+kk_input_seek (kk_input_t *inp, float perc)
+{
+  int64_t timestamp = 0ll;
+  int flags = 0;
+
+  if (perc < (inp->time_cur / inp->time_end)) {
+     flags = AVSEEK_FLAG_BACKWARD;
+  }
+
+  timestamp = (int64_t) ((perc * inp->time_end) * inp->time_div);
+
+  if (av_seek_frame (inp->fctx, inp->sidx, timestamp, flags) < 0)
+    return -1;
   return 0;
 }
 
@@ -148,11 +169,14 @@ kk_input_get_frame (kk_input_t *inp, kk_frame_t *frame)
   else
     frame->samples = 0u;
 
-  frame->prog = (float) packet.pts / inp->time_div;
+  inp->time_cur = (float) packet.pts / inp->time_div;
+
+  /* We store a percentage value in frame, not the time in seconds */
+  frame->prog = inp->time_cur / inp->time_end;
 
   if (av_sample_fmt_is_planar (inp->cctx->sample_fmt)) {
     frame->planes = (size_t) inp->cctx->channels;
-    frame->size = (size_t) ls *frame->planes;
+    frame->size = (size_t) ls * frame->planes;
   }
   else {
     frame->planes = 1;

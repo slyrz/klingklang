@@ -150,6 +150,17 @@ error:
  * mysterious uninitialized bytes.
  */
 static void
+kk_player_event_seek (kk_player_t *player, float perc)
+{
+  kk_player_event_seek_t event;
+
+  memset (&event, 0, sizeof (kk_player_event_seek_t));
+  event.type = KK_PLAYER_SEEK;
+  event.perc = perc;
+  kk_event_queue_write (player->events, (void *) &event, sizeof (kk_player_event_seek_t));
+}
+
+static void
 kk_player_event_start (kk_player_t *player, kk_library_file_t *file)
 {
   kk_player_event_start_t event;
@@ -214,14 +225,14 @@ kk_player_worker (kk_player_t *player)
       kk_frame_t frame;
 
       /**
-       * We lock our mutex and check if the input field is NULL. If it is, 
-       * we call pthread_cond_wait (with mutex still locked). Every call of 
-       * pthread_cond_wait releases the mutex and locks our thread on the 
-       * condition variable. Thus other threads are able to aquire the mutex. 
-       * These other threads hopefully assign something to input and wake us 
+       * We lock our mutex and check if the input field is NULL. If it is,
+       * we call pthread_cond_wait (with mutex still locked). Every call of
+       * pthread_cond_wait releases the mutex and locks our thread on the
+       * condition variable. Thus other threads are able to aquire the mutex.
+       * These other threads hopefully assign something to input and wake us
        * with a pthread_cond_signal call. This call causes pthread_cond_wait
        * to return with mutex locked. Then we try to read a frame from input
-       * and write it to the output device. Releasing the mutex before writing 
+       * and write it to the output device. Releasing the mutex before writing
        * our frame to the input device allows other threads to change input
        * in the meantime.
        */
@@ -251,7 +262,7 @@ kk_player_worker (kk_player_t *player)
         break;
 
       /**
-       * Now if this happened we really failed reading and decoding another 
+       * Now if this happened we really failed reading and decoding another
        * frame.
        */
       if (e == max_retries) {
@@ -456,6 +467,20 @@ kk_player_stop (kk_player_t *player)
   pthread_mutex_unlock (&player->mutex);
   return 0;
 }
+
+int
+kk_player_seek (kk_player_t *player, float perc)
+{
+  if (player->input == NULL)
+    return 0;
+
+  pthread_mutex_lock (&player->mutex);
+  kk_input_seek (player->input, perc);
+  kk_player_event_seek (player, perc);
+  pthread_mutex_unlock (&player->mutex);
+  return 0;
+}
+
 
 int
 kk_player_next (kk_player_t *player)
