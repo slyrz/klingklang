@@ -56,3 +56,4 @@ The second command is optional. Execute it if you want to install the *klingklan
 * `CTRL` + `C` - Clear
 * `CTRL` + `N` - Next
 * `CTRL` + `P` - Pause
+* `CTRL` + `R` - Rewind
