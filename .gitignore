@@ -1,6 +1,7 @@
 *.bkp
 *.log
 *.o
+*.swp
 *.plist/
 *.sh
 *.status
