@@ -140,14 +140,14 @@ kk_device_alsa_setup (kk_device_t *dev_base, kk_format_t *format)
   kk_device_alsa_t *dev_impl = (kk_device_alsa_t *) dev_base;
 
   const snd_pcm_format_t pcm_format = get_pcm_format (format);
-  const snd_pcm_access_t access = get_pcm_access (format);
+  const snd_pcm_access_t pcm_access = get_pcm_access (format);
 
   const unsigned int channels = (unsigned int) kk_format_get_channels (format);
   const unsigned int rate = format->sample_rate;
   const unsigned int latency = 500000u;
   const int soft_resample = 1;
 
-  if (snd_pcm_set_params (dev_impl->handle, pcm_format, access, channels, rate, soft_resample, latency) < 0)
+  if (snd_pcm_set_params (dev_impl->handle, pcm_format, pcm_access, channels, rate, soft_resample, latency) < 0)
     return -1;
   return 0;
 }
