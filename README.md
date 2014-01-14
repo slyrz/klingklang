@@ -16,6 +16,13 @@ You need to have the following libraries/programs installed:
 * [xcb-util](http://xcb.freedesktop.org/)
 
 Please make sure your *cairo* library was build with *xcb* support.
+Additionally, the following programs are required to build klingklang from source.
+They should be present on most Posix systems.
+
+* [autoconf](http://www.gnu.org/software/autoconf/)
+* [automake](http://www.gnu.org/software/automake/‎)
+* [make](http://www.gnu.org/software/make/)
+* [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/)
 
 ## Supported Audio Backends
 You need to have one of the following libraries installed:
