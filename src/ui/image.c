@@ -50,6 +50,17 @@
 #  define avcodec_free_frame(x) av_free(*(x))
 #endif
 
+/**
+ * libavcodec versions >= 55.28.1:
+ * av_frame_alloc(), av_frame_unref() and av_frame_free() now can and should be
+ * used instead of avcodec_alloc_frame(), avcodec_get_frame_defaults() and
+ * avcodec_free_frame() respectively. The latter three functions are deprecated.
+ */
+#if !((LIBAVCODEC_VERSION_MAJOR >= 55) && (LIBAVCODEC_VERSION_MINOR >= 28))
+#  define av_frame_free(x) avcodec_free_frame(x)
+#  define av_frame_alloc(x) avcodec_alloc_frame(x)
+#endif
+
 extern int libav_initialized;
 
 static int
@@ -110,8 +121,8 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
   uint8_t *fdata = NULL;
   uint8_t *buffer = NULL;
 
-  iframe = avcodec_alloc_frame ();
-  oframe = avcodec_alloc_frame ();
+  iframe = av_frame_alloc ();
+  oframe = av_frame_alloc ();
   if ((iframe == NULL) || (oframe == NULL))
     goto error;
 
@@ -166,8 +177,8 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
   img->buffer = (unsigned char*) cdata;
 
   sws_freeContext (sctx);
-  avcodec_free_frame (&iframe);
-  avcodec_free_frame (&oframe);
+  av_frame_free (&iframe);
+  av_frame_free (&oframe);
   av_free_packet (&packet);
   free (buffer);
   return 0;
@@ -175,9 +186,9 @@ error:
   if (sctx)
     sws_freeContext (sctx);
   if (iframe)
-    avcodec_free_frame (&iframe);
+    av_frame_free (&iframe);
   if (oframe)
-    avcodec_free_frame (&oframe);
+    av_frame_free (&oframe);
   av_free_packet (&packet);
   free (buffer);
   free (cdata);

@@ -13,6 +13,17 @@
 #include <libavutil/avutil.h>
 #include <libavutil/dict.h>
 
+/**
+ * libavcodec versions >= 55.28.1:
+ * av_frame_alloc(), av_frame_unref() and av_frame_free() now can and should be
+ * used instead of avcodec_alloc_frame(), avcodec_get_frame_defaults() and
+ * avcodec_free_frame() respectively. The latter three functions are deprecated.
+ */
+#if !((LIBAVCODEC_VERSION_MAJOR >= 55) && (LIBAVCODEC_VERSION_MINOR >= 28))
+#  define av_frame_alloc(x) avcodec_alloc_frame(x)
+#  define av_frame_unref(x) avcodec_get_frame_defaults(x)
+#endif
+
 int libav_initialized = 0;
 
 struct kk_input_s {
@@ -146,12 +157,12 @@ kk_input_get_frame (kk_input_t *inp, kk_frame_t *frame)
   }
 
   if (inp->frame == NULL) {
-    inp->frame = avcodec_alloc_frame ();
+    inp->frame = av_frame_alloc ();
     if (inp->frame == NULL)
       goto cleanup;
   }
   else
-    avcodec_get_frame_defaults (inp->frame);
+    av_frame_unref (inp->frame);
 
   ret = avcodec_decode_audio4 (inp->cctx, inp->frame, &g, &packet);
   if (ret < 0)
