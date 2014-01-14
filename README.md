@@ -43,13 +43,17 @@ It's necessary to create the missing Makefile and configure script by running
 
 Before you can run make, you have to execute the configure script.
 
-    ./configure --with-backend={alsa|ao|portaudio|pulseaudio|sndio}
+    ./configure
 
-If you want to test and debug *klingklang*, run
+The configure script accepts the following options:
 
-    ./configure --with-backend={alsa|ao|portaudio|pulseaudio|sndio} --enable-debugging
+* `--with-backend={alsa|ao|portaudio|pulseaudio|sndio}`  
+Use the given audio backend.
 
-instead. This will disable compiler optimization, but turn on additional warning flags and debug symbols.
+* `--enable-debugging`  
+Disable compiler optimization, but turn on additional warning flags and produce
+debug symbols.
+
 Now you're able to compile *klingklang* by running
 
     make

@@ -25,9 +25,6 @@ AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|portaudio|pulseaud
   AS_IF([test "x$with_backend" = "xsndio"], [backend="sndio"])
 ])
 
-# We really need this option
-AS_IF([test "x$backend" = "x"], AC_MSG_ERROR([No audio backend specified. See --help]))
-
 AC_ARG_ENABLE([logging], AS_HELP_STRING([--enable-logging], [compile with logging functionality]), [ 
   AS_IF([test "x$enable_logging" = "xyes"], [logging="yes"], [logging="no"])
 ], [logging="no"])
@@ -39,7 +36,6 @@ AC_ARG_ENABLE([debugging], AS_HELP_STRING([--enable-debugging], [compile with de
 #-----------------------------------------------------------------------------
 # Handle Package Options
 #-----------------------------------------------------------------------------
-AS_IF([test "x$backend" = "x"], AC_MSG_ERROR([No audio backend specified. See --help]))
 AS_IF([test "x$logging" = "x"], AC_DEFINE(LOGGING, [1], [Compile with logging support]))
 AS_IF([test "x$debugging" = "xyes"], AC_DEFINE(DEBUGGING, [1], [Compile with debug support]))
 AS_IF([test "x$debugging" = "xyes"], [
@@ -79,21 +75,32 @@ PKG_CHECK_MODULES([cairo], [cairo], [], AC_MSG_ERROR([cairo not found.]))
 #-----------------------------------------------------------------------------
 # Checks For Audio Backend
 #-----------------------------------------------------------------------------
-if test "x$backend" = "xalsa"; then
-	PKG_CHECK_MODULES([libasound], [alsa], [], AC_MSG_ERROR([libasound not found.]))
-fi
 
-if test "x$backend" = "xao"; then
-	PKG_CHECK_MODULES([libao], [ao], [], AC_MSG_ERROR([libao not found.]))
-fi
+# Check which audio backends are present
+AC_CHECK_HEADERS([sndio.h], [have_sndio="yes"], [have_sndio="no"])
+PKG_CHECK_MODULES([libasound], [alsa], [have_alsa="yes"], [have_alsa="no"])
+PKG_CHECK_MODULES([libao], [ao], [have_ao="yes"], [have_ao="no"])
+PKG_CHECK_MODULES([portaudio], [portaudio-2.0], [have_portaudio="yes"], [have_portaudio="no"])
+PKG_CHECK_MODULES([pulseaudio], [libpulse-simple], [have_pulseaudio="yes"], [have_pulseaudio="no"])
 
-if test "x$backend" = "xportaudio"; then
-  PKG_CHECK_MODULES([portaudio], [portaudio-2.0], [], AC_MSG_ERROR([portaudio-2.0 not found.]))
-fi
+# We pick one of the available backends if the user didn't specify which one.
+# Please note: these tests are ordered according to importance:
+#
+#   Cross Platform < Native < Sound Server
+#
+# This means native libaries overwrite cross platform libraries and
+# sound server libraries overwrite native libraries.
+AS_IF([test "x$backend" = "x"], [
+  AS_IF([test "x$have_ao" = "xyes"], [backend="ao"])
+  AS_IF([test "x$have_portaudio" = "xyes"], [backend="portaudio"])
+  AS_IF([test "x$have_alsa" = "xyes"], [backend="alsa"])
+  AS_IF([test "x$have_sndio" = "xyes"], [backend="sndio"])
+  AS_IF([test "x$have_pulseaudio" = "xyes"], [backend="pulseaudio"])
+])
 
-if test "x$backend" = "xpulseaudio"; then
-  PKG_CHECK_MODULES([pulseaudio], [libpulse-simple], [], AC_MSG_ERROR([libpulse-simple not found.]))
-fi
+AS_IF([test "x$backend" = "x"], [
+  AC_MSG_ERROR([no audio backend detected.])
+])
 
 AM_CONDITIONAL([BACKEND_ALSA], [test "x$backend" = "xalsa"])
 AM_CONDITIONAL([BACKEND_AO], [test "x$backend" = "xao"])
