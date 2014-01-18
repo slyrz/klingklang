@@ -60,17 +60,17 @@ PKG_PROG_PKG_CONFIG
 AC_SEARCH_LIBS([timer_create],[rt posix4])
 AC_SEARCH_LIBS([fabs],[m])
 
-PKG_CHECK_MODULES([libavcodec], [libavcodec], [], AC_MSG_ERROR([libavcodec not found.]))
-PKG_CHECK_MODULES([libavformat], [libavformat], [], AC_MSG_ERROR([libavformat not found.]))
-PKG_CHECK_MODULES([libavutil], [libavutil], [], AC_MSG_ERROR([libavutil not found.]))
-PKG_CHECK_MODULES([libswscale], [libswscale], [], AC_MSG_ERROR([libswscale not found.]))
+PKG_CHECK_MODULES([libavcodec], [libavcodec])
+PKG_CHECK_MODULES([libavformat], [libavformat])
+PKG_CHECK_MODULES([libavutil], [libavutil])
+PKG_CHECK_MODULES([libswscale], [libswscale])
 
-PKG_CHECK_MODULES([xcb], [xcb], [], AC_MSG_ERROR([xcb not found.]))
-PKG_CHECK_MODULES([xcb_keysyms], [xcb-keysyms], [], AC_MSG_ERROR([xcb-keysyms not found.]))
-PKG_CHECK_MODULES([xcb_event], [xcb-event], [], AC_MSG_ERROR([xcb-event not found.]))
-PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm], [], AC_MSG_ERROR([xcb-icccm not found.]))
+PKG_CHECK_MODULES([xcb], [xcb])
+PKG_CHECK_MODULES([xcb_keysyms], [xcb-keysyms])
+PKG_CHECK_MODULES([xcb_event], [xcb-event])
+PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm])
 
-PKG_CHECK_MODULES([cairo], [cairo], [], AC_MSG_ERROR([cairo not found.]))
+PKG_CHECK_MODULES([cairo], [cairo])
 
 #-----------------------------------------------------------------------------
 # Checks For Audio Backend
