@@ -190,9 +190,7 @@ AC_CHECK_FUNCS([qsort_r], [
     AC_LANG_PROGRAM([[
       #define _GNU_SOURCE
       #include <stdlib.h>
-
       static int values[2] = { 0, 1 };
-
       int
       cmp (void *a, void *b, void *c)
       {
@@ -212,9 +210,9 @@ AC_CHECK_FUNCS([qsort_r], [
   ])
 ])
 
-# xcb-icccm version < 0.3.8 provide functions without _icccm prefix.
-# Use PKG_CHECK... instead of AC_CHECK... because xcb-icccm might might
-# not be in the default search path.
+# The xcb-icccm versions < 0.3.8 provide functions without icccm prefix.
+# Use PKG_CHECK... instead of AC_CHECK... because the default search path might
+# not contain the library.
 PKG_CHECK_EXISTS([xcb-icccm >= 0.3.8], [
   AC_DEFINE([HAVE_XCB_ICCCM_PREFIX], [1], [Define to 1 if xcb-icccm function prefix is "xcb_icccm_"])
 ])
