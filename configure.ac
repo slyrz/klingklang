@@ -25,11 +25,11 @@ AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|portaudio|pulseaud
   AS_IF([test "x$with_backend" = "xsndio"], [backend="sndio"])
 ])
 
-AC_ARG_ENABLE([logging], AS_HELP_STRING([--enable-logging], [compile with logging functionality]), [ 
+AC_ARG_ENABLE([logging], AS_HELP_STRING([--enable-logging], [compile with logging functionality]), [
   AS_IF([test "x$enable_logging" = "xyes"], [logging="yes"], [logging="no"])
 ], [logging="no"])
 
-AC_ARG_ENABLE([debugging], AS_HELP_STRING([--enable-debugging], [compile with debugging functionality]), [ 
+AC_ARG_ENABLE([debugging], AS_HELP_STRING([--enable-debugging], [compile with debugging functionality]), [
   AS_IF([test "x$enable_debugging" = "xyes"], [debugging="yes"], [debugging="no"])
 ], [debugging="no"])
 
