@@ -17,7 +17,7 @@ m4_include([m4/ax_check_compile_flag.m4])
 #-----------------------------------------------------------------------------
 # Define Package Options
 #-----------------------------------------------------------------------------
-AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|portaudio|pulseaudio|sndio], [use audio backend]), [
+AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|oss|portaudio|pulseaudio|sndio], [use audio backend]), [
   AS_IF([test "x$with_backend" = "xalsa"], [backend="alsa"])
   AS_IF([test "x$with_backend" = "xao"], [backend="ao"])
   AS_IF([test "x$with_backend" = "xoss"], [backend="oss"])
