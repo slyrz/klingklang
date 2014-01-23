@@ -2,7 +2,11 @@
 #include <klingklang/util.h>
 
 #ifdef HAVE_QSORT_R
+#  ifdef HAVE_QSORT_R_GNU
 static int _kk_list_compare (const void *a, const void *b, void *arg);
+#  else
+static int _kk_list_compare (void *arg, const void *a, const void *b);
+#  endif
 #else
 static int _kk_list_compare (const void *a, const void *b);
 #endif
@@ -10,17 +14,19 @@ static int _kk_list_compare (const void *a, const void *b);
 static int _kk_list_enlarge (kk_list_t *list);
 
 #ifndef HAVE_QSORT_R
-#  include <pthread.h>
-#endif
+#include <pthread.h>
 
-#ifndef HAVE_QSORT_R
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static void *arg = NULL;
 #endif
 
 static int
 #ifdef HAVE_QSORT_R
+#  ifdef HAVE_QSORT_R_GNU
 _kk_list_compare (const void *a, const void *b, void *arg)
+#  else
+_kk_list_compare (void *arg, const void *a, const void *b)
+#  endif
 #else
 _kk_list_compare (const void *a, const void *b)
 #endif
@@ -28,7 +34,7 @@ _kk_list_compare (const void *a, const void *b)
   /**
    * kk_list_t stores void* pointers. Calling qsort,
    * we receive pointers to those pointers in this function. Function parameters
-   * are declared void*to not break the qsort compare function prototype. 
+   * are declared void*to not break the qsort compare function prototype.
    * So we cast them to void**, dereference them and cast them to
    * actual void*pointers and call the user-defined compare function.
    */
@@ -114,7 +120,11 @@ kk_list_sort (kk_list_t *list, kk_list_cmp_f cmp)
     return 0;
 
 #ifdef HAVE_QSORT_R
+#  ifdef HAVE_QSORT_R_GNU
   qsort_r (list->items, list->len, sizeof (void *), _kk_list_compare, cmp);
+#  else
+  qsort_r (list->items, list->len, sizeof (void *), cmp, _kk_list_compare);
+#  endif
 #else
   pthread_mutex_lock (&mutex);
   arg = cmp;

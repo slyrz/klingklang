@@ -183,7 +183,34 @@ AC_CHECK_FUNCS([strndup], [AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you ha
 AC_CHECK_FUNCS([strnlen], [AC_DEFINE([HAVE_STRNLEN], [1], [Define to 1 if you have the strnlen function])])
 AC_CHECK_FUNCS([strrchr], [AC_DEFINE([HAVE_STRRCHR], [1], [Define to 1 if you have the strrchr function])])
 AC_CHECK_FUNCS([strstr], [AC_DEFINE([HAVE_STRSTR], [1], [Define to 1 if you have the strstr function])])
-AC_CHECK_FUNCS([qsort_r], [AC_DEFINE([HAVE_QSORT_R], [1], [Define to 1 if you have the qsort_r function])])
+AC_CHECK_FUNCS([qsort_r], [
+  AC_DEFINE([HAVE_QSORT_R], [1], [Define to 1 if you have the qsort_r function])
+  AC_MSG_CHECKING([for qsort_r style])
+  AC_RUN_IFELSE([
+    AC_LANG_PROGRAM([[
+      #define _GNU_SOURCE
+      #include <stdlib.h>
+
+      static int values[2] = { 0, 1 };
+
+      int
+      cmp (void *a, void *b, void *c)
+      {
+        return (a == (void *) cmp);
+      }
+    ]],
+    [[
+      qsort_r (values, 2, sizeof (int), cmp, cmp);
+      return values[0];
+    ]])
+  ], [
+    AC_MSG_RESULT([GNU style])
+    AC_DEFINE([HAVE_QSORT_R_GNU], [1], [Define to 1 if you have the GNU style qsort_r function])
+  ], [
+    AC_MSG_RESULT([BSD style])
+    AC_DEFINE([HAVE_QSORT_R_BSD], [1], [Define to 1 if you have the BSD style qsort_r function])
+  ])
+])
 
 # xcb-icccm version < 0.3.8 provide functions without _icccm prefix.
 # Use PKG_CHECK... instead of AC_CHECK... because xcb-icccm might might
