@@ -33,20 +33,15 @@ const kk_device_backend_t kk_device_backend = {
   .write = kk_device_oss_write,
 };
 
-static const int sample_format[2][4] = {
-  [KK_BYTE_ORDER_LITTLE_ENDIAN] = {
-    AFMT_U8,
-    AFMT_S16_LE,
-    AFMT_S24_LE,
-    AFMT_S32_LE
-  },
-  [KK_BYTE_ORDER_BIG_ENDIAN] = {
-    AFMT_U8,
-    AFMT_S16_BE,
-    AFMT_S24_BE,
-    AFMT_S32_BE
-  }
-};
+static int
+device_ctrl (int fd, unsigned long req, int val)
+{
+  int arg = val;
+
+  if ((ioctl (fd, req, &arg) == -1) || (arg != val))
+    return -1;
+  return 0;
+}
 
 int
 kk_device_oss_init (kk_device_t * dev_base)
@@ -72,11 +67,8 @@ kk_device_oss_drop (kk_device_t * dev_base)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
 
-  if (ioctl (dev_impl->fd, SNDCTL_DSP_SKIP, 0) < 0) {
-    kk_log (KK_LOG_WARNING, "Could not stop playback.");
+  if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SKIP, 0) != 0)
     return -1;
-  }
-
   return 0;
 }
 
@@ -84,9 +76,7 @@ int
 kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
-
-  int n;
-  int o;
+  int req;
 
   /**
    * There's no real reset ioctl. It's the recommended way to reopen
@@ -103,53 +93,45 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
     return -1;
   }
 
-  o = kk_format_get_channels (format);
-  n = o;
-  if ((ioctl (dev_impl->fd, SNDCTL_DSP_CHANNELS, &n) == -1) || (o != n)) {
-    kk_log (KK_LOG_WARNING, "Could not stop playback.");
+  req = kk_format_get_channels (format);
+  if (device_ctrl (dev_impl->fd, SNDCTL_DSP_CHANNELS, req) != 0) {
+    kk_log (KK_LOG_WARNING, "Device doesn't support %d channels.", req);
     goto error;
   }
 
-  o = format->sample_rate;
-  n = o;
-  if ((ioctl (dev_impl->fd, SNDCTL_DSP_SPEED, &n) == -1) || (o != n)) {
-    kk_log (KK_LOG_WARNING, "Could not set sample rate.");
+  req = format->sample_rate;
+  if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SPEED, req) != 0) {
+    kk_log (KK_LOG_WARNING, "Device doesn't %d Hz sample rate.", req);
     goto error;
   }
 
-  o = 0;
   if (format->type == KK_TYPE_FLOAT) {
-    return -1; // TODO
-    if (format->bits == KK_BITS_32)
-      o = AFMT_FLOAT; // TODO: double precision?
+    kk_log (KK_LOG_WARNING, "Floating point sample format not supported by OSS.");
+    goto error;
   }
-  else {
-    switch (format->bits) {
+
+  req = 0;
+  switch (format->bits) {
       case KK_BITS_8:
-        o = sample_format[format->layout][0];
+        req = AFMT_U8;
         break;
       case KK_BITS_16:
-        o = sample_format[format->layout][1];
+        req = AFMT_S16_LE;
         break;
       case KK_BITS_24:
-        o = sample_format[format->layout][2];
+        req = AFMT_S24_LE;
         break;
       case KK_BITS_32:
-        o = sample_format[format->layout][3];
+        req = AFMT_S32_LE;
         break;
       case KK_BITS_64:
-        break;
+        kk_log (KK_LOG_WARNING, "64 bit sample format not supported by OSS.");
+        goto error;
     }
   }
 
-  if (o == 0) {
-    kk_log (KK_LOG_WARNING, "Sample format not supported by OSS.");
-    goto error;
-  }
-
-  n = o;
-  if ((ioctl (dev_impl->fd, SNDCTL_DSP_SETFMT, &n) == -1) || (o != n)) {
-    kk_log (KK_LOG_WARNING, "Could not set sample format.");
+  if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SETFMT, req) != 0) {
+    kk_log (KK_LOG_WARNING, "Device doesn't support sample format.");
     goto error;
   }
 
@@ -162,25 +144,26 @@ int
 kk_device_oss_write (kk_device_t * dev_base, kk_frame_t * frame)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
-  int error = 0;
-
-
+  void *data;
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      if ((error = kk_frame_interleave (dev_impl->buffer, frame, dev_base->format)) == 0) {
-        error = (write (dev_impl->fd, (void *) dev_impl->buffer->data[0], frame->size) <= 0);
-      }
+      if (kk_frame_interleave (dev_impl->buffer, frame, dev_base->format) != 0) {
+        goto error;
+      data = (void *) dev_impl->buffer->data[0];
       break;
     case KK_LAYOUT_INTERLEAVED:
-      error = (write (dev_impl->fd, (void *) frame->data[0], frame->size) <= 0);
+      data = (void *) frame->data[0];
       break;
+    default:
+      goto error;
   }
 
-  if (error) {
-    kk_log (KK_LOG_WARNING, "Writing frame failed.");
-    return -1;
-  }
+  if (write (dev_impl->fd, data, frame->size) <= 0)
+    goto error;
 
   return 0;
+error:
+  kk_log (KK_LOG_WARNING, "Writing frame failed.");
+  return -1;
 }
