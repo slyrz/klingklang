@@ -29,6 +29,7 @@ You need to have one of the following libraries installed:
 
 * [alsa](http://www.alsa-project.org/)
 * [ao](http://www.xiph.org/ao/)
+* [oss](http://www.opensound.com/oss.html)
 * [portaudio](http://www.portaudio.com/)
 * [pulseaudio](http://www.freedesktop.org/wiki/Software/PulseAudio/)
 * [sndio](http://www.sndio.org/)
@@ -47,7 +48,7 @@ Before you can run make, you have to execute the configure script.
 
 The configure script accepts the following options:
 
-* `--with-backend={alsa|ao|portaudio|pulseaudio|sndio}`  
+* `--with-backend={alsa|ao|oss|portaudio|pulseaudio|sndio}`  
 Use the given audio backend.
 
 * `--enable-debugging`  
