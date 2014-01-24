@@ -48,6 +48,7 @@ kk_device_sndio_free (kk_device_t *dev_base)
   kk_device_sndio_t *dev_impl = (kk_device_sndio_t *) dev_base;
 
   sio_close (dev_impl->device);
+  kk_frame_free (dev_impl->buffer);
   return 0;
 }
 
