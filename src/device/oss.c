@@ -112,21 +112,21 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
 
   req = 0;
   switch (format->bits) {
-      case KK_BITS_8:
-        req = AFMT_U8;
-        break;
-      case KK_BITS_16:
-        req = AFMT_S16_LE;
-        break;
-      case KK_BITS_24:
-        req = AFMT_S24_LE;
-        break;
-      case KK_BITS_32:
-        req = AFMT_S32_LE;
-        break;
-      case KK_BITS_64:
-        kk_log (KK_LOG_WARNING, "64 bit sample format not supported by OSS.");
-        goto error;
+    case KK_BITS_8:
+      req = AFMT_U8;
+      break;
+    case KK_BITS_16:
+      req = AFMT_S16_LE;
+      break;
+    case KK_BITS_24:
+      req = AFMT_S24_LE;
+      break;
+    case KK_BITS_32:
+      req = AFMT_S32_LE;
+      break;
+    case KK_BITS_64:
+      kk_log (KK_LOG_WARNING, "64 bit sample format not supported by OSS.");
+      goto error;
   }
 
   if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SETFMT, req) != 0) {
