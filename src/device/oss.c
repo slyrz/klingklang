@@ -110,7 +110,6 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
     goto error;
   }
 
-  req = 0;
   switch (format->bits) {
     case KK_BITS_8:
       req = AFMT_U8;
