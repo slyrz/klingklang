@@ -100,12 +100,6 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
     goto error;
   }
 
-  req = (int) format->sample_rate;
-  if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SPEED, req) != 0) {
-    kk_log (KK_LOG_WARNING, "Device doesn't %d Hz sample rate.", req);
-    goto error;
-  }
-
   if (format->type == KK_TYPE_FLOAT) {
     kk_log (KK_LOG_WARNING, "Floating point sample format not supported by OSS.");
     goto error;
@@ -131,6 +125,12 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
 
   if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SETFMT, req) != 0) {
     kk_log (KK_LOG_WARNING, "Device doesn't support sample format.");
+    goto error;
+  }
+
+  req = (int) format->sample_rate;
+  if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SPEED, req) != 0) {
+    kk_log (KK_LOG_WARNING, "Device doesn't %d Hz sample rate.", req);
     goto error;
   }
 
