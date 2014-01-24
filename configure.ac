@@ -17,9 +17,10 @@ m4_include([m4/ax_check_compile_flag.m4])
 #-----------------------------------------------------------------------------
 # Define Package Options
 #-----------------------------------------------------------------------------
-AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|portaudio|pulseaudio|sndio], [use audio backend]), [
+AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|oss|portaudio|pulseaudio|sndio], [use audio backend]), [
   AS_IF([test "x$with_backend" = "xalsa"], [backend="alsa"])
   AS_IF([test "x$with_backend" = "xao"], [backend="ao"])
+  AS_IF([test "x$with_backend" = "xoss"], [backend="oss"])
   AS_IF([test "x$with_backend" = "xportaudio"], [backend="portaudio"])
   AS_IF([test "x$with_backend" = "xpulseaudio"], [backend="pulseaudio"])
   AS_IF([test "x$with_backend" = "xsndio"], [backend="sndio"])
@@ -78,6 +79,7 @@ PKG_CHECK_MODULES([cairo], [cairo])
 
 # Check which audio backends are present
 AC_CHECK_HEADERS([sndio.h], [have_sndio="yes"], [have_sndio="no"])
+AC_CHECK_HEADERS([sys/soundcard.h], [have_oss="yes"], [have_oss="no"])
 PKG_CHECK_MODULES([libasound], [alsa], [have_alsa="yes"], [have_alsa="no"])
 PKG_CHECK_MODULES([libao], [ao], [have_ao="yes"], [have_ao="no"])
 PKG_CHECK_MODULES([portaudio], [portaudio-2.0], [have_portaudio="yes"], [have_portaudio="no"])
@@ -93,6 +95,7 @@ PKG_CHECK_MODULES([pulseaudio], [libpulse-simple], [have_pulseaudio="yes"], [hav
 AS_IF([test "x$backend" = "x"], [
   AS_IF([test "x$have_ao" = "xyes"], [backend="ao"])
   AS_IF([test "x$have_portaudio" = "xyes"], [backend="portaudio"])
+  AS_IF([test "x$have_oss" = "xyes"], [backend="oss"])
   AS_IF([test "x$have_alsa" = "xyes"], [backend="alsa"])
   AS_IF([test "x$have_sndio" = "xyes"], [backend="sndio"])
   AS_IF([test "x$have_pulseaudio" = "xyes"], [backend="pulseaudio"])
@@ -104,6 +107,7 @@ AS_IF([test "x$backend" = "x"], [
 
 AM_CONDITIONAL([BACKEND_ALSA], [test "x$backend" = "xalsa"])
 AM_CONDITIONAL([BACKEND_AO], [test "x$backend" = "xao"])
+AM_CONDITIONAL([BACKEND_OSS], [test "x$backend" = "xoss"])
 AM_CONDITIONAL([BACKEND_PORTAUDIO], [test "x$backend" = "xportaudio"])
 AM_CONDITIONAL([BACKEND_PULSEAUDIO], [test "x$backend" = "xpulseaudio"])
 AM_CONDITIONAL([BACKEND_SNDIO], [test "x$backend" = "xsndio"])
