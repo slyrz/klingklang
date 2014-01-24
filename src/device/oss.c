@@ -59,6 +59,7 @@ kk_device_oss_free (kk_device_t * dev_base)
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
 
   close (dev_impl->fd);
+  kk_frame_free (dev_impl->buffer);
   return 0;
 }
 
