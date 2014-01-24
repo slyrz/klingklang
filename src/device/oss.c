@@ -99,7 +99,7 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
     goto error;
   }
 
-  req = format->sample_rate;
+  req = (int) format->sample_rate;
   if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SPEED, req) != 0) {
     kk_log (KK_LOG_WARNING, "Device doesn't %d Hz sample rate.", req);
     goto error;
@@ -127,7 +127,6 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
       case KK_BITS_64:
         kk_log (KK_LOG_WARNING, "64 bit sample format not supported by OSS.");
         goto error;
-    }
   }
 
   if (device_ctrl (dev_impl->fd, SNDCTL_DSP_SETFMT, req) != 0) {
@@ -148,15 +147,13 @@ kk_device_oss_write (kk_device_t * dev_base, kk_frame_t * frame)
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      if (kk_frame_interleave (dev_impl->buffer, frame, dev_base->format) != 0) {
+      if (kk_frame_interleave (dev_impl->buffer, frame, dev_base->format) != 0)
         goto error;
       data = (void *) dev_impl->buffer->data[0];
       break;
     case KK_LAYOUT_INTERLEAVED:
       data = (void *) frame->data[0];
       break;
-    default:
-      goto error;
   }
 
   if (write (dev_impl->fd, data, frame->size) <= 0)
