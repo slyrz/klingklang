@@ -81,14 +81,14 @@ on_player_pause (kk_context_t *ctx, kk_player_event_pause_t *event)
 static void
 on_player_progress (kk_context_t *ctx, kk_player_event_progress_t *event)
 {
-  kk_log (KK_LOG_INFO, "Player progress %f [0,1].", (double) event->progress);
+  kk_log (KK_LOG_DEBUB, "Player progress %f [0,1].", (double) event->progress);
   kk_progressbar_set_value (ctx->progressbar, event->progress);
 }
 
 static void
 on_player_seek (kk_context_t *ctx, kk_player_event_seek_t *event)
 {
-  kk_log (KK_LOG_INFO, "Player seeked position %f [0,1].", (double) event->perc);
+  kk_log (KK_LOG_DEBUG, "Player seeked position %f [0,1].", (double) event->perc);
   kk_widget_invalidate ((kk_widget_t*) ctx->progressbar);
 }
 
@@ -242,7 +242,7 @@ on_player_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
         on_player_progress (ctx, (kk_player_event_progress_t *) &event);
         break;
       default:
-        kk_log (KK_LOG_DEBUG, "Read unkown player event.");
+        kk_log (KK_LOG_WARNING, "Read unkown player event.");
         break;
     }
   }
@@ -268,7 +268,7 @@ on_timer_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
         on_timer_fired (ctx, (kk_timer_event_fired_t *) &  event);
         break;
       default:
-        kk_log (KK_LOG_DEBUG, "Read unkown timer event.");
+        kk_log (KK_LOG_WARNING, "Read unkown timer event.");
         break;
     }
   }
@@ -304,7 +304,7 @@ on_window_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
         kk_event_loop_exit (loop);
         break;
       default:
-        kk_log (KK_LOG_DEBUG, "Read unkown window event.");
+        kk_log (KK_LOG_WARNING, "Read unkown window event.");
         break;
     }
   }
