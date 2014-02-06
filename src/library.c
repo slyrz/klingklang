@@ -1,6 +1,7 @@
 #include <klingklang/base.h>
 #include <klingklang/library.h>
 #include <klingklang/str.h>
+#include <klingklang/util.h>
 
 #ifdef HAVE_DIRENT_H
 #  include <dirent.h>
@@ -166,9 +167,8 @@ kk_library_dir_load (kk_library_dir_t *dir)
    * zero char. Calling strcpy (plst, dirent->d_name) leads to the full path
    * of a given dirent.
    */
-  len = len_root + len_base + NAME_MAX + 1;
+  len = kk_get_next_pow2 (len_root + len_base + NAME_MAX + 1);
 
-  /* TODO: Rewrite this shit... */
   pfst = calloc (len, sizeof (char));
   if (pfst == NULL)
     goto error;
@@ -215,8 +215,9 @@ kk_library_dir_load (kk_library_dir_t *dir)
       kk_library_dir_load (next);
 
       /**
-       * If the result has no children, it doesn't dirain any regular files but it
-       * might dirain directories diraining regular files.
+       * If the result has no children, it doesn't contain any regular files
+       * but it might contain directories containing regular files, so we
+       * set next to next->next instead of NULL.
        */
       if (next->children == NULL) {
         temp = next;
@@ -225,12 +226,16 @@ kk_library_dir_load (kk_library_dir_t *dir)
         free (temp);
       }
 
+      /**
+       * If next != NULL, we found one or mire directories in dir that
+       * cointained some music files and we append it to the linked list
+       * of directories.
+       */
       if (next) {
-        temp = dir->next;
-        dir->next = next;
-        while (next->next)
-          next = next->next;
-        next->next = temp;
+        temp = dir;
+        while (temp && temp->next)
+          temp = temp->next;
+        temp->next = next;
       }
     }
 
@@ -266,7 +271,7 @@ kk_library_init (kk_library_t **lib, const char *path)
   if (result == NULL)
     goto error;
 
-  /* strdup' these so we can later call free on all strings */
+  /* strdup these so we can call free on all strings later  */
   result->root = strdup (path);
   result->base = strdup ("");
 
