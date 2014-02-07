@@ -423,7 +423,12 @@ kk_player_start (kk_player_t *player)
 {
   int ret = -1;
 
-  if ((player->input != NULL) | kk_player_queue_is_empty (player->queue))
+  /* Already playing? Not an error. */
+  if (player->input != NULL)
+    return 0;
+
+  /* Queue empty? We consider that an error. */
+  if (kk_player_queue_is_empty (player->queue))
     return -1;
 
   pthread_mutex_lock (&player->mutex);
