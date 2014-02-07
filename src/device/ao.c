@@ -84,10 +84,10 @@ kk_device_ao_setup (kk_device_t *dev_base, kk_format_t *format)
   /**
    * libao might say that our sample rate isn't supported by the hardware. But
    * sadly, libao only prints a warning to stderr instead of returning a
-   * meaningful error value or atleast changing the value of the erroneous field 
-   * in the format structure. 
-   * If libao would indicate an error, we could resample the audio 
-   * before writing it to the device. But right now there's no way to know 
+   * meaningful error value or atleast changing the value of the erroneous field
+   * in the format structure.
+   * If libao would indicate an error, we could resample the audio
+   * before writing it to the device. But right now there's no way to know
    * whether setting the format failed or succeeded.
    */
   dev_impl->device = ao_open_live (dev_impl->driver, &ao_format, NULL);

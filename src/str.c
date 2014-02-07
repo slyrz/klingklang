@@ -1,21 +1,21 @@
 /**
  * This file incorporates modified versions of work covered by the 
  * following copyright and permission notice:
- * 
+ *
  * digit_count, digit_compare, kk_str_natcmp
  * -----------------------------------------
  * Copyright (c) 2011 Jan Varho <jan at varho dot org>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,15 +23,15 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- * 
+ *
  * strlcpy, strlcat
  * ----------------
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -50,26 +50,26 @@
 
 /**
  * What is a Buzhash table?
- * Basically just random numbers satisfiying the following property: If you 
+ * Basically just random numbers satisfiying the following property: If you
  * think of the array as 32 columns of bits, each column contains exactly 128
  * zeros and 128 ones in a random order.
- * 
+ *
  * A Python code to generate those constants might look like
- * 
+ *
  * >>> columns = [ shuffle([0] *128 + [1] * 128) for i in range(32) ]
  * ... for i in range(256):
  * ...   value = 0
  * ...   for j, column in enumerate(columns):
  * ...     value |= column.pop () << j
  * ...   print("0x{:08x}ul, ".format(value))
- * 
- * where shuffle is a function that shuffles list items. To perform 
+ *
+ * where shuffle is a function that shuffles list items. To perform
  * case-insensitve search, we use a slighty modified Buzhash table:
  * The lowercase and uppercase values of an alphabetic character share the
  * same constants
- * 
+ *
  * buzhash_table[lower(C)] == buzhash_table[upper(C)] for C in 'a' ... 'z'
- * 
+ *
  * without breaking the 128 zeros / 128 ones per column property.
  */
 static uint32_t buzhash_table[256] = {
@@ -434,7 +434,7 @@ kk_str_cpy (char *dst, const char *src, size_t len)
  */
 #ifndef HAVE_STRNLEN
 static inline size_t
-strnlen (const char *str, size_t len) 
+strnlen (const char *str, size_t len)
 {
   size_t ret;
 
@@ -447,7 +447,7 @@ strnlen (const char *str, size_t len)
 }
 #endif
 
-size_t 
+size_t
 kk_str_len (const char *str, size_t len)
 {
   return strnlen (str, len);

@@ -129,8 +129,8 @@ kk_event_loop_add (kk_event_loop_t *loop, int fd, kk_event_func_f func, void *ar
 }
 
 /**
- * Note: With some older glibc versions (pre 2.16), the calls FD_SET and 
- * FD_ISSET will cause compiler warnings about conversions from int to 
+ * Note: With some older glibc versions (pre 2.16), the calls FD_SET and
+ * FD_ISSET will cause compiler warnings about conversions from int to
  * unsigned long int conversions. There's nothing we can do about. This
  * was fixed in glibc 2.16.
  */

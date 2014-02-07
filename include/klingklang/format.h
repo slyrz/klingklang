@@ -17,7 +17,7 @@ typedef enum kk_layout_e kk_layout_t;
 typedef enum kk_type_e kk_type_t;
 
 /**
- * Important Note: Adding, removing or rearranging enum members will most 
+ * Important Note: Adding, removing or rearranging enum members will most
  * likely fuck shit up. What I'm trying to say is: don't touch this.
  */
 enum kk_bits_e {

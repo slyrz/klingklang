@@ -1,7 +1,7 @@
 /**
  * This file incorporates modified versions of work covered by the 
  * following copyright and permission notice:
- * 
+ *
  * kk_get_next_pow2
  * ----------------
  * Released into public domain 2001 Sean Eron Anderson <seander@cs.stanford.edu>
@@ -86,7 +86,7 @@ kk_err (int status, const char *fmt, ...)
   exit (status);
 }
 
-size_t 
+size_t
 kk_get_next_pow2 (size_t val)
 {
   val |= val >> 1;

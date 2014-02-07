@@ -66,11 +66,11 @@ _kk_window_get_property (kk_window_t *win, xcb_atom_t property, char **dst)
     goto error;
 
   ret = xcb_get_property_value_length (reply);
-  if ((ret <= 0) | (KK_WINDOW_MAX_PROPERTY_LEN < (size_t) (ret + 1)))
+  if ((ret < 0) || (KK_WINDOW_MAX_PROPERTY_LEN < (size_t) (ret + 1)))
     goto error;
 
   /**
-   * Copy property value into buffer. We can't use strl{cat,cpy} here 
+   * Copy property value into buffer. We can't use strl{cat,cpy} here
    * because the property value isn't null-terminated.
    */
   {
@@ -223,6 +223,11 @@ _kk_window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_e
     return;
   }
 
+  if (*value == '\0') {
+    kk_log (KK_LOG_WARNING, "Empty input value.");
+    return;
+  }
+
   _kk_window_event_input (win, value);
 }
 
@@ -341,8 +346,8 @@ kk_window_free (kk_window_t *win)
   /**
    * Disconnecting causes a memory leak if the connection had an error,
    * but there's nothing we can do about it. The function xcb_disconnect doesn't
-   * do anything if the has_error flag of the xcb_connection_t struct is true. 
-   * However, we can't set this field to false since xcb.h exports xcb_connection_t 
+   * do anything if the has_error flag of the xcb_connection_t struct is true.
+   * However, we can't set this field to false since xcb.h exports xcb_connection_t
    * as opaque struct.
    * And besides ruining our valgrind reports, it really doesn't affect us.
    */
@@ -365,7 +370,7 @@ kk_window_set_title (kk_window_t *win, const char *title)
     return -1;
 
   len = kk_str_len (title, KK_WINDOW_MAX_TITLE_LEN);
-  if (len == KK_WINDOW_MAX_TITLE_LEN) 
+  if (len == KK_WINDOW_MAX_TITLE_LEN)
     kk_log (KK_LOG_WARNING, "Title exceeds maximum title length.");
 
   xcb_change_property (win->conn, XCB_PROP_MODE_REPLACE, win->win, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, (uint32_t) len, title);
@@ -380,15 +385,15 @@ kk_window_show (kk_window_t *win)
   uint32_t value_mask;
   uint32_t value_list[3];
 
-  value_mask = XCB_CW_BACK_PIXEL 
-    | XCB_CW_OVERRIDE_REDIRECT 
+  value_mask = XCB_CW_BACK_PIXEL
+    | XCB_CW_OVERRIDE_REDIRECT
     | XCB_CW_EVENT_MASK;
 
   value_list[0] = win->scrn->black_pixel;
   value_list[1] = 0;
-  value_list[2] = XCB_EVENT_MASK_KEY_PRESS 
-    | XCB_EVENT_MASK_EXPOSURE 
-    | XCB_EVENT_MASK_PROPERTY_CHANGE 
+  value_list[2] = XCB_EVENT_MASK_KEY_PRESS
+    | XCB_EVENT_MASK_EXPOSURE
+    | XCB_EVENT_MASK_PROPERTY_CHANGE
     | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
 
   if ((win->width < 0) | (win->width > (int) UINT16_MAX) | (win->height < 0) | (win->height > (int) UINT16_MAX)) {
@@ -397,24 +402,24 @@ kk_window_show (kk_window_t *win)
   }
 
   win->win = xcb_generate_id (win->conn);
-  xcb_create_window (win->conn, 
-      win->scrn->root_depth, 
-      win->win, 
-      win->scrn->root, 
-      0, 
-      0, 
-      (uint16_t) win->width, 
-      (uint16_t) win->height, 
-      0, 
-      XCB_WINDOW_CLASS_INPUT_OUTPUT, 
-      win->scrn->root_visual, 
-      value_mask, 
+  xcb_create_window (win->conn,
+      win->scrn->root_depth,
+      win->win,
+      win->scrn->root,
+      0,
+      0,
+      (uint16_t) win->width,
+      (uint16_t) win->height,
+      0,
+      XCB_WINDOW_CLASS_INPUT_OUTPUT,
+      win->scrn->root_visual,
+      value_mask,
       value_list);
 
   /**
    * The following code allows us to receive a XCB_CLIENT_MESSAGE
    * event when the window get's closed. This allows us to shut down
-   * the xcb session gracefully. 
+   * the xcb session gracefully.
    */
   xcb_atom_t del = _kk_window_get_atom (win, "WM_DELETE_WINDOW");
   xcb_atom_t prt = _kk_window_get_atom (win, "WM_PROTOCOLS");

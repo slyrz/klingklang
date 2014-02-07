@@ -157,8 +157,8 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
 
   /* Draw blurred background image */
   cairo_save (ctx);
-  cairo_scale (ctx, 
-    (double) cover->width / (double) cover->foreground->width, 
+  cairo_scale (ctx,
+    (double) cover->width / (double) cover->foreground->width,
     (double) cover->height / (double) cover->foreground->height
   );
   cairo_set_source_surface (ctx, cover->background->surface, 0.0, 0.0);
@@ -182,11 +182,11 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
 
   /* Clip center + draw foreground */
   cairo_save (ctx);
-  cairo_rounded_rectangle (ctx, 
-    (double) cover->x + ((double) cover->width / 2.0 - cover->radius), 
-    (double) cover->y + ((double) cover->height / 2.0 - cover->radius), 
-    cover->radius *2.0, 
-    cover->radius *2.0, 
+  cairo_rounded_rectangle (ctx,
+    (double) cover->x + ((double) cover->width / 2.0 - cover->radius),
+    (double) cover->y + ((double) cover->height / 2.0 - cover->radius),
+    cover->radius *2.0,
+    cover->radius *2.0,
     cover->radius / 30.0
   );
 
@@ -194,9 +194,9 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_new_path (ctx);
   cairo_scale (ctx, scale, scale);
   cairo_set_operator (ctx, CAIRO_OPERATOR_SOURCE);
-  cairo_set_source_surface (ctx, 
-    cover->foreground->surface, 
-    (((double) cover->width - ((double) cover->foreground->width *scale)) / 2.0) / scale, 
+  cairo_set_source_surface (ctx,
+    cover->foreground->surface,
+    (((double) cover->width - ((double) cover->foreground->width *scale)) / 2.0) / scale,
     (((double) cover->height - ((double) cover->foreground->height *scale)) / 2.0) / scale
   );
   cairo_paint (ctx);
