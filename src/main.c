@@ -81,7 +81,7 @@ on_player_pause (kk_context_t *ctx, kk_player_event_pause_t *event)
 static void
 on_player_progress (kk_context_t *ctx, kk_player_event_progress_t *event)
 {
-  kk_log (KK_LOG_DEBUB, "Player progress %f [0,1].", (double) event->progress);
+  kk_log (KK_LOG_DEBUG, "Player progress %f [0,1].", (double) event->progress);
   kk_progressbar_set_value (ctx->progressbar, event->progress);
 }
 
