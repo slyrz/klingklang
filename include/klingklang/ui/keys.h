@@ -3,12 +3,25 @@
 
 #include <xkbcommon/xkbcommon.h>
 
+
+#define KK_KEYS_RULES   "evdev"
+#define KK_KEYS_MODEL   "evdev"
+#define KK_KEYS_LAYOUT  "us"
+#define KK_KEYS_VARIANT ""
+#define KK_KEYS_OPTIONS ""
+
+enum {
+  KK_KEY_UP,
+  KK_KEY_DOWN,
+};
+
 enum {
   KK_MOD_SHIFT,
   KK_MOD_CONTROL
 };
 
 enum {
+  KK_KEY_NONE = 0,
   KK_KEY_SPACE = XKB_KEY_space,
   KK_KEY_BACKSPACE = XKB_KEY_BackSpace,
   KK_KEY_TAB = XKB_KEY_Tab,
@@ -54,5 +67,18 @@ enum {
   KK_KEY_Y = XKB_KEY_y,
   KK_KEY_Z = XKB_KEY_z
 };
+
+typedef struct kk_keys_s kk_keys_t;
+
+struct kk_keys_s {
+  struct xkb_context *context;
+  struct xkb_keymap *keymap;
+  struct xkb_state *state;
+};
+
+int kk_keys_init (kk_keys_t **keys);
+int kk_keys_free (kk_keys_t *keys);
+
+int kk_keys_get_symbol (kk_keys_t *keys, uint32_t code);
 
 #endif
