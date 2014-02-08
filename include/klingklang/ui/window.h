@@ -9,7 +9,6 @@
 
 #include <cairo.h>
 #include <xcb/xcb.h>
-#include <xcb/xcb_keysyms.h>
 
 typedef struct kk_window_s kk_window_t;
 
@@ -18,11 +17,11 @@ struct kk_window_s {
   xcb_connection_t *conn;
   xcb_screen_t *scrn;
   xcb_window_t win;
-  xcb_key_symbols_t *syms;
   xcb_atom_t input;
   cairo_surface_t *srf;
   cairo_t *ctx;
   kk_event_queue_t *events;
+  kk_keys_t *keys;
   pthread_t thread;
   unsigned alive:1;
 };
