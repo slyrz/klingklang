@@ -67,7 +67,6 @@ PKG_CHECK_MODULES([libavutil], [libavutil])
 PKG_CHECK_MODULES([libswscale], [libswscale])
 
 PKG_CHECK_MODULES([xcb], [xcb])
-PKG_CHECK_MODULES([xcb_keysyms], [xcb-keysyms])
 PKG_CHECK_MODULES([xcb_event], [xcb-event])
 PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm])
 
