@@ -72,7 +72,7 @@ PKG_CHECK_MODULES([xcb_event], [xcb-event])
 PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm])
 
 PKG_CHECK_MODULES([cairo], [cairo])
-
+PKG_CHECK_MODULES([xkbcommon], [xkbcommon])
 #-----------------------------------------------------------------------------
 # Checks For Audio Backend
 #-----------------------------------------------------------------------------

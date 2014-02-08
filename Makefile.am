@@ -56,8 +56,8 @@ klingklang_LDADD = $(libavcodec_LIBS) $(libavformat_LIBS) $(libavutil_LIBS)
 klingklang_CFLAGS += $(xcb_CFLAGS) $(xcb_keysyms_CFLAGS)  $(xcb_icccm_CFLAGS)  $(xcb_event_CFLAGS)
 klingklang_LDADD += $(xcb_LIBS) $(xcb_keysyms_LIBS) $(xcb_icccm_LIBS) $(xcb_event_LIBS)
 
-klingklang_CFLAGS += $(cairo_CFLAGS) $(libswscale_CFLAGS)
-klingklang_LDADD += $(cairo_LIBS) $(libswscale_LIBS)
+klingklang_CFLAGS += $(cairo_CFLAGS)  $(xkbcommon_CLFAGS) $(libswscale_CFLAGS)
+klingklang_LDADD += $(cairo_LIBS) $(xkbcommon_LIBS) $(libswscale_LIBS)
 
 klingklang_CFLAGS += $(klingklang_WARNINGS)
 
