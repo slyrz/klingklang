@@ -138,8 +138,8 @@ _kk_window_event_key_press (kk_window_t *window, int modifier, int key)
 
   memset (&event, 0, sizeof (kk_window_event_key_press_t));
   event.type = KK_WINDOW_KEY_PRESS;
-  event.mod = modifier;
   event.key = key;
+  event.mod = modifier;
   kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_key_press_t));
 }
 
@@ -206,8 +206,21 @@ _kk_window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
 static void
 _kk_window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
 {
-  xcb_keysym_t sym = xcb_key_symbols_get_keysym (win->syms, event->detail, 0);
-  _kk_window_event_key_press (win, event->state, (int) sym);
+  // xcb_keysym_t sym = xcb_key_symbols_get_keysym (win->syms, event->detail, 0);
+  int key = 0;
+  int mod = 0;
+
+  key = kk_keys_get_symbol (win->keys, event->detail);
+
+  if (event->state & XCB_MOD_MASK_SHIFT) {
+    mod |= KK_MOD_SHIFT;
+  }
+
+  if (event->state & XCB_MOD_MASK_CONTROL) {
+    mod |= KK_MOD_CONTROL;
+  }
+
+  _kk_window_event_key_press (win, mod, key);
 }
 
 static void
@@ -234,7 +247,7 @@ _kk_window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_e
 static void
 _kk_window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_event_t *event)
 {
-  xcb_refresh_keyboard_mapping (win->syms, event);
+  // xcb_refresh_keyboard_mapping (win->syms, event);
 }
 
 static void *
@@ -290,16 +303,15 @@ kk_window_init (kk_window_t **win, int width, int height)
   if (kk_event_queue_init (&result->events) != 0)
     goto error;
 
+  if (kk_keys_init (&result->keys) != 0)
+    goto error;
+
   result->conn = xcb_connect (NULL, NULL);
   if (result->conn == NULL)
     goto error;
 
   result->scrn = xcb_setup_roots_iterator (xcb_get_setup (result->conn)).data;
   if (result->scrn == NULL)
-    goto error;
-
-  result->syms = xcb_key_symbols_alloc (result->conn);
-  if (result->syms == NULL)
     goto error;
 
   if (pthread_create (&result->thread, 0, (void *(*)(void *)) _kk_window_event_handler, result) != 0)
@@ -337,9 +349,6 @@ kk_window_free (kk_window_t *win)
     cairo_surface_destroy (win->srf);
   }
 
-  if (win->syms)
-    xcb_key_symbols_free (win->syms);
-
   if (win->win)
     xcb_destroy_window (win->conn, win->win);
 
@@ -356,6 +365,9 @@ kk_window_free (kk_window_t *win)
 
   if (win->events)
     kk_event_queue_free (win->events);
+
+  if (win->keys)
+    kk_keys_free (win->keys);
 
   kk_widget_free ((kk_widget_t*) win);
   return 0;
