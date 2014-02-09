@@ -206,19 +206,16 @@ _kk_window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
 static void
 _kk_window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
 {
-  // xcb_keysym_t sym = xcb_key_symbols_get_keysym (win->syms, event->detail, 0);
   int key = 0;
   int mod = 0;
 
   key = kk_keys_get_symbol (win->keys, event->detail);
 
-  if (event->state & XCB_MOD_MASK_SHIFT) {
+  if (event->state & XCB_MOD_MASK_SHIFT)
     mod |= KK_MOD_SHIFT;
-  }
 
-  if (event->state & XCB_MOD_MASK_CONTROL) {
+  if (event->state & XCB_MOD_MASK_CONTROL)
     mod |= KK_MOD_CONTROL;
-  }
 
   _kk_window_event_key_press (win, mod, key);
 }
@@ -247,7 +244,13 @@ _kk_window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_e
 static void
 _kk_window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_event_t *event)
 {
-  // xcb_refresh_keyboard_mapping (win->syms, event);
+  /**
+   * TODO: find a way to refresh keyboard mapping or completely switch back to
+   * xcb_keysyms?
+   * xcb_refresh_keyboard_mapping (win->syms, event);
+   */
+  (void) win;
+  (void) event;
 }
 
 static void *
