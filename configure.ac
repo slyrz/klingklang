@@ -66,12 +66,21 @@ PKG_CHECK_MODULES([libavformat], [libavformat])
 PKG_CHECK_MODULES([libavutil], [libavutil])
 PKG_CHECK_MODULES([libswscale], [libswscale])
 
+PKG_CHECK_MODULES([cairo], [cairo])
+PKG_CHECK_MODULES([xkbcommon], [xkbcommon])
+
+# X only
 PKG_CHECK_MODULES([xcb], [xcb])
 PKG_CHECK_MODULES([xcb_event], [xcb-event])
 PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm])
 
-PKG_CHECK_MODULES([cairo], [cairo])
-PKG_CHECK_MODULES([xkbcommon], [xkbcommon])
+# Wayland only
+PKG_CHECK_MODULES([cairo_gl], [cairo-gl])
+PKG_CHECK_MODULES([egl], [egl])
+PKG_CHECK_MODULES([wayland_client], [wayland-client])
+PKG_CHECK_MODULES([wayland_cursor], [wayland-cursor])
+PKG_CHECK_MODULES([wayland_egl], [wayland-egl])
+
 #-----------------------------------------------------------------------------
 # Checks For Audio Backend
 #-----------------------------------------------------------------------------
