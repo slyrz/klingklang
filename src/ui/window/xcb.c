@@ -7,8 +7,13 @@
 #  include <unistd.h>
 #endif
 
+#include <pthread.h>
+
+#include <xcb/xcb.h>
 #include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
+
+#include <cairo.h>
 #include <cairo-xcb.h>
 
 #ifdef HAVE_XCB_ICCCM_PREFIX
@@ -19,6 +24,20 @@
 #define KK_WINDOW_MAX_TITLE_LEN         0x80u
 #define KK_WINDOW_MAX_ATOM_LEN          0x80u
 #define KK_WINDOW_MAX_PROPERTY_LEN      0xffu
+
+struct kk_window_s {
+  kk_widget_fields;
+  xcb_connection_t *conn;
+  xcb_screen_t *scrn;
+  xcb_window_t win;
+  xcb_atom_t input;
+  cairo_surface_t *srf;
+  cairo_t *ctx;
+  kk_event_queue_t *events;
+  kk_keys_t *keys;
+  pthread_t thread;
+  unsigned alive:1;
+};
 
 static xcb_atom_t
 _kk_window_get_atom (kk_window_t *win, const char *name)
