@@ -17,7 +17,7 @@ klingklang_SOURCES = \
   src/ui/keys.c \
   src/ui/progressbar.c \
   src/ui/widget.c \
-  src/ui/window.c \
+  src/ui/window/xcb.c \
   src/util.c
 
 klingklang_WARNINGS = \
