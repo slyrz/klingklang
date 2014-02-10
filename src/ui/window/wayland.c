@@ -101,6 +101,17 @@ _kk_window_event_expose (kk_window_t *window, int width, int height)
 }
 
 static void
+_kk_window_event_input (kk_window_t *window, char *text)
+{
+  kk_window_event_input_t event;
+
+  memset (&event, 0, sizeof (kk_window_event_input_t));
+  event.type = KK_WINDOW_INPUT;
+  event.text = strdup (text);
+  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_input_t));
+}
+
+static void
 keyboard_handle_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface, struct wl_array *keys)
 {
   (void) data;
@@ -489,8 +500,58 @@ kk_window_draw (kk_window_t * win)
 int
 kk_window_get_input (kk_window_t * win)
 {
+  char buffer[1024] = { 0 };
 
-  return -1;
+  int pofd[2]; /* stdout of child */
+  int pifd[2]; /* stdin of child */
+
+  if (pipe (pifd) != 0)
+    return -1;
+
+  if (pipe (pofd) != 0)
+    return -1;
+
+  if (fork () == 0) {
+    dup2 (pofd[1], STDOUT_FILENO);
+    dup2 (pifd[0], STDIN_FILENO);
+
+    close (pofd[0]);
+    close (pifd[1]);
+
+    setsid ();
+    if (execlp ("dmenu", "dmenu", NULL) != 0)
+      err (EXIT_FAILURE, "execv");
+  } else {
+    close (pifd[0]);
+    close (pofd[1]);
+
+    /**
+     * Upon start, dmenu wants to read the menu entries from stdin.
+     * Since we use dmenu as simple text input, we don't pass menu
+     * entries to dmenu. Therefore, we close stdin directly.
+     */
+    close (pifd[1]);
+
+    int r = 0;
+    int t = 0;
+
+    for (;;) {
+      if (r = read (pofd[0], buffer, 512), r <= 0)
+        break;
+      t += r;
+    }
+
+    /* Remove trailing newline. */
+    if ((t > 0) && (buffer[t-1] == '\n')) {
+      buffer[t-1] = '\0';
+      t--;
+    }
+
+    if (t > 0)
+      _kk_window_event_input (win, buffer);
+  }
+
+  return 0;
 }
 
 int
