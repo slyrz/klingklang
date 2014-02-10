@@ -3,8 +3,6 @@
 #include <klingklang/str.h>
 #include <klingklang/util.h>
 
-#include <err.h>                // TODO: remove
-
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>
 #endif
@@ -20,7 +18,6 @@
 
 struct kk_window_s {
   kk_widget_fields;
-
   struct wl_callback *callback;
   struct wl_compositor *compositor;
   struct wl_display *display;
@@ -31,61 +28,19 @@ struct kk_window_s {
   struct wl_shell *shell;
   struct wl_shell_surface *shell_surface;
   struct wl_surface *surface;
-
   struct {
     EGLDisplay dpy;
     EGLContext ctx;
     EGLConfig conf;
     EGLSurface surface;
   } egl;
-
   struct {
     cairo_device_t *device;
     cairo_surface_t *surface;
   } cairo;
-
   kk_event_queue_t *events;
   kk_keys_t *keys;
-
   pthread_t thread;
-};
-
-static void keyboard_handle_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface, struct wl_array *keys);
-static void keyboard_handle_key (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t state);
-static void keyboard_handle_keymap (void *data, struct wl_keyboard *keyboard, uint32_t format, int fd, uint32_t size);
-static void keyboard_handle_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface);
-static void keyboard_handle_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group);
-
-static void registry_handle_global (void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version);
-static void registry_handle_global_remove (void *data, struct wl_registry *registry, uint32_t name);
-
-static void seat_handle_capabilities (void *data, struct wl_seat *seat, enum wl_seat_capability caps);
-static void seat_handle_name (void *data, struct wl_seat *wl_seat, const char *name);
-
-static void shell_surface_handle_configure (void *data, struct wl_shell_surface *shell_surface, uint32_t edges, int32_t width, int32_t height);
-static void shell_surface_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial);
-static void shell_surface_handle_popup_done (void *data, struct wl_shell_surface *shell_surface);
-
-static const struct wl_keyboard_listener keyboard_listener = {
-  .keymap = keyboard_handle_keymap,
-  .enter = keyboard_handle_enter,
-  .leave = keyboard_handle_leave,
-  .key = keyboard_handle_key,
-  .modifiers = keyboard_handle_modifiers,
-};
-
-static const struct wl_registry_listener registry_listener = {
-.global = registry_handle_global,.global_remove = registry_handle_global_remove};
-
-static const struct wl_seat_listener seat_listener = {
-  .capabilities = seat_handle_capabilities,
-  .name = seat_handle_name
-};
-
-static const struct wl_shell_surface_listener shell_surface_listener = {
-  .ping = shell_surface_handle_ping,
-  .configure = shell_surface_handle_configure,
-  .popup_done = shell_surface_handle_popup_done
 };
 
 static void
@@ -112,7 +67,8 @@ _kk_window_event_input (kk_window_t *window, char *text)
 }
 
 static void
-keyboard_handle_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface, struct wl_array *keys)
+keyboard_handle_enter (void *data, struct wl_keyboard *keyboard,
+    uint32_t serial, struct wl_surface *surface, struct wl_array *keys)
 {
   (void) data;
   (void) keyboard;
@@ -123,7 +79,8 @@ keyboard_handle_enter (void *data, struct wl_keyboard *keyboard, uint32_t serial
 }
 
 static void
-keyboard_handle_key (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t state)
+keyboard_handle_key (void *data, struct wl_keyboard *keyboard, uint32_t serial,
+    uint32_t time, uint32_t key, uint32_t state)
 {
   (void) data;
   (void) keyboard;
@@ -135,7 +92,8 @@ keyboard_handle_key (void *data, struct wl_keyboard *keyboard, uint32_t serial, 
 }
 
 static void
-keyboard_handle_keymap (void *data, struct wl_keyboard *keyboard, uint32_t format, int fd, uint32_t size)
+keyboard_handle_keymap (void *data, struct wl_keyboard *keyboard,
+    uint32_t format, int fd, uint32_t size)
 {
   (void) data;
   (void) keyboard;
@@ -146,7 +104,8 @@ keyboard_handle_keymap (void *data, struct wl_keyboard *keyboard, uint32_t forma
 }
 
 static void
-keyboard_handle_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface)
+keyboard_handle_leave (void *data, struct wl_keyboard *keyboard,
+    uint32_t serial, struct wl_surface *surface)
 {
   (void) data;
   (void) keyboard;
@@ -156,7 +115,9 @@ keyboard_handle_leave (void *data, struct wl_keyboard *keyboard, uint32_t serial
 }
 
 static void
-keyboard_handle_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched, uint32_t mods_locked, uint32_t group)
+keyboard_handle_modifiers (void *data, struct wl_keyboard *keyboard,
+    uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched,
+    uint32_t mods_locked, uint32_t group)
 {
   (void) data;
   (void) keyboard;
@@ -168,58 +129,17 @@ keyboard_handle_modifiers (void *data, struct wl_keyboard *keyboard, uint32_t se
   return;
 }
 
-static void
-registry_handle_global (void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version)
-{
-  (void) registry;
-  (void) version;
-
-  const char *interfaces[] = {
-    "wl_compositor",
-    "wl_shell",
-    "wl_seat"
-  };
-
-  kk_window_t *window = (kk_window_t *) data;
-
-  int i;
-  int n;
-
-  i = 0;
-  n = sizeof (interfaces) / sizeof (char *);
-
-  for (; i < n; i++) {
-    if (strcmp (interface, interfaces[i]) == 0)
-      break;
-  }
-
-  switch (i) {
-    case 0:
-      window->compositor = wl_registry_bind (window->registry, name, &wl_compositor_interface, 1);
-      break;
-    case 1:
-      window->shell = wl_registry_bind (window->registry, name, &wl_shell_interface, 1);
-      break;
-    case 2:
-      window->seat = wl_registry_bind (window->registry, name, &wl_seat_interface, 1);
-      wl_seat_add_listener (window->seat, &seat_listener, window);
-      break;
-    default:
-      return;
-  }
-}
+static const struct wl_keyboard_listener keyboard_listener = {
+  .keymap = keyboard_handle_keymap,
+  .enter = keyboard_handle_enter,
+  .leave = keyboard_handle_leave,
+  .key = keyboard_handle_key,
+  .modifiers = keyboard_handle_modifiers,
+};
 
 static void
-registry_handle_global_remove (void *data, struct wl_registry *registry, uint32_t name)
-{
-  (void) data;
-  (void) registry;
-  (void) name;
-  return;
-}
-
-static void
-seat_handle_capabilities (void *data, struct wl_seat *seat, enum wl_seat_capability caps)
+seat_handle_capabilities (void *data, struct wl_seat *seat,
+    enum wl_seat_capability caps)
 {
   (void) seat;
 
@@ -243,12 +163,75 @@ seat_handle_name (void *data, struct wl_seat *seat, const char *name)
   return;
 }
 
+static const struct wl_seat_listener seat_listener = {
+  .capabilities = seat_handle_capabilities,
+  .name = seat_handle_name
+};
+
+
+static void
+registry_handle_global (void *data, struct wl_registry *registry,
+    uint32_t name, const char *interface, uint32_t version)
+{
+  (void) registry;
+  (void) version;
+
+  const char *interfaces[] = {
+    "wl_compositor",
+    "wl_shell",
+    "wl_seat"
+  };
+
+  kk_window_t *window = (kk_window_t *) data;
+
+  int i = 0;
+  int n = sizeof (interfaces) / sizeof (char *);
+  for (; i < n; i++) {
+    if (strcmp (interface, interfaces[i]) == 0)
+      break;
+  }
+
+  switch (i) {
+    case 0:
+      window->compositor =
+        wl_registry_bind (window->registry, name, &wl_compositor_interface, 1);
+      break;
+    case 1:
+      window->shell =
+        wl_registry_bind (window->registry, name, &wl_shell_interface, 1);
+      break;
+    case 2:
+      window->seat =
+        wl_registry_bind (window->registry, name, &wl_seat_interface, 1);
+      wl_seat_add_listener (window->seat, &seat_listener, window);
+      break;
+    default:
+      return;
+  }
+}
+
+static void
+registry_handle_global_remove (void *data, struct wl_registry *registry,
+    uint32_t name)
+{
+  (void) data;
+  (void) registry;
+  (void) name;
+  return;
+}
+
+static const struct wl_registry_listener registry_listener = {
+  .global = registry_handle_global,
+  .global_remove = registry_handle_global_remove
+};
+
 /**
  * Ping a client to check if it is receiving events and sending requests.
  * A client is expected to reply with a pong request.
  */
 static void
-shell_surface_handle_ping (void *data, struct wl_shell_surface *shell_surface, uint32_t serial)
+shell_surface_handle_ping (void *data, struct wl_shell_surface *shell_surface,
+    uint32_t serial)
 {
   (void) data;
 
@@ -259,7 +242,9 @@ shell_surface_handle_ping (void *data, struct wl_shell_surface *shell_surface, u
  * The configure event asks the client to resize its surface.
  */
 static void
-shell_surface_handle_configure (void *data, struct wl_shell_surface *shell_surface, uint32_t edges, int32_t width, int32_t height)
+shell_surface_handle_configure (void *data,
+    struct wl_shell_surface *shell_surface, uint32_t edges, int32_t width,
+    int32_t height)
 {
   (void) shell_surface;
   (void) edges;
@@ -283,35 +268,38 @@ shell_surface_handle_configure (void *data, struct wl_shell_surface *shell_surfa
  * popup surface.
  */
 static void
-shell_surface_handle_popup_done (void *data, struct wl_shell_surface *shell_surface)
+shell_surface_handle_popup_done (void *data,
+    struct wl_shell_surface *shell_surface)
 {
   (void) data;
   (void) shell_surface;
   return;
 }
 
+static const struct wl_shell_surface_listener shell_surface_listener = {
+  .ping = shell_surface_handle_ping,
+  .configure = shell_surface_handle_configure,
+  .popup_done = shell_surface_handle_popup_done
+};
+
 static void *
 _kk_window_event_handler (kk_window_t * win)
 {
-
-  /**
-   * Calling this function makes the calling thread the main thread.
-   */
+  /* Make calling thread the main thread. */
   wl_display_dispatch (win->display);
   wl_display_roundtrip (win->display);
 
-  /**
-   * Run main loop
-   */
+  /* Run main loop */
   for (;;) {
-    puts ("LOOPING");
+    kk_log (KK_LOG_DEBUG, "Event loop.");
     if (wl_display_dispatch (win->display) == -1)
-      err (EXIT_FAILURE, "wl_display_dispatch");
+      break;
   }
+  return NULL;
 }
 
 
-static void
+static int
 _kk_window_init_egl (kk_window_t * win)
 {
   EGLint conf_attr[] = {
@@ -329,40 +317,62 @@ _kk_window_init_egl (kk_window_t * win)
 
   win->egl.dpy = eglGetDisplay ((EGLNativeDisplayType) win->display);
 
-  if (eglInitialize (win->egl.dpy, &major, &minor) == EGL_FALSE)
-    err (EXIT_FAILURE, "eglInitialize");
+  if (eglInitialize (win->egl.dpy, &major, &minor) == EGL_FALSE) {
+    kk_log (KK_LOG_WARNING, "eglInitialize failed.");
+    return -1;
+  }
 
-  if (eglBindAPI (EGL_OPENGL_API) == EGL_FALSE)
-    err (EXIT_FAILURE, "eglBindAPI");
+  if (eglBindAPI (EGL_OPENGL_API) == EGL_FALSE) {
+    kk_log (KK_LOG_WARNING, "eglBindAPI failed.");
+    return -1;
+  }
 
-  if (eglChooseConfig (win->egl.dpy, conf_attr, &win->egl.conf, 1, &count) == EGL_FALSE)
-    err (EXIT_FAILURE, "eglChooseConfig");
+  if (eglChooseConfig (win->egl.dpy, conf_attr, &win->egl.conf, 1, &count) == EGL_FALSE) {
+    kk_log (KK_LOG_WARNING, "eglChooseConfig failed.");
+    return -1;
+  }
 
-  if (count != 1)
-    err (EXIT_FAILURE, "(count != 1)");
+  if (count != 1) {
+    kk_log (KK_LOG_WARNING, "Expected 1 config, got %d.", count);
+    return -1;
+  }
 
   win->egl.ctx = eglCreateContext (win->egl.dpy, win->egl.conf, EGL_NO_CONTEXT, NULL);
-  if (win->egl.ctx == EGL_NO_CONTEXT)
-    err (EXIT_FAILURE, "eglCreateContext");
+  if (win->egl.ctx == EGL_NO_CONTEXT) {
+    kk_log (KK_LOG_WARNING, "eglCreateContext failed.");
+    return -1;
+  }
 
   win->egl.surface = eglCreateWindowSurface (win->egl.dpy, win->egl.conf, (EGLNativeWindowType) win->window, NULL);
-  if (win->egl.surface == EGL_NO_SURFACE)
-    err (EXIT_FAILURE, "eglCreateWindowSurface");
+  if (win->egl.surface == EGL_NO_SURFACE) {
+    kk_log (KK_LOG_WARNING, "eglCreateWindowSurface failed.");
+    return -1;
+  }
 
-  if (eglMakeCurrent (win->egl.dpy, win->egl.surface, win->egl.surface, win->egl.ctx) == EGL_FALSE)
-    err (EXIT_FAILURE, "eglMakeCurrent");
+  if (eglMakeCurrent (win->egl.dpy, win->egl.surface, win->egl.surface, win->egl.ctx) == EGL_FALSE) {
+    kk_log (KK_LOG_WARNING, "eglMakeCurrent failed.");
+    return -1;
+  }
+
+  return 0;
 }
 
-static void
+static int
 _kk_window_init_cairo (kk_window_t * win)
 {
   win->cairo.device = cairo_egl_device_create (win->egl.dpy, win->egl.ctx);
-  if (cairo_device_status (win->cairo.device) != CAIRO_STATUS_SUCCESS)
-    err (EXIT_FAILURE, "cairo_device");
+  if (cairo_device_status (win->cairo.device) != CAIRO_STATUS_SUCCESS) {
+    kk_log (KK_LOG_WARNING, "Creating cairo egl device failed.");
+    return -1;
+  }
 
-  win->cairo.surface = cairo_gl_surface_create_for_egl (win->cairo.device, win->egl.surface, win->width, win->height);
-  if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS)
-    err (EXIT_FAILURE, "cairo_gl_surface_create_for_egl");
+  win->cairo.surface = cairo_gl_surface_create_for_egl (win->cairo.device,
+      win->egl.surface, win->width, win->height);
+  if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS) {
+    kk_log (KK_LOG_WARNING, "Creating cairo gl surface from egl device failed.");
+    return -1;
+  }
+  return 0;
 }
 
 int
@@ -370,7 +380,8 @@ kk_window_init (kk_window_t ** win, int width, int height)
 {
   kk_window_t *result;
 
-  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_window_t), NULL) != 0)
+  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_window_t), NULL)
+      != 0)
     goto error;
 
   if (kk_event_queue_init (&result->events) != 0)
@@ -383,23 +394,29 @@ kk_window_init (kk_window_t ** win, int width, int height)
    * Connect to Wayland
    */
   result->display = wl_display_connect (NULL);
-  if (result->display == NULL)
-    err (EXIT_FAILURE, "wl_display_connect");
+  if (result->display == NULL) {
+    kk_log (KK_LOG_WARNING, "wl_display_connect failed.");
+    goto error;
+  }
 
   /**
    * Registry allows the client to list and bind the global objects
    * available from the compositor.
    */
   result->registry = wl_display_get_registry (result->display);
-  if (result->registry == NULL)
-    err (EXIT_FAILURE, "wl_display_get_registry");
+  if (result->registry == NULL) {
+    kk_log (KK_LOG_WARNING, "wl_display_get_registry failed.");
+    goto error;
+  }
 
   /**
    * Listener contains callbacks that tell us about global objects
    * becoming available and global objects getting removed.
    */
-  if (wl_registry_add_listener (result->registry, &registry_listener, result) != 0)
-    err (EXIT_FAILURE, "wl_registry_add_listener");
+  if (wl_registry_add_listener (result->registry, &registry_listener, result) != 0) {
+    kk_log (KK_LOG_WARNING, "wl_registry_add_listener failed.");
+    goto error;
+  }
 
   if (pthread_create (&result->thread, 0, (void *(*)(void *)) _kk_window_event_handler, result) != 0)
     goto error;
@@ -439,39 +456,53 @@ kk_window_show (kk_window_t * win)
    * error.
    */
   int i;
-
   for (i = 0; i < 100; i++) {
     if (win->compositor != NULL)
       break;
-    usleep(10000);
+    usleep (10000);
   }
 
+  /**
+   * Compositor still NULL? Exit.
+   */
   if (win->compositor == NULL)
     return -1;
 
   win->surface = wl_compositor_create_surface (win->compositor);
-  if (win->surface == NULL)
-    err (EXIT_FAILURE, "wl_compositor_create_surface");
+  if (win->surface == NULL) {
+    kk_log (KK_LOG_WARNING, "wl_compositor_create_surface");
+    return -1;
+  }
 
   win->shell_surface = wl_shell_get_shell_surface (win->shell, win->surface);
-  if (win->shell_surface == NULL)
-    err (EXIT_FAILURE, "wl_shell_get_shell_surface");
+  if (win->shell_surface == NULL) {
+    kk_log (KK_LOG_WARNING, "wl_shell_get_shell_surface");
+    return -1;
+  }
 
   win->window = wl_egl_window_create (win->surface, win->width, win->height);
-  if (win->window == NULL)
-    err (EXIT_FAILURE, "wl_egl_window_create");
+  if (win->window == NULL) {
+    kk_log (KK_LOG_WARNING, "wl_egl_window_create");
+    return -1;
+  }
 
   wl_shell_surface_add_listener (win->shell_surface, &shell_surface_listener, win);
   wl_shell_surface_set_toplevel (win->shell_surface);
 
-  _kk_window_init_egl (win);
-  _kk_window_init_cairo (win);
+  if (_kk_window_init_egl (win) != 0) {
+    kk_log (KK_LOG_WARNING, "Initializing EGL failed.");
+    return -1;
+  }
+
+  if (_kk_window_init_cairo (win)  != 0 ) {
+    kk_log (KK_LOG_WARNING, "Initializing cairo failed.");
+    return -1;
+  }
 
   shell_surface_handle_configure (win, win->shell_surface, 0, win->width, win->height);
 
   kk_widget_invalidate ((kk_widget_t *) win);
   kk_window_draw (win);
-
   wl_display_flush (win->display);
   return 0;
 }
@@ -502,8 +533,8 @@ kk_window_get_input (kk_window_t * win)
 {
   char buffer[1024] = { 0 };
 
-  int pofd[2]; /* stdout of child */
-  int pifd[2]; /* stdin of child */
+  int pofd[2];                  /* stdout of child */
+  int pifd[2];                  /* stdin of child */
 
   if (pipe (pifd) != 0)
     return -1;
@@ -512,16 +543,17 @@ kk_window_get_input (kk_window_t * win)
     return -1;
 
   if (fork () == 0) {
-    dup2 (pofd[1], STDOUT_FILENO);
     dup2 (pifd[0], STDIN_FILENO);
+    dup2 (pofd[1], STDOUT_FILENO);
 
     close (pofd[0]);
     close (pifd[1]);
 
     setsid ();
     if (execlp ("dmenu", "dmenu", NULL) != 0)
-      err (EXIT_FAILURE, "execv");
-  } else {
+      kk_err (EXIT_FAILURE, "execlp() failed.");
+  }
+  else {
     close (pifd[0]);
     close (pofd[1]);
 
@@ -541,9 +573,12 @@ kk_window_get_input (kk_window_t * win)
       t += r;
     }
 
+    if (t == 0)
+      return 0;
+
     /* Remove trailing newline. */
-    if ((t > 0) && (buffer[t-1] == '\n')) {
-      buffer[t-1] = '\0';
+    if (buffer[t - 1] == '\n') {
+      buffer[t - 1] = '\0';
       t--;
     }
 
