@@ -197,7 +197,6 @@ static const struct wl_seat_listener seat_listener = {
   .name = seat_handle_name
 };
 
-
 static void
 registry_handle_global (void *data, struct wl_registry *registry,
     uint32_t name, const char *interface, uint32_t version)
@@ -325,7 +324,6 @@ _kk_window_event_handler (kk_window_t * win)
   }
   return NULL;
 }
-
 
 static int
 _kk_window_init_egl (kk_window_t * win)
