@@ -30,6 +30,9 @@ kk_keys_init (kk_keys_t ** keys)
   if (result->state == NULL)
     goto error;
 
+  result->mask.control = 1 << xkb_map_mod_get_index (result->keymap, "Control");
+  result->mask.shift = 1 << xkb_map_mod_get_index (result->keymap, "Shift");
+
   *keys = result;
   return 0;
 error:
@@ -60,4 +63,29 @@ int
 kk_keys_get_symbol (kk_keys_t * keys, uint32_t code)
 {
   return (int) xkb_state_key_get_one_sym (keys->state, code);
+}
+
+int
+kk_keys_get_modifiers (kk_keys_t * keys)
+{
+  xkb_mod_mask_t mask;
+  int result;
+
+  mask = xkb_state_serialize_mods (keys->state, XKB_STATE_DEPRESSED | XKB_STATE_LATCHED);
+
+  result = 0;
+  if (mask & keys->mask.control)
+    result |= KK_MOD_CONTROL;
+
+  if (mask & keys->mask.shift)
+    result |= KK_MOD_SHIFT;
+
+  return result;
+}
+
+int
+kk_keys_set_modifiers (kk_keys_t *keys, uint32_t mods_depressed,
+    uint32_t mods_latched, uint32_t mods_locked, uint32_t group)
+{
+  xkb_state_update_mask (keys->state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
 }

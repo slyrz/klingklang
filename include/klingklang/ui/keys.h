@@ -16,8 +16,8 @@ enum {
 };
 
 enum {
-  KK_MOD_SHIFT,
-  KK_MOD_CONTROL
+  KK_MOD_CONTROL  = 1 << 1,
+  KK_MOD_SHIFT    = 1 << 2,
 };
 
 enum {
@@ -74,11 +74,19 @@ struct kk_keys_s {
   struct xkb_context *context;
   struct xkb_keymap *keymap;
   struct xkb_state *state;
+  struct {
+    xkb_mod_mask_t control;
+    xkb_mod_mask_t shift;
+  } mask;
 };
 
 int kk_keys_init (kk_keys_t **keys);
 int kk_keys_free (kk_keys_t *keys);
 
 int kk_keys_get_symbol (kk_keys_t *keys, uint32_t code);
+int kk_keys_get_modifiers (kk_keys_t *keys);
+
+int kk_keys_set_modifiers (kk_keys_t *keys, uint32_t mods_depressed,
+    uint32_t mods_latched, uint32_t mods_locked, uint32_t group);
 
 #endif
