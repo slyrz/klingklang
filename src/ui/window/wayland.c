@@ -67,6 +67,18 @@ _kk_window_event_input (kk_window_t *window, char *text)
 }
 
 static void
+_kk_window_event_key_press (kk_window_t *window, int modifier, int key)
+{
+  kk_window_event_key_press_t event;
+
+  memset (&event, 0, sizeof (kk_window_event_key_press_t));
+  event.type = KK_WINDOW_KEY_PRESS;
+  event.key = key;
+  event.mod = modifier;
+  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_key_press_t));
+}
+
+static void
 keyboard_handle_enter (void *data, struct wl_keyboard *keyboard,
     uint32_t serial, struct wl_surface *surface, struct wl_array *keys)
 {
@@ -82,13 +94,19 @@ static void
 keyboard_handle_key (void *data, struct wl_keyboard *keyboard, uint32_t serial,
     uint32_t time, uint32_t key, uint32_t state)
 {
-  (void) data;
   (void) keyboard;
   (void) serial;
   (void) time;
-  (void) key;
-  (void) state;
-  return;
+
+  kk_window_t *window = (kk_window_t *) data;
+
+  if (state != WL_KEYBOARD_KEY_STATE_RELEASED)
+    return;
+
+  int sym = kk_keys_get_symbol (window->keys, key + 8);
+  int mod = kk_keys_get_modifiers (window->keys);
+
+  _kk_window_event_key_press (window, mod, sym);
 }
 
 static void
@@ -119,13 +137,12 @@ keyboard_handle_modifiers (void *data, struct wl_keyboard *keyboard,
     uint32_t serial, uint32_t mods_depressed, uint32_t mods_latched,
     uint32_t mods_locked, uint32_t group)
 {
-  (void) data;
   (void) keyboard;
   (void) serial;
-  (void) mods_depressed;
-  (void) mods_latched;
-  (void) mods_locked;
-  (void) group;
+
+  kk_window_t *window = (kk_window_t *) data;
+
+  kk_keys_set_modifiers (window->keys, mods_depressed, mods_latched, mods_locked, group);
   return;
 }
 
