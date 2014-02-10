@@ -3,11 +3,12 @@
 #include <klingklang/str.h>
 #include <klingklang/util.h>
 
+#include <errno.h>
+#include <pthread.h>
+
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>
 #endif
-
-#include <pthread.h>
 
 #include <wayland-client.h>
 #include <wayland-egl.h>
@@ -557,7 +558,7 @@ kk_window_draw (kk_window_t * win)
 int
 kk_window_get_input (kk_window_t * win)
 {
-  char buffer[1024] = { 0 };
+  static char buffer[1024] = { 0 };
 
   int pofd[2];                  /* stdout of child */
   int pifd[2];                  /* stdin of child */
@@ -590,25 +591,39 @@ kk_window_get_input (kk_window_t * win)
      */
     close (pifd[1]);
 
-    int r = 0;
-    int t = 0;
+    int err = 0;
+    int ret = 0;
+    int tot = 0;
 
     for (;;) {
-      if (r = read (pofd[0], buffer, 512), r <= 0)
+      if (tot >= sizeof (buffer))
         break;
-      t += r;
+
+      errno = 0;
+      ret = read (pofd[0], buffer + tot, sizeof (buffer) - tot);
+      err = errno;
+
+      /* Break on error, but keep going on interrupts. */
+      if ((ret <= 0) && (err != EINTR))
+          break;
+
+      if (ret > 0)
+        tot += ret;
     }
 
-    if (t == 0)
+    /* No input read? Must have been canceled by user, so no error. */
+    if (tot == 0)
       return 0;
 
-    /* Remove trailing newline. */
-    if (buffer[t - 1] == '\n') {
-      buffer[t - 1] = '\0';
-      t--;
-    }
+    /* No input read? Must have been canceled by user, so no error. */
+    if (tot >= sizeof (buffer))
+      return -1;
 
-    if (t > 0)
+    /* Remove trailing newline. */
+    if (buffer[tot - 1] == '\n')
+      buffer[--tot] = '\0';
+
+    if (tot > 0)
       _kk_window_event_input (win, buffer);
   }
 
