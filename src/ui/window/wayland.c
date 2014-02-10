@@ -79,6 +79,18 @@ _kk_window_event_key_press (kk_window_t *window, int modifier, int key)
 }
 
 static void
+_kk_window_event_resize (kk_window_t *window, int width, int height)
+{
+  kk_window_event_resize_t event;
+
+  memset (&event, 0, sizeof (kk_window_event_resize_t));
+  event.type = KK_WINDOW_RESIZE;
+  event.width = width;
+  event.height = height;
+  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_resize_t));
+}
+
+static void
 keyboard_handle_enter (void *data, struct wl_keyboard *keyboard,
     uint32_t serial, struct wl_surface *surface, struct wl_array *keys)
 {
@@ -275,8 +287,7 @@ shell_surface_handle_configure (void *data,
 
   wl_egl_window_resize (window->window, width, height, 0, 0);
   cairo_gl_surface_set_size (window->cairo.surface, width, height);
-
-  _kk_window_event_expose (window, width, height);
+  _kk_window_event_resize (window, width, height);
 }
 
 /**
