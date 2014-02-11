@@ -46,18 +46,6 @@ struct kk_window_s {
 };
 
 static void
-_kk_window_event_expose (kk_window_t *window, int width, int height)
-{
-  kk_window_event_expose_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_expose_t));
-  event.type = KK_WINDOW_EXPOSE;
-  event.width = width;
-  event.height = height;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_expose_t));
-}
-
-static void
 _kk_window_event_input (kk_window_t *window, char *text)
 {
   kk_window_event_input_t event;
