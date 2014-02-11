@@ -637,8 +637,8 @@ kk_window_get_input (kk_window_t * win)
     close (pifd[1]);
 
     int err = 0;
-    int ret = 0;
-    int tot = 0;
+    ssize_t ret = 0;
+    size_t tot = 0;
 
     for (;;) {
       if (tot >= sizeof (buffer))
@@ -653,7 +653,7 @@ kk_window_get_input (kk_window_t * win)
           break;
 
       if (ret > 0)
-        tot += ret;
+        tot += (size_t) ret;
     }
 
     /* No input read? Must have been canceled by user, so no error. */
