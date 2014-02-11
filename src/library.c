@@ -275,6 +275,9 @@ kk_library_init (kk_library_t **lib, const char *path)
   result->root = strdup (path);
   result->base = strdup ("");
 
+  if ((result->root == NULL) || (result->base == NULL))
+    goto error;
+
   if (kk_library_dir_load (result) != 0)
     goto error;
 
