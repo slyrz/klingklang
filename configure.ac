@@ -145,15 +145,6 @@ AC_CHECK_HEADERS([sys/stat.h])
 AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([time.h])
 
-AC_CHECK_HEADERS([libavcodec/avcodec.h])
-AC_CHECK_HEADERS([libavformat/avformat.h])
-AC_CHECK_HEADERS([libavutil/avutil.h])
-AC_CHECK_HEADERS([libavutil/dict.h])
-AC_CHECK_HEADERS([xcb/xcb.h])
-AC_CHECK_HEADERS([xcb/xcb_event.h])
-AC_CHECK_HEADERS([xcb/xcb_icccm.h])
-AC_CHECK_HEADERS([xcb/xcb_keysyms.h])
-
 #-----------------------------------------------------------------------------
 # Checks For Types
 #-----------------------------------------------------------------------------
