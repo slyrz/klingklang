@@ -30,8 +30,8 @@ kk_keys_init (kk_keys_t ** keys)
   if (result->state == NULL)
     goto error;
 
-  result->mask.control = 1 << xkb_map_mod_get_index (result->keymap, "Control");
-  result->mask.shift = 1 << xkb_map_mod_get_index (result->keymap, "Shift");
+  result->mask.control = (xkb_mod_mask_t) 1 << xkb_keymap_mod_get_index (result->keymap, "Control");
+  result->mask.shift = (xkb_mod_mask_t) 1 << xkb_keymap_mod_get_index (result->keymap, "Shift");
 
   *keys = result;
   return 0;
@@ -88,4 +88,5 @@ kk_keys_set_modifiers (kk_keys_t *keys, uint32_t mods_depressed,
     uint32_t mods_latched, uint32_t mods_locked, uint32_t group)
 {
   xkb_state_update_mask (keys->state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+  return 0;
 }
