@@ -42,6 +42,7 @@ struct kk_window_s {
   kk_event_queue_t *events;
   kk_keys_t *keys;
   pthread_t thread;
+  unsigned alive:1;
 };
 
 static void
@@ -313,16 +314,19 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 static void *
 _kk_window_event_handler (kk_window_t * win)
 {
+  win->alive = 1;
+
   /* Make calling thread the main thread. */
   wl_display_dispatch (win->display);
   wl_display_roundtrip (win->display);
 
   /* Run main loop */
-  for (;;) {
+  while (win->alive) {
     kk_log (KK_LOG_DEBUG, "Event loop.");
     if (wl_display_dispatch (win->display) == -1)
       break;
   }
+  win->alive = 0;
   return NULL;
 }
 
@@ -407,8 +411,7 @@ kk_window_init (kk_window_t ** win, int width, int height)
 {
   kk_window_t *result;
 
-  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_window_t), NULL)
-      != 0)
+  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_window_t), NULL) != 0)
     goto error;
 
   if (kk_event_queue_init (&result->events) != 0)
@@ -464,11 +467,53 @@ kk_window_free (kk_window_t * win)
   if (win == NULL)
     return 0;
 
-  if (win->events)
-    kk_event_queue_free (win->events);
+  if (win->alive) {
+    pthread_cancel (win->thread);
+    pthread_join (win->thread, NULL);
+  }
+
+  if (win->cairo.surface)
+    cairo_surface_destroy (win->cairo.surface);
+
+  if (win->cairo.device) {
+    cairo_device_finish (win->cairo.device);
+    cairo_device_destroy (win->cairo.device);
+  }
+
+  if (win->egl.surface)
+    eglDestroySurface (win->egl.dpy, win->egl.surface);
+
+  if (win->window)
+    wl_egl_window_destroy (win->window);
+
+  if (win->surface)
+    wl_surface_destroy (win->surface);
+
+  if (win->egl.ctx)
+    eglDestroyContext (win->egl.dpy, win->egl.ctx);
+
+  if (win->egl.dpy) {
+    eglMakeCurrent (win->egl.dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglReleaseThread ();
+    eglTerminate (win->egl.dpy);
+  }
+
+  if (win->compositor)
+    wl_compositor_destroy (win->compositor);
+
+  if (win->registry)
+    wl_registry_destroy (win->registry);
+
+  if (win->display) {
+    wl_display_flush (win->display);
+    wl_display_disconnect (win->display);
+  }
 
   if (win->keys)
     kk_keys_free (win->keys);
+
+  if (win->events)
+    kk_event_queue_free (win->events);
 
   kk_widget_free ((kk_widget_t *) win);
   return 0;
