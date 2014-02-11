@@ -26,6 +26,11 @@ AC_ARG_WITH([backend], AS_HELP_STRING([--with-backend=alsa|ao|oss|portaudio|puls
   AS_IF([test "x$with_backend" = "xsndio"], [backend="sndio"])
 ])
 
+AC_ARG_WITH([display-server], AS_HELP_STRING([--with-display-server=x11|wayland], [use display server]), [
+  AS_IF([test "x$with_display_server" = "xx11"], [display_server="x11"])
+  AS_IF([test "x$with_display_server" = "xwayland"], [display_server="wayland"])
+],[display_server="x11"])
+
 AC_ARG_ENABLE([logging], AS_HELP_STRING([--enable-logging], [compile with logging functionality]), [
   AS_IF([test "x$enable_logging" = "xyes"], [logging="yes"], [logging="no"])
 ], [logging="no"])
@@ -69,17 +74,24 @@ PKG_CHECK_MODULES([libswscale], [libswscale])
 PKG_CHECK_MODULES([cairo], [cairo])
 PKG_CHECK_MODULES([xkbcommon], [xkbcommon])
 
-# X only
-PKG_CHECK_MODULES([xcb], [xcb])
-PKG_CHECK_MODULES([xcb_event], [xcb-event])
-PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm])
+# X11 build requirements
+AS_IF([test "x$display_server" = "xx11"], [
+  PKG_CHECK_MODULES([xcb], [xcb])
+  PKG_CHECK_MODULES([xcb_event], [xcb-event])
+  PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm])
+])
 
-# Wayland only
-PKG_CHECK_MODULES([cairo_gl], [cairo-gl])
-PKG_CHECK_MODULES([egl], [egl])
-PKG_CHECK_MODULES([wayland_client], [wayland-client])
-PKG_CHECK_MODULES([wayland_cursor], [wayland-cursor])
-PKG_CHECK_MODULES([wayland_egl], [wayland-egl])
+# Wayland build requirements
+AS_IF([test "x$display_server" = "xwayland"], [
+  PKG_CHECK_MODULES([cairo_gl], [cairo-gl])
+  PKG_CHECK_MODULES([egl], [egl])
+  PKG_CHECK_MODULES([wayland_client], [wayland-client])
+  PKG_CHECK_MODULES([wayland_cursor], [wayland-cursor])
+  PKG_CHECK_MODULES([wayland_egl], [wayland-egl])
+])
+
+AM_CONDITIONAL([DISPLAY_SERVER_X11], [test "x$display_server" = "xx11"])
+AM_CONDITIONAL([DISPLAY_SERVER_WAYLAND], [test "x$display_server" = "xwayland"])
 
 #-----------------------------------------------------------------------------
 # Checks For Audio Backend
@@ -268,7 +280,9 @@ AC_MSG_RESULT([
         compiler: ............. ${CC}
         cflags: ............... ${CFLAGS}
 
-        backend: .............. ${backend}
+        display server: ....... ${display_server}
+        audio backend: ........ ${backend}
+
         logging: .............. ${logging}
         debugging: ............ ${debugging}
 ])

@@ -58,15 +58,17 @@ klingklang_LDADD += $(cairo_LIBS) $(xkbcommon_LIBS) $(libswscale_LIBS)
 
 klingklang_CFLAGS += $(klingklang_WARNINGS)
 
-# X only
-# klingklang_SOURCES += src/ui/window/xcb.c
-# klingklang_CFLAGS += $(xcb_CFLAGS) $(xcb_icccm_CFLAGS)  $(xcb_event_CFLAGS)
-# klingklang_LDADD += $(xcb_LIBS) $(xcb_icccm_LIBS) $(xcb_event_LIBS)
+if DISPLAY_SERVER_X11
+  klingklang_SOURCES += src/ui/window/xcb.c
+  klingklang_CFLAGS += $(xcb_CFLAGS) $(xcb_icccm_CFLAGS)  $(xcb_event_CFLAGS)
+  klingklang_LDADD += $(xcb_LIBS) $(xcb_icccm_LIBS) $(xcb_event_LIBS)
+endif
 
-# Wayland only
-klingklang_SOURCES += src/ui/window/wayland.c
-klingklang_CFLAGS += $(cairo_gl_CFLAGS) $(egl_CFLAGS) $(wayland_client_CFLAGS) $(wayland_cursor_CFLAGS) $(wayland_egl_CFLAGS)
-klingklang_LDADD += $(cairo_gl_LIBS) $(egl_LIBS) $(wayland_client_LIBS) $(wayland_cursor_LIBS) $(wayland_egl_LIBS)
+if DISPLAY_SERVER_WAYLAND
+  klingklang_SOURCES += src/ui/window/wayland.c
+  klingklang_CFLAGS += $(cairo_gl_CFLAGS) $(egl_CFLAGS) $(wayland_client_CFLAGS) $(wayland_cursor_CFLAGS) $(wayland_egl_CFLAGS)
+  klingklang_LDADD += $(cairo_gl_LIBS) $(egl_LIBS) $(wayland_client_LIBS) $(wayland_cursor_LIBS) $(wayland_egl_LIBS)
+endif
 
 if BACKEND_ALSA
   klingklang_SOURCES += src/device/alsa.c
