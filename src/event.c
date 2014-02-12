@@ -1,4 +1,6 @@
+#include <klingklang/base.h>
 #include <klingklang/event.h>
+#include <klingklang/util.h>
 
 #include <fcntl.h>
 #include <signal.h>
@@ -75,28 +77,70 @@ kk_event_queue_get_write_fd (kk_event_queue_t *queue)
   return queue->fd[1];
 }
 
+static kk_event_loop_t *main_loop = NULL;
+
+static void
+_kk_event_loop_signal (int signo)
+{
+  /**
+   * If there's no event loop active, terminate process by calling exit().
+   * Otherwise exit the event loop and let the process terminate gracefully.
+   */
+  if (main_loop == NULL) {
+    kk_log (KK_LOG_DEBUG, "Caught signal %d. Exiting process.");
+    exit (EXIT_SUCCESS);
+  }
+  else {
+    kk_log (KK_LOG_DEBUG, "Caught signal %d. Exiting main loop.", signo);
+    kk_event_loop_exit (main_loop);
+  }
+}
+
+static void
+_kk_event_loop_init_sigaction (void)
+{
+  struct sigaction act;
+
+  sigemptyset (&act.sa_mask);
+  act.sa_sigaction = NULL;
+  act.sa_handler = _kk_event_loop_signal;
+  act.sa_flags = 0;
+
+  sigaction (SIGTERM, &act, NULL);
+  sigaction (SIGINT, &act, NULL);
+}
+
 int
-kk_event_loop_init (kk_event_loop_t **loop, size_t cap)
+kk_event_loop_init (kk_event_loop_t ** loop, size_t cap)
 {
   kk_event_loop_t *result;
 
-  result = calloc (1, sizeof (kk_event_loop_t) + cap *sizeof (kk_event_handler_t));
+  if (main_loop)
+    return -1;
+
+  /**
+   * Register signal handler which helps us gracefully exiting this loop on
+   * receiving the signals SIGTERM or SIGINT.
+   */
+  _kk_event_loop_init_sigaction ();
+
+  result = calloc (1, sizeof (kk_event_loop_t) + cap * sizeof (kk_event_handler_t));
   if (result == NULL)
     goto error;
-
   result->cap = cap;
   result->len = 0;
-  *loop = result;
+  *loop = main_loop = result;
   return 0;
 error:
   kk_event_loop_free (result);
-  *loop = NULL;
+  *loop = main_loop = NULL;
   return -1;
 }
 
 int
 kk_event_loop_free (kk_event_loop_t *loop)
 {
+  main_loop = NULL;
   free (loop);
   return 0;
 }
