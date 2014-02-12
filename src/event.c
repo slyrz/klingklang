@@ -96,7 +96,7 @@ _kk_event_loop_signal (int signo)
   }
 }
 
-static void
+static int
 _kk_event_loop_init_sigaction (void)
 {
   struct sigaction act;
@@ -106,10 +106,16 @@ _kk_event_loop_init_sigaction (void)
   act.sa_handler = _kk_event_loop_signal;
   act.sa_flags = 0;
 
-  sigaction (SIGTERM, &act, NULL);
-  sigaction (SIGINT, &act, NULL);
+  /**
+   * If the first call succeeds but the second call fails, don't try to
+   * revert the first call. It's not really important.
+   */
+  if (sigaction (SIGTERM, &act, NULL) != 0)
+    return -1;
+  if (sigaction (SIGINT, &act, NULL) != 0)
+    return -1;
+  return 0;
 }
-
 int
 kk_event_loop_init (kk_event_loop_t ** loop, size_t cap)
 {
@@ -120,9 +126,11 @@ kk_event_loop_init (kk_event_loop_t ** loop, size_t cap)
 
   /**
    * Register signal handler which helps us gracefully exiting this loop on
-   * receiving the signals SIGTERM or SIGINT.
+   * receiving the signals SIGTERM or SIGINT. This function may fail. We don't
+   * really rely on the signal handler, it's just nice to have.
    */
-  _kk_event_loop_init_sigaction ();
+  if (_kk_event_loop_init_sigaction () != 0)
+    kk_log (KK_LOG_WARNING, "Could not register signal handlers.");
 
   result = calloc (1, sizeof (kk_event_loop_t) + cap * sizeof (kk_event_handler_t));
   if (result == NULL)
