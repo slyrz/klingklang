@@ -1,6 +1,30 @@
 #include <klingklang/frame.h>
 #include <klingklang/util.h>
 
+static size_t
+_kk_frame_get_planes (kk_frame_t *frame)
+{
+  if (frame->planes < KK_FRAME_MAX_PLANES)
+    return frame->planes;
+  else
+    return KK_FRAME_MAX_PLANES;
+}
+
+static void
+_kk_frame_free_planes (kk_frame_t *frame)
+{
+  size_t i;
+
+  for (i = 0; i < _kk_frame_get_planes (frame); i++)
+    free (frame->data[i]);
+
+  for (i = 0; i < KK_FRAME_MAX_PLANES; i++)
+    frame->data[i] = NULL;
+
+  frame->planes = 0;
+  frame->size = 0;
+}
+
 int
 kk_frame_init (kk_frame_t **frame)
 {
@@ -20,13 +44,9 @@ error:
 int
 kk_frame_free (kk_frame_t *frame)
 {
-  size_t i;
-
   if (frame == NULL)
     return 0;
-
-  for (i = 0; i < frame->planes; i++)
-    free (frame->data[i]);
+  _kk_frame_free_planes (frame);
   free (frame);
   return 0;
 }
@@ -41,15 +61,25 @@ _kk_frame_realloc (kk_frame_t *frame, size_t planes, size_t size)
     return -1;
   }
 
-  for (i = 0; i < frame->planes; i++)
-    free (frame->data[i]);
+  if (planes > KK_FRAME_MAX_PLANES) {
+    kk_log (KK_LOG_WARNING, "%zu planes requested, but only %d planes supported.", planes, KK_FRAME_MAX_PLANES);
+    return -1;
+  }
 
-  for (i = 0; i < planes; i++)
+  _kk_frame_free_planes (frame);
+
+  for (i = 0; i < planes; i++) {
     frame->data[i] = calloc (size / planes, sizeof (uint8_t));
+    if (frame->data[i] == NULL)
+      goto error;
+  }
 
   frame->planes = planes;
   frame->size = size;
   return 0;
+error:
+  _kk_frame_free_planes (frame);
+  return -1;
 }
 
 static inline void

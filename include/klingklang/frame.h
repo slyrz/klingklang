@@ -4,6 +4,8 @@
 #include <klingklang/base.h>
 #include <klingklang/format.h>
 
+#define KK_FRAME_MAX_PLANES		2
+
 typedef struct kk_frame_s kk_frame_t;
 
 struct kk_frame_s {
@@ -11,7 +13,7 @@ struct kk_frame_s {
   size_t size;
   size_t samples;
   size_t planes;
-  uint8_t *data[2];
+  uint8_t *data[KK_FRAME_MAX_PLANES];
 };
 
 int kk_frame_init (kk_frame_t **frame);
