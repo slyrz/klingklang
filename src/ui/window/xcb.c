@@ -471,7 +471,12 @@ kk_window_show (kk_window_t *win)
     return -1;
 
   win->srf = cairo_xcb_surface_create (win->conn, win->win, visual_type, win->width, win->height);
+  if (cairo_surface_status (win->srf) != CAIRO_STATUS_SUCCESS)
+    return -1;
+
   win->ctx = cairo_create (win->srf);
+  if (cairo_status (win->ctx) != CAIRO_STATUS_SUCCESS)
+    return -1;
 
   kk_window_set_title (win, PACKAGE_NAME);
   kk_widget_invalidate ((kk_widget_t*) win);
