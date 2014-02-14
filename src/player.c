@@ -486,7 +486,6 @@ kk_player_seek (kk_player_t *player, float perc)
   return 0;
 }
 
-
 int
 kk_player_next (kk_player_t *player)
 {
