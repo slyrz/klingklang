@@ -9,6 +9,21 @@ You need to have the following libraries/programs installed:
 * [cairo](http://cairographics.org/)
 * [dmenu](http://tools.suckless.org/dmenu/)
 * [libav](http://libav.org/) or [ffmpeg](http://www.ffmpeg.org/)
+
+Additionally, the following programs are required to build klingklang from source.
+They should be present on most Unix systems.
+
+* [autoconf](http://www.gnu.org/software/autoconf/)
+* [automake](http://www.gnu.org/software/automake/)
+* [make](http://www.gnu.org/software/make/)
+* [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/)
+
+### Supported Display Servers
+
+#### X11
+If you want to build klingklang as X client, make sure the following libraries
+are present:
+
 * [xcb](http://xcb.freedesktop.org/)
 * [xcb-event](http://xcb.freedesktop.org/)
 * [xcb-icccm](http://xcb.freedesktop.org/)
@@ -16,15 +31,18 @@ You need to have the following libraries/programs installed:
 * [xcb-util](http://xcb.freedesktop.org/)
 
 Please make sure your *cairo* library was build with *xcb* support.
-Additionally, the following programs are required to build klingklang from source.
-They should be present on most Posix systems.
 
-* [autoconf](http://www.gnu.org/software/autoconf/)
-* [automake](http://www.gnu.org/software/automake/‎)
-* [make](http://www.gnu.org/software/make/)
-* [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config/)
+#### Wayland
+If you want to build klingklang as Wayland client, make sure the following
+libraries are present:
 
-## Supported Audio Backends
+* [cairo-gl](http://cairographics.org/)
+* [egl](http://www.khronos.org/egl/)
+* [wayland-client](http://wayland.freedesktop.org/)
+* [wayland-cursor](http://wayland.freedesktop.org/)
+* [wayland-egl](http://wayland.freedesktop.org/)
+
+### Supported Audio Backends
 You need to have one of the following libraries installed:
 
 * [alsa](http://www.alsa-project.org/)
@@ -50,6 +68,9 @@ The configure script accepts the following options:
 
 * `--with-backend={alsa|ao|oss|portaudio|pulseaudio|sndio}`  
 Use the given audio backend.
+
+* `--with-display-server={x11|wayland}`  
+Use the given display server.
 
 * `--enable-debugging`  
 Disable compiler optimization, but turn on additional warning flags and produce

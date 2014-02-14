@@ -345,6 +345,13 @@ main (int argc, char **argv)
   kk_widget_add_child ((kk_widget_t*)context.window, (kk_widget_t*)context.cover);
   kk_widget_add_child ((kk_widget_t*)context.window, (kk_widget_t*)context.progressbar);
 
+  kk_widget_set_size ((kk_widget_t *) context.window, KK_WINDOW_WIDTH, KK_WINDOW_HEIGHT);
+  kk_widget_set_size ((kk_widget_t *) context.cover, KK_WINDOW_WIDTH, KK_WINDOW_HEIGHT - KK_PROGRESSBAR_HEIGHT);
+  kk_widget_set_size ((kk_widget_t *) context.progressbar, KK_WINDOW_WIDTH, KK_PROGRESSBAR_HEIGHT);
+
+  kk_widget_set_position ((kk_widget_t *) context.cover, 0, 0);
+  kk_widget_set_position ((kk_widget_t *) context.progressbar, 0, KK_WINDOW_HEIGHT - KK_PROGRESSBAR_HEIGHT);
+
   kk_event_loop_add (context.loop, kk_player_get_event_fd (context.player), (kk_event_func_f) on_player_event, &context);
   kk_event_loop_add (context.loop, kk_window_get_event_fd (context.window), (kk_event_func_f) on_window_event, &context);
   kk_event_loop_add (context.loop, kk_timer_get_event_fd (context.timer), (kk_event_func_f) on_timer_event, &context);
