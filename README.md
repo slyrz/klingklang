@@ -9,6 +9,7 @@ You need to have the following libraries/programs installed:
 * [cairo](http://cairographics.org/)
 * [dmenu](http://tools.suckless.org/dmenu/)
 * [libav](http://libav.org/) or [ffmpeg](http://www.ffmpeg.org/)
+* [libxkbcommon](http://xkbcommon.org/)
 
 Additionally, the following programs are required to build klingklang from source.
 They should be present on most Unix systems.
@@ -27,7 +28,6 @@ are present:
 * [xcb](http://xcb.freedesktop.org/)
 * [xcb-event](http://xcb.freedesktop.org/)
 * [xcb-icccm](http://xcb.freedesktop.org/)
-* [xcb-keysyms](http://xcb.freedesktop.org/)
 * [xcb-util](http://xcb.freedesktop.org/)
 
 Please make sure your *cairo* library was build with *xcb* support.
