@@ -1,7 +1,8 @@
 # klingklang
 ![alt tag](https://raw.github.com/slyrz/klingklang/master/img/klingklang.png)
 
-A minimal music player. Metadata free. Manage your music library with mv/cp and friends.
+A minimal music player. Metadata free.
+Manage your music library with mv/cp and friends.
 
 ## Requirements
 You need to have the following libraries/programs installed:
@@ -11,8 +12,8 @@ You need to have the following libraries/programs installed:
 * [libav](http://libav.org/) or [ffmpeg](http://www.ffmpeg.org/)
 * [libxkbcommon](http://xkbcommon.org/)
 
-Additionally, the following programs are required to build klingklang from source.
-They should be present on most Unix systems.
+Additionally, the following programs are required to build klingklang from
+source. They should be present on most Unix systems.
 
 * [autoconf](http://www.gnu.org/software/autoconf/)
 * [automake](http://www.gnu.org/software/automake/)
@@ -36,11 +37,12 @@ Please make sure your *cairo* library was build with *xcb* support.
 If you want to build klingklang as Wayland client, make sure the following
 libraries are present:
 
-* [cairo-gl](http://cairographics.org/)
 * [egl](http://www.khronos.org/egl/)
 * [wayland-client](http://wayland.freedesktop.org/)
 * [wayland-cursor](http://wayland.freedesktop.org/)
 * [wayland-egl](http://wayland.freedesktop.org/)
+
+Please make sure your *cairo* library was build with *egl* support.
 
 ### Supported Audio Backends
 You need to have one of the following libraries installed:
@@ -52,7 +54,8 @@ You need to have one of the following libraries installed:
 * [pulseaudio](http://www.freedesktop.org/wiki/Software/PulseAudio/)
 * [sndio](http://www.sndio.org/)
 
-Choosing *alsa* as audio backend on Linux systems with *pulseaudio* installed is not recommended.
+Choosing *alsa* as audio backend on Linux systems with *pulseaudio* installed
+is not recommended.
 
 ## Installation
 Files created by autotools are not kept under version control.
@@ -81,7 +84,8 @@ Now you're able to compile *klingklang* by running
     make
     make install
 
-The second command is optional. Execute it if you want to install the *klingklang* binary on your system.
+The second command is optional. Execute it if you want to install the
+*klingklang* binary on your system.
 
 ## Commands
 
