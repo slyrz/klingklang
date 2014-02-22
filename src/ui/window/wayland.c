@@ -397,7 +397,7 @@ _kk_window_init_cairo (kk_window_t * win)
 int
 kk_window_init (kk_window_t ** win, int width, int height)
 {
-  kk_window_t *result;
+  kk_window_t *result = NULL;
 
   if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_window_t), NULL) != 0)
     goto error;
@@ -445,6 +445,7 @@ kk_window_init (kk_window_t ** win, int width, int height)
   *win = result;
   return 0;
 error:
+  kk_window_free (result);
   *win = NULL;
   return -1;
 }
