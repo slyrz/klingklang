@@ -32,11 +32,13 @@ _kk_list_compare (const void *a, const void *b)
 #endif
 {
   /**
-   * kk_list_t stores void* pointers. Calling qsort,
-   * we receive pointers to those pointers in this function. Function parameters
-   * are declared void*to not break the qsort compare function prototype.
-   * So we cast them to void**, dereference them and cast them to
-   * actual void*pointers and call the user-defined compare function.
+   * kk_list_t stores void* pointers. The qsort function passes pointers to
+   * these pointers to this function. So the underlying parameter type
+   * is actually void** and not void*.
+   * But since the qsort compare function prototype expects void* parameters,
+   * we declared them as void* here. Then we do the necessary type casting to
+   * cast them to actual void* pointers, before we pass them to the
+   * user-defined compare function.
    */
   return ((kk_list_cmp_f) arg) (*((const void *const *) a), *((const void *const *) b));
 }
@@ -67,6 +69,11 @@ kk_list_init (kk_list_t **list)
   if (result == NULL)
     goto error;
 
+  /**
+   * Start with a default capacity of 32 items. The list capacity grows by
+   * powers of 2 whenever the current capacity is not large enough to hold
+   * the required number of list items.
+   */
   result->cap = 32;
   result->len = 0;
 
