@@ -52,7 +52,7 @@ _kk_list_enlarge (kk_list_t *list)
   if (cap > 0x8000)
     return -1;
 
-  list->items = realloc (list->items, cap *sizeof (void *));
+  list->items = realloc (list->items, cap * sizeof (void *));
   if (list->items == NULL)
     return -1;
 
