@@ -114,8 +114,10 @@ kk_list_is_filled (kk_list_t *list)
 int
 kk_list_append (kk_list_t *list, void *item)
 {
-  if ((list->len >= list->cap) && (_kk_list_enlarge (list) != 0))
-    return -1;
+  if (list->len >= list->cap) {
+    if (_kk_list_enlarge (list) != 0)
+      return -1;
+  }
   list->items[list->len++] = item;
   return 0;
 }
