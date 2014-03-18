@@ -92,7 +92,7 @@ _kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, size_t
   size_t i;
   size_t j;
 
-  for (i = 0; i < (src->size / (2 *byte)); i++) {
+  for (i = 0; i < (src->size / (2 * byte)); i++) {
     for (j = 0; j < byte; j++)
       *ilp++ = *pla++;
 

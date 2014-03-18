@@ -2,6 +2,8 @@
 #include <klingklang/util.h>
 #include <klingklang/ui/cover.h>
 
+#include <math.h>
+
 static void _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx);
 
 int
@@ -113,12 +115,12 @@ cleanup:
 static void
 cairo_rounded_rectangle (cairo_t *cr, double x, double y, double width, double height, double radius)
 {
-  const double d = 0.0174533;     /*= pi / 180.0 */
+  const double d = M_PI / 180.0;
 
-  cairo_arc (cr, x + width - radius, y + radius, radius, -90.0 *d, 0.0);
-  cairo_arc (cr, x + width - radius, y + height - radius, radius, 0.0, 90.0 *d);
-  cairo_arc (cr, x + radius, y + height - radius, radius,  90.0 *d, 180.0 *d);
-  cairo_arc (cr, x + radius, y + radius, radius, 180.0 *d, 270.0 *d);
+  cairo_arc (cr, x + width - radius, y + radius, radius, -90.0 * d, 0.0);
+  cairo_arc (cr, x + width - radius, y + height - radius, radius, 0.0, 90.0 * d);
+  cairo_arc (cr, x + radius, y + height - radius, radius,  90.0 * d, 180.0 * d);
+  cairo_arc (cr, x + radius, y + radius, radius, 180.0 * d, 270.0 * d);
   cairo_line_to (cr, x + width - radius, y);
 }
 
@@ -178,15 +180,15 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_restore (ctx);
 
   /* Scale to stretch / shrink foreground image according to widget size */
-  const double scale = (2.0 *cover->radius + 8.0) / (double) cover->foreground->width;
+  const double scale = (2.0 * cover->radius + 8.0) / (double) cover->foreground->width;
 
   /* Clip center + draw foreground */
   cairo_save (ctx);
   cairo_rounded_rectangle (ctx,
     (double) cover->x + ((double) cover->width / 2.0 - cover->radius),
     (double) cover->y + ((double) cover->height / 2.0 - cover->radius),
-    cover->radius *2.0,
-    cover->radius *2.0,
+    cover->radius * 2.0,
+    cover->radius * 2.0,
     cover->radius / 30.0
   );
 
@@ -196,8 +198,8 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_set_operator (ctx, CAIRO_OPERATOR_SOURCE);
   cairo_set_source_surface (ctx,
     cover->foreground->surface,
-    (((double) cover->width - ((double) cover->foreground->width *scale)) / 2.0) / scale,
-    (((double) cover->height - ((double) cover->foreground->height *scale)) / 2.0) / scale
+    (((double) cover->width - ((double) cover->foreground->width * scale)) / 2.0) / scale,
+    (((double) cover->height - ((double) cover->foreground->height * scale)) / 2.0) / scale
   );
   cairo_paint (ctx);
   cairo_close_path (ctx);
@@ -210,8 +212,8 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
     cairo_rounded_rectangle (ctx,
       (double) cover->width / 2.0 - cover->radius,
       (double) cover->height / 2.0 - cover->radius,
-      cover->radius *2.0,
-      cover->radius *2.0,
+      cover->radius * 2.0,
+      cover->radius * 2.0,
       cover->radius / 30.0
     );
     cairo_set_line_width (ctx, 1.0);
