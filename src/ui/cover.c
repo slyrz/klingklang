@@ -127,13 +127,14 @@ cairo_rounded_rectangle (cairo_t *cr, double x, double y, double width, double h
 static void
 _kk_cover_resize (kk_cover_t *cover)
 {
+  const double margin = 40.0;
   const double cx = cover->x + (cover->width / 2);
   const double cy = cover->y + (cover->height / 2);
 
   if (cover->width < cover->height)
-    cover->radius = (cover->width - 40.0) / 2.0;
+    cover->radius = (cover->width + margin) / 2.0;
   else
-    cover->radius = (cover->height - 40.0) / 2.0;
+    cover->radius = (cover->height + margin) / 2.0;
 
   if (cover->contour)
     cairo_pattern_destroy (cover->contour);
@@ -206,7 +207,7 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_reset_clip (ctx);
   cairo_restore (ctx);
 
-  /* Draw unobtrusive border around foreground */
+  /* Draw unobstrusive border around foreground */
   if (cover->contour) {
     cairo_save (ctx);
     cairo_rounded_rectangle (ctx,
