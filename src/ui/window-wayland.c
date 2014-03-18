@@ -618,7 +618,7 @@ kk_window_get_input (kk_window_t * win)
       buffer[--tot] = '\0';
 
     if (tot > 0)
-      kk_window_event_input (window->events, buffer);
+      kk_window_event_input (win->events, buffer);
   }
 
   return 0;
