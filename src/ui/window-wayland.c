@@ -1,10 +1,8 @@
 #include <klingklang/ui/window.h>
-#include <klingklang/base.h>
 #include <klingklang/str.h>
 #include <klingklang/util.h>
 
 #include <errno.h>
-#include <pthread.h>
 
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>
