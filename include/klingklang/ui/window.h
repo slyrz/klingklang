@@ -1,9 +1,19 @@
 #ifndef KK_UI_WINDOW_H
 #define KK_UI_WINDOW_H
 
+#include <klingklang/event.h>
 #include <klingklang/ui/widget.h>
 #include <klingklang/ui/keys.h>
 #include <klingklang/ui/window-events.h>
+
+#include <pthread.h>
+
+#define kk_window_fields \
+  kk_widget_fields; \
+  kk_event_queue_t *events; \
+  kk_keys_t *keys; \
+  pthread_t thread; \
+  unsigned alive:1;
 
 typedef struct kk_window_s kk_window_t;
 

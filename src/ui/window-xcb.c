@@ -7,8 +7,6 @@
 #  include <unistd.h>
 #endif
 
-#include <pthread.h>
-
 #include <xcb/xcb.h>
 #include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
@@ -26,17 +24,15 @@
 #define KK_WINDOW_MAX_PROPERTY_LEN      0xffu
 
 struct kk_window_s {
-  kk_widget_fields;
-  xcb_connection_t *conn;
-  xcb_screen_t *scrn;
-  xcb_window_t win;
+  kk_window_fields;
+  xcb_connection_t *connection;
+  xcb_screen_t *screen;
+  xcb_window_t window;
   xcb_atom_t input;
-  cairo_surface_t *srf;
-  cairo_t *ctx;
-  kk_event_queue_t *events;
-  kk_keys_t *keys;
-  pthread_t thread;
-  unsigned alive:1;
+  struct {
+    cairo_surface_t *surface;
+    cairo_t *context;
+  } cairo;
 };
 
 static xcb_atom_t
@@ -57,8 +53,8 @@ _kk_window_get_atom (kk_window_t *win, const char *name)
     return XCB_NONE;
   }
 
-  cookie = xcb_intern_atom (win->conn, 0, (uint16_t) len, name);
-  reply = xcb_intern_atom_reply (win->conn, cookie, NULL);
+  cookie = xcb_intern_atom (win->connection, 0, (uint16_t) len, name);
+  reply = xcb_intern_atom_reply (win->connection, cookie, NULL);
   if (reply == NULL)
     return XCB_NONE;
 
@@ -79,8 +75,8 @@ _kk_window_get_property (kk_window_t *win, xcb_atom_t property, char **dst)
   if (dst == NULL)
     goto error;
 
-  cookie = xcb_get_property (win->conn, 0, win->win, property, XCB_ATOM_STRING, 0, KK_WINDOW_MAX_PROPERTY_LEN);
-  reply = xcb_get_property_reply (win->conn, cookie, NULL);
+  cookie = xcb_get_property (win->connection, 0, win->window, property, XCB_ATOM_STRING, 0, KK_WINDOW_MAX_PROPERTY_LEN);
+  reply = xcb_get_property_reply (win->connection, cookie, NULL);
   if (reply == NULL)
     goto error;
 
@@ -120,10 +116,10 @@ _kk_window_get_xid_str (kk_window_t *win, char *dst, size_t n)
 {
   int ret;
 
-  if ((dst == NULL) || (win->win == 0))
+  if ((dst == NULL) || (win->window == 0))
     return -1;
 
-  ret = snprintf (dst, n, "%d", win->win);
+  ret = snprintf (dst, n, "%d", win->window);
   if ((ret <= 0) | (ret >= (int) n))
     return -1;
   return 0;
@@ -135,13 +131,13 @@ _kk_window_get_visual_type (kk_window_t *win)
   xcb_visualtype_t *visual_type;
   xcb_depth_iterator_t depth_iter;
 
-  depth_iter = xcb_screen_allowed_depths_iterator (win->scrn);
+  depth_iter = xcb_screen_allowed_depths_iterator (win->screen);
 
   visual_type = NULL;
   for (; depth_iter.rem; xcb_depth_next (&depth_iter)) {
     xcb_visualtype_iterator_t visual_iter = xcb_depth_visuals_iterator (depth_iter.data);
     for (; visual_iter.rem; xcb_visualtype_next (&visual_iter)) {
-      if (win->scrn->root_visual == visual_iter.data->visual_id) {
+      if (win->screen->root_visual == visual_iter.data->visual_id) {
         visual_type = visual_iter.data;
         break;
       }
@@ -221,7 +217,7 @@ _kk_window_event_handler (kk_window_t *win)
   xcb_generic_event_t *event;
 
   win->alive = 1;
-  while ((event = xcb_wait_for_event (win->conn))) {
+  while ((event = xcb_wait_for_event (win->connection))) {
     switch (XCB_EVENT_RESPONSE_TYPE (event)) {
       case XCB_CONFIGURE_NOTIFY:
         _kk_window_handle_configure_notify_event (win, (xcb_configure_notify_event_t *) event);
@@ -271,12 +267,12 @@ kk_window_init (kk_window_t **win, int width, int height)
   if (kk_keys_init (&result->keys) != 0)
     goto error;
 
-  result->conn = xcb_connect (NULL, NULL);
-  if (result->conn == NULL)
+  result->connection = xcb_connect (NULL, NULL);
+  if (result->connection == NULL)
     goto error;
 
-  result->scrn = xcb_setup_roots_iterator (xcb_get_setup (result->conn)).data;
-  if (result->scrn == NULL)
+  result->screen = xcb_setup_roots_iterator (xcb_get_setup (result->connection)).data;
+  if (result->screen == NULL)
     goto error;
 
   if (pthread_create (&result->thread, 0, (void *(*)(void *)) _kk_window_event_handler, result) != 0)
@@ -305,28 +301,28 @@ kk_window_free (kk_window_t *win)
   if (win->thread)
     pthread_join (win->thread, NULL);
 
-  if (win->ctx)
-    cairo_destroy (win->ctx);
+  if (win->cairo.context)
+    cairo_destroy (win->cairo.context);
 
-  if (win->srf) {
-    cairo_surface_flush (win->srf);
-    cairo_surface_finish (win->srf);
-    cairo_surface_destroy (win->srf);
+  if (win->cairo.surface) {
+    cairo_surface_flush (win->cairo.surface);
+    cairo_surface_finish (win->cairo.surface);
+    cairo_surface_destroy (win->cairo.surface);
   }
 
-  if (win->win)
-    xcb_destroy_window (win->conn, win->win);
+  if (win->window)
+    xcb_destroy_window (win->connection, win->window);
 
   /**
-   * Disconnecting causes a memory leak if the connection had an error,
+   * Disconnectionecting causes a memory leak if the connectionection had an error,
    * but there's nothing we can do about it. The function xcb_disconnect doesn't
-   * do anything if the has_error flag of the xcb_connection_t struct is true.
-   * However, we can't set this field to false since xcb.h exports xcb_connection_t
+   * do anything if the has_error flag of the xcb_connectionection_t struct is true.
+   * However, we can't set this field to false since xcb.h exports xcb_connectionection_t
    * as opaque struct.
    * And besides ruining our valgrind reports, it really doesn't affect us.
    */
-  if (win->conn)
-    xcb_disconnect (win->conn);
+  if (win->connection)
+    xcb_disconnect (win->connection);
 
   if (win->events)
     kk_event_queue_free (win->events);
@@ -343,15 +339,15 @@ kk_window_set_title (kk_window_t *win, const char *title)
 {
   size_t len;
 
-  if (win->win == 0u)
+  if (win->window == 0u)
     return -1;
 
   len = kk_str_len (title, KK_WINDOW_MAX_TITLE_LEN);
   if (len == KK_WINDOW_MAX_TITLE_LEN)
     kk_log (KK_LOG_WARNING, "Title exceeds maximum title length.");
 
-  xcb_change_property (win->conn, XCB_PROP_MODE_REPLACE, win->win, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, (uint32_t) len, title);
-  xcb_flush (win->conn);
+  xcb_change_property (win->connection, XCB_PROP_MODE_REPLACE, win->window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, (uint32_t) len, title);
+  xcb_flush (win->connection);
   return 0;
 }
 
@@ -366,7 +362,7 @@ kk_window_show (kk_window_t *win)
     | XCB_CW_OVERRIDE_REDIRECT
     | XCB_CW_EVENT_MASK;
 
-  value_list[0] = win->scrn->black_pixel;
+  value_list[0] = win->screen->black_pixel;
   value_list[1] = 0;
   value_list[2] = XCB_EVENT_MASK_KEY_PRESS
     | XCB_EVENT_MASK_EXPOSURE
@@ -378,18 +374,18 @@ kk_window_show (kk_window_t *win)
     return -1;
   }
 
-  win->win = xcb_generate_id (win->conn);
-  xcb_create_window (win->conn,
-      win->scrn->root_depth,
-      win->win,
-      win->scrn->root,
+  win->window = xcb_generate_id (win->connection);
+  xcb_create_window (win->connection,
+      win->screen->root_depth,
+      win->window,
+      win->screen->root,
       0,
       0,
       (uint16_t) win->width,
       (uint16_t) win->height,
       0,
       XCB_WINDOW_CLASS_INPUT_OUTPUT,
-      win->scrn->root_visual,
+      win->screen->root_visual,
       value_mask,
       value_list);
 
@@ -402,23 +398,23 @@ kk_window_show (kk_window_t *win)
   xcb_atom_t prt = _kk_window_get_atom (win, "WM_PROTOCOLS");
 
   if ((del != XCB_NONE) && (prt != XCB_NONE))
-    xcb_set_wm_protocols (win->conn, win->win, prt, 1, &del);
+    xcb_set_wm_protocols (win->connection, win->window, prt, 1, &del);
 
   win->input = _kk_window_get_atom (win, KK_WINDOW_INPUT_PROP);
 
-  xcb_map_window (win->conn, win->win);
-  xcb_flush (win->conn);
+  xcb_map_window (win->connection, win->window);
+  xcb_flush (win->connection);
 
   visual_type = _kk_window_get_visual_type (win);
   if (visual_type == NULL)
     return -1;
 
-  win->srf = cairo_xcb_surface_create (win->conn, win->win, visual_type, win->width, win->height);
-  if (cairo_surface_status (win->srf) != CAIRO_STATUS_SUCCESS)
+  win->cairo.surface = cairo_xcb_surface_create (win->connection, win->window, visual_type, win->width, win->height);
+  if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS)
     return -1;
 
-  win->ctx = cairo_create (win->srf);
-  if (cairo_status (win->ctx) != CAIRO_STATUS_SUCCESS)
+  win->cairo.context = cairo_create (win->cairo.surface);
+  if (cairo_status (win->cairo.context) != CAIRO_STATUS_SUCCESS)
     return -1;
 
   kk_window_set_title (win, PACKAGE_NAME);
@@ -430,9 +426,9 @@ int
 kk_window_draw (kk_window_t *win)
 {
   if (win->resized)
-    cairo_xcb_surface_set_size (win->srf, win->width, win->height);
-  kk_widget_draw ((kk_widget_t*) win, win->ctx);
-  xcb_flush (win->conn);
+    cairo_xcb_surface_set_size (win->cairo.surface, win->width, win->height);
+  kk_widget_draw ((kk_widget_t*) win, win->cairo.context);
+  xcb_flush (win->connection);
   return 0;
 }
 

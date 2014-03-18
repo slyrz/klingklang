@@ -18,7 +18,7 @@
 #include <cairo-gl.h>
 
 struct kk_window_s {
-  kk_widget_fields;
+  kk_window_fields;
   struct wl_callback *callback;
   struct wl_compositor *compositor;
   struct wl_display *display;
@@ -39,10 +39,6 @@ struct kk_window_s {
     cairo_device_t *device;
     cairo_surface_t *surface;
   } cairo;
-  kk_event_queue_t *events;
-  kk_keys_t *keys;
-  pthread_t thread;
-  unsigned alive:1;
 };
 
 static void
