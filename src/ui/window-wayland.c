@@ -46,41 +46,6 @@ struct kk_window_s {
 };
 
 static void
-_kk_window_event_input (kk_window_t *window, char *text)
-{
-  kk_window_event_input_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_input_t));
-  event.type = KK_WINDOW_INPUT;
-  event.text = strdup (text);
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_input_t));
-}
-
-static void
-_kk_window_event_key_press (kk_window_t *window, int modifier, int key)
-{
-  kk_window_event_key_press_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_key_press_t));
-  event.type = KK_WINDOW_KEY_PRESS;
-  event.key = key;
-  event.mod = modifier;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_key_press_t));
-}
-
-static void
-_kk_window_event_resize (kk_window_t *window, int width, int height)
-{
-  kk_window_event_resize_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_resize_t));
-  event.type = KK_WINDOW_RESIZE;
-  event.width = width;
-  event.height = height;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_resize_t));
-}
-
-static void
 keyboard_handle_enter (void *data, struct wl_keyboard *keyboard,
     uint32_t serial, struct wl_surface *surface, struct wl_array *keys)
 {
@@ -108,7 +73,7 @@ keyboard_handle_key (void *data, struct wl_keyboard *keyboard, uint32_t serial,
   int sym = kk_keys_get_symbol (window->keys, key + 8);
   int mod = kk_keys_get_modifiers (window->keys);
 
-  _kk_window_event_key_press (window, mod, sym);
+  kk_window_event_key_press (window->events, mod, sym);
 }
 
 static void
@@ -276,7 +241,7 @@ shell_surface_handle_configure (void *data,
 
   wl_egl_window_resize (window->window, width, height, 0, 0);
   cairo_gl_surface_set_size (window->cairo.surface, width, height);
-  _kk_window_event_resize (window, width, height);
+  kk_window_event_resize (window->events, width, height);
 }
 
 /**
@@ -657,7 +622,7 @@ kk_window_get_input (kk_window_t * win)
       buffer[--tot] = '\0';
 
     if (tot > 0)
-      _kk_window_event_input (win, buffer);
+      kk_window_event_input (window->events, buffer);
   }
 
   return 0;

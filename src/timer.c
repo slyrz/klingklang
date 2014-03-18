@@ -14,14 +14,8 @@ static kk_timer_t *active = NULL;
 static void
 _kk_timer_signal_handler (void)
 {
-  kk_timer_event_fired_t event;
-
-  if (active == NULL)
-    return;
-
-  memset (&event, 0, sizeof (kk_timer_event_fired_t));
-  event.type = KK_TIMER_FIRED;
-  kk_event_queue_write (active->events, (void *) &event, sizeof (kk_timer_event_fired_t));
+  if (active)
+    kk_timer_event_fired (active->events);
 }
 
 int

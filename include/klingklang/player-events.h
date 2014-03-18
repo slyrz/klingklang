@@ -2,6 +2,7 @@
 #define KK_PLAYER_EVENTS_H
 
 #include <klingklang/event.h>
+#include <klingklang/library.h>
 
 enum {
   KK_PLAYER_PAUSE,
@@ -39,5 +40,11 @@ struct kk_player_event_start_s {
 struct kk_player_event_stop_s {
   kk_event_fields;
 };
+
+void kk_player_event_seek (kk_event_queue_t *queue, float perc);
+void kk_player_event_start (kk_event_queue_t *queue, kk_library_file_t *file);
+void kk_player_event_progress (kk_event_queue_t *queue, float progress);
+void kk_player_event_stop (kk_event_queue_t *queue);
+void kk_player_event_pause (kk_event_queue_t *queue);
 
 #endif

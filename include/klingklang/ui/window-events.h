@@ -44,4 +44,10 @@ struct kk_window_event_resize_s {
   int height;
 };
 
+void kk_window_event_close (kk_event_queue_t *queue);
+void kk_window_event_expose (kk_event_queue_t *queue, int width, int height);
+void kk_window_event_input (kk_event_queue_t *queue, char *text);
+void kk_window_event_key_press (kk_event_queue_t *queue, int modifier, int key);
+void kk_window_event_resize (kk_event_queue_t *queue, int width, int height);
+
 #endif

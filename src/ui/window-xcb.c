@@ -151,66 +151,9 @@ _kk_window_get_visual_type (kk_window_t *win)
 }
 
 static void
-_kk_window_event_key_press (kk_window_t *window, int modifier, int key)
-{
-  kk_window_event_key_press_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_key_press_t));
-  event.type = KK_WINDOW_KEY_PRESS;
-  event.key = key;
-  event.mod = modifier;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_key_press_t));
-}
-
-static void
-_kk_window_event_expose (kk_window_t *window, int width, int height)
-{
-  kk_window_event_expose_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_expose_t));
-  event.type = KK_WINDOW_EXPOSE;
-  event.width = width;
-  event.height = height;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_expose_t));
-}
-
-static void
-_kk_window_event_close (kk_window_t *window)
-{
-  kk_window_event_close_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_close_t));
-  event.type = KK_WINDOW_CLOSE;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_close_t));
-}
-
-static void
-_kk_window_event_input (kk_window_t *window, char *text)
-{
-  kk_window_event_input_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_input_t));
-  event.type = KK_WINDOW_INPUT;
-  event.text = text;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_input_t));
-}
-
-static void
-_kk_window_event_resize (kk_window_t *window, int width, int height)
-{
-  kk_window_event_resize_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_resize_t));
-  event.type = KK_WINDOW_RESIZE;
-  event.width = width;
-  event.height = height;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_resize_t));
-}
-
-static void
 _kk_window_handle_configure_notify_event (kk_window_t *win, xcb_configure_notify_event_t *event)
 {
-  _kk_window_event_resize (win, event->width, event->height);
+  kk_window_event_resize (win->events, event->width, event->height);
 }
 
 static void
@@ -219,7 +162,7 @@ _kk_window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
   (void) event;
 
   kk_widget_invalidate ((kk_widget_t*) win);
-  _kk_window_event_expose (win, win->width, win->height);
+  kk_window_event_expose (win->events, win->width, win->height);
 }
 
 static void
@@ -236,7 +179,7 @@ _kk_window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *even
   if (event->state & XCB_MOD_MASK_CONTROL)
     mod |= KK_MOD_CONTROL;
 
-  _kk_window_event_key_press (win, mod, key);
+  kk_window_event_key_press (win->events, mod, key);
 }
 
 static void
@@ -257,7 +200,7 @@ _kk_window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_e
     return;
   }
 
-  _kk_window_event_input (win, value);
+  kk_window_event_input (win->events, value);
 }
 
 static void
@@ -296,7 +239,7 @@ _kk_window_event_handler (kk_window_t *win)
         _kk_window_handle_property_notify_event (win, (xcb_property_notify_event_t *) event);
         break;
       case XCB_CLIENT_MESSAGE:
-        _kk_window_event_close (win);
+        kk_window_event_close (win->events);
         win->alive = 0;
         break;
       default:
@@ -308,7 +251,7 @@ _kk_window_event_handler (kk_window_t *win)
   }
 
   if (win->alive)
-    _kk_window_event_close (win);
+    kk_window_event_close (win->events);
 
   win->alive = 0;
   return NULL;
