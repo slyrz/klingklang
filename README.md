@@ -1,7 +1,8 @@
 # klingklang
-![alt tag](https://raw.github.com/slyrz/klingklang/master/img/klingklang.png)
+![klingklang screenshot](https://raw.github.com/slyrz/klingklang/master/img/klingklang.png)
 
-A minimal music player. Metadata free.
+A minimal music player for Linux and BSD.
+GUI toolkit free. Metadata free.
 Manage your music library with mv/cp and friends.
 
 ## Requirements
@@ -54,9 +55,6 @@ You need to have one of the following libraries installed:
 * [pulseaudio](http://www.freedesktop.org/wiki/Software/PulseAudio/)
 * [sndio](http://www.sndio.org/)
 
-Choosing *alsa* as audio backend on Linux systems with *pulseaudio* installed
-is not recommended.
-
 ## Installation
 Files created by autotools are not kept under version control.
 It's necessary to create the missing Makefile and configure script by running
@@ -79,13 +77,13 @@ Use the given display server.
 Disable compiler optimization, but turn on additional warning flags and produce
 debug symbols.
 
-Now you're able to compile *klingklang* by running
+Now you're able to compile klingklang by running
 
     make
     make install
 
 The second command is optional. Execute it if you want to install the
-*klingklang* binary on your system.
+klingklang binary on your system.
 
 ## Commands
 
