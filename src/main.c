@@ -322,10 +322,10 @@ main (int argc, char **argv)
 #endif
 
   if (kk_player_init (&context.player) < 0)
-    kk_err (EXIT_FAILURE, "Could not init player");
+    kk_err (EXIT_FAILURE, "Could not init player.");
 
   if (kk_library_init (&context.library, KK_LIBRARY_PATH) < 0)
-    kk_err (EXIT_FAILURE, "Could not open music library");
+    kk_err (EXIT_FAILURE, "Could not open music library.");
 
   if (kk_window_init (&context.window, KK_WINDOW_WIDTH, KK_WINDOW_HEIGHT) < 0)
     kk_err (EXIT_FAILURE, "Could not initialize window.");
