@@ -3,7 +3,6 @@
 
 #include <xkbcommon/xkbcommon.h>
 
-
 #define KK_KEYS_RULES   "evdev"
 #define KK_KEYS_MODEL   "evdev"
 #define KK_KEYS_LAYOUT  "us"
