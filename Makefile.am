@@ -20,6 +20,7 @@ klingklang_SOURCES = \
   src/ui/keys.c \
   src/ui/progressbar.c \
   src/ui/widget.c \
+  src/ui/window.c \
   src/ui/window-events.c \
   src/util.c
 

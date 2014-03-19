@@ -29,7 +29,7 @@ kk_window_event_input (kk_event_queue_t *queue, char *text)
 
   memset (&event, 0, sizeof (kk_window_event_input_t));
   event.type = KK_WINDOW_INPUT;
-  event.text = text;
+  event.text = strdup (text);
   kk_event_queue_write (queue, (void *) &event, sizeof (kk_window_event_input_t));
 }
 

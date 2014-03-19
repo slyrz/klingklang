@@ -2,10 +2,6 @@
 #include <klingklang/str.h>
 #include <klingklang/util.h>
 
-#ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-#endif
-
 #include <xcb/xcb.h>
 #include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
@@ -17,17 +13,14 @@
 #  define xcb_set_wm_protocols xcb_icccm_set_wm_protocols
 #endif
 
-#define KK_WINDOW_INPUT_PROP            "_KK_INPUT"
 #define KK_WINDOW_MAX_TITLE_LEN         0x80u
 #define KK_WINDOW_MAX_ATOM_LEN          0x80u
-#define KK_WINDOW_MAX_PROPERTY_LEN      0xffu
 
 struct kk_window_s {
   kk_window_fields;
   xcb_connection_t *connection;
   xcb_screen_t *screen;
   xcb_window_t window;
-  xcb_atom_t input;
   struct {
     cairo_surface_t *surface;
     cairo_t *context;
@@ -60,68 +53,6 @@ window_get_atom (kk_window_t *win, const char *name)
   atom = reply->atom;
   free (reply);
   return atom;
-}
-
-static int
-window_get_property (kk_window_t *win, xcb_atom_t property, char **dst)
-{
-  xcb_get_property_cookie_t cookie;
-  xcb_get_property_reply_t *reply = NULL;
-
-  char buffer[KK_WINDOW_MAX_PROPERTY_LEN];
-  int ret;
-
-  if (dst == NULL)
-    goto error;
-
-  cookie = xcb_get_property (win->connection, 0, win->window, property, XCB_ATOM_STRING, 0, KK_WINDOW_MAX_PROPERTY_LEN);
-  reply = xcb_get_property_reply (win->connection, cookie, NULL);
-  if (reply == NULL)
-    goto error;
-
-  ret = xcb_get_property_value_length (reply);
-  if ((ret < 0) || (KK_WINDOW_MAX_PROPERTY_LEN < (size_t) (ret + 1)))
-    goto error;
-
-  /**
-   * Copy property value into buffer. We can't use strl{cat,cpy} here
-   * because the property value isn't null-terminated.
-   */
-  {
-    register char *out;
-    register char *inp;
-
-    out = buffer;
-    inp = xcb_get_property_value (reply);
-    for (; ret > 0; out++, inp++, ret--)
-      *out = *inp;
-    *out = '\0';
-  }
-
-  *dst = strndup (buffer, KK_WINDOW_MAX_PROPERTY_LEN);
-  if (*dst == NULL)
-    goto error;
-  free (reply);
-  return 0;
-error:
-  if (dst)
-    *dst = NULL;
-  free (reply);
-  return -1;
-}
-
-static int
-window_get_xid_str (kk_window_t *win, char *dst, size_t n)
-{
-  int ret;
-
-  if ((dst == NULL) || (win->window == 0))
-    return -1;
-
-  ret = snprintf (dst, n, "%d", win->window);
-  if ((ret <= 0) | (ret >= (int) n))
-    return -1;
-  return 0;
 }
 
 static xcb_visualtype_t *
@@ -178,27 +109,6 @@ window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
 }
 
 static void
-window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_event_t *event)
-{
-  static char *value;
-
-  if (event->atom != win->input)
-    return;
-
-  if (window_get_property (win, event->atom, &value) != 0) {
-    kk_log (KK_LOG_ERROR, "Failed to retrieve input property value.");
-    return;
-  }
-
-  if (*value == '\0') {
-    kk_log (KK_LOG_WARNING, "Empty input value.");
-    return;
-  }
-
-  kk_window_event_input (win->events, value);
-}
-
-static void
 window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_event_t *event)
 {
   /**
@@ -229,9 +139,6 @@ window_event_handler (kk_window_t *win)
         break;
       case XCB_MAPPING_NOTIFY:
         window_handle_mapping_notify_event (win, (xcb_mapping_notify_event_t *) event);
-        break;
-      case XCB_PROPERTY_NOTIFY:
-        window_handle_property_notify_event (win, (xcb_property_notify_event_t *) event);
         break;
       case XCB_CLIENT_MESSAGE:
         kk_window_event_close (win->events);
@@ -393,8 +300,6 @@ kk_window_show (kk_window_t *win)
   if ((del != XCB_NONE) && (prt != XCB_NONE))
     xcb_set_wm_protocols (win->connection, win->window, prt, 1, &del);
 
-  win->input = window_get_atom (win, KK_WINDOW_INPUT_PROP);
-
   xcb_map_window (win->connection, win->window);
   xcb_flush (win->connection);
 
@@ -425,32 +330,12 @@ kk_window_draw (kk_window_t *win)
   return 0;
 }
 
+extern int window_get_input (kk_event_queue_t *queue);
+
 int
 kk_window_get_input (kk_window_t *win)
 {
-  static char xid[32];
-
-  static char args_shell[] = "/bin/sh";
-  static char args_param[] = "-c";
-  static char args_code[] = "val=`cat /dev/null | dmenu`; xprop -id $0 -f " KK_WINDOW_INPUT_PROP " 8s -set " KK_WINDOW_INPUT_PROP " \"$val\"";
-
-  if (window_get_xid_str (win, xid, 32) != 0)
-    return -1;
-
-  char *const *args = (char *const[]) {
-    args_shell,
-    args_param,
-    args_code,
-    xid,
-    NULL
-  };
-
-  if (fork () == 0) {
-    setsid ();
-    execvp (args[0], args);
-    kk_err (EXIT_FAILURE, "Command %s failed.", args[0]);
-  }
-  return 0;
+  return window_get_input (win->events);
 }
 
 int
