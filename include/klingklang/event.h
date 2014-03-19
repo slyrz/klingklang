@@ -3,11 +3,6 @@
 
 #include <klingklang/base.h>
 
-#define kk_event_set(type,event,field,value) \
-  do { \
-    (((type*)&(event))->field) = (value); \
-  } while (0)
-
 #define kk_event_fields \
   unsigned int type;
 
