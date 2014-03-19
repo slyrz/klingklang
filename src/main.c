@@ -265,7 +265,7 @@ on_timer_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 
     switch (event.type) {
       case KK_TIMER_FIRED:
-        on_timer_fired (ctx, (kk_timer_event_fired_t *) &  event);
+        on_timer_fired (ctx, (kk_timer_event_fired_t *) &event);
         break;
       default:
         kk_log (KK_LOG_WARNING, "Read unkown timer event.");
@@ -289,16 +289,16 @@ on_window_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 
     switch (event.type) {
       case KK_WINDOW_KEY_PRESS:
-        on_window_key_press (ctx, (kk_window_event_key_press_t *) & event);
+        on_window_key_press (ctx, (kk_window_event_key_press_t *) &event);
         break;
       case KK_WINDOW_EXPOSE:
-        on_window_expose (ctx, (kk_window_event_expose_t *) & event);
+        on_window_expose (ctx, (kk_window_event_expose_t *) &event);
         break;
       case KK_WINDOW_INPUT:
-        on_window_input (ctx, (kk_window_event_input_t *) & event);
+        on_window_input (ctx, (kk_window_event_input_t *) &event);
         break;
       case KK_WINDOW_RESIZE:
-        on_window_resize (ctx, (kk_window_event_resize_t *) & event);
+        on_window_resize (ctx, (kk_window_event_resize_t *) &event);
         break;
       case KK_WINDOW_CLOSE:
         kk_event_loop_exit (loop);

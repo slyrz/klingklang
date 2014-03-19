@@ -11,7 +11,7 @@ kk_progressbar_init (kk_progressbar_t **progressbar)
 {
   kk_progressbar_t *result;
 
-  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_progressbar_t), progressbar_draw) != 0)
+  if (kk_widget_init ((kk_widget_t **) &result, sizeof (kk_progressbar_t), progressbar_draw) != 0)
     goto error;
 
   *progressbar = result;
@@ -34,7 +34,7 @@ kk_progressbar_free (kk_progressbar_t *progressbar)
 int
 kk_progressbar_set_value (kk_progressbar_t *progressbar, double value)
 {
-  if ((value < 0.0) | (value > 1.0))
+  if ((value < 0.0) || (value > 1.0))
     return -1;
 
   /* Check if value changed a bit, otherwise ignore */

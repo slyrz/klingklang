@@ -72,7 +72,7 @@ path_append (char *dst, const char *src, size_t len, int append_pathsep)
 
   if (append_pathsep) {
     if (out < len) {
-      if ((out == 0) | ((out > 0) && (dst[out - 1] != '/')))
+      if ((out == 0) || ((out > 0) && (dst[out - 1] != '/')))
         dst[out++] = '/';
     }
     else
@@ -188,10 +188,8 @@ library_dir_load (kk_library_dir_t *dir)
       break;
 
     /* Ignore "." and ".." */
-    if (ent->d_name[0] == '.') {
-      if ((ent->d_name[1] == '\0') || ((ent->d_name[1] == '.') & (ent->d_name[2] == '\0')))
+    if ((strcmp (ent->d_name, ".") && strcmp (ent->d_name, "..")) == 0)
         continue;
-    }
 
     if (ent->d_type == DT_DIR) {
       kk_library_dir_t *next;

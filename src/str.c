@@ -45,7 +45,7 @@
 #ifdef HAVE_CTYPE_H
 #  include <ctype.h>
 #else
-#  define isdigit(c) (((c) >= '0') & ((c) <= '9'))
+#  define isdigit(c) (((c) >= '0') && ((c) <= '9'))
 #endif
 
 /**

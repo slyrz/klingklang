@@ -279,7 +279,6 @@ kk_window_init (kk_window_t **win, int width, int height)
 
   result->width = width;
   result->height = height;
-
   *win = result;
   return 0;
 error:
@@ -367,11 +366,6 @@ kk_window_show (kk_window_t *win)
     | XCB_EVENT_MASK_EXPOSURE
     | XCB_EVENT_MASK_PROPERTY_CHANGE
     | XCB_EVENT_MASK_STRUCTURE_NOTIFY;
-
-  if ((win->width < 0) | (win->width > (int) UINT16_MAX) | (win->height < 0) | (win->height > (int) UINT16_MAX)) {
-    kk_log (KK_LOG_WARNING, "Unsupported window size encounterd.");
-    return -1;
-  }
 
   win->window = xcb_generate_id (win->connection);
   xcb_create_window (win->connection,

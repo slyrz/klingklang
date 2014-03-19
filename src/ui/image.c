@@ -328,7 +328,7 @@ kk_image_blur (kk_image_t *img, double intensity)
   else
     colors = calloc ((size_t) img->height, sizeof (uint32_t));
 
-  if ((pixels == NULL) | (colors == NULL))
+  if ((pixels == NULL) || (colors == NULL))
     goto error;
 
   i = 0;

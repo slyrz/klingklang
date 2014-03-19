@@ -358,7 +358,7 @@ kk_window_init (kk_window_t ** win, int width, int height)
 {
   kk_window_t *result;
 
-  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_window_t), NULL) != 0)
+  if (kk_widget_init ((kk_widget_t **) &result, sizeof (kk_window_t), NULL) != 0)
     goto error;
 
   if (kk_event_queue_init (&result->events) != 0)

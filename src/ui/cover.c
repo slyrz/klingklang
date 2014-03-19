@@ -11,7 +11,7 @@ kk_cover_init (kk_cover_t **cover)
 {
   kk_cover_t *result;
 
-  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_cover_t), cover_draw) != 0)
+  if (kk_widget_init ((kk_widget_t **) &result, sizeof (kk_cover_t), cover_draw) != 0)
     goto error;
 
   result->darkness = 0.333;
@@ -152,7 +152,7 @@ cover_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   kk_cover_t *cover = (kk_cover_t *) widget;
 
-  if ((cover->foreground == NULL) | (cover->background == NULL))
+  if ((cover->foreground == NULL) || (cover->background == NULL))
     return;
 
   if (widget->resized)
