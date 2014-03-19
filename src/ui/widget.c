@@ -22,8 +22,8 @@ kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
     goto error;
 
   result->draw = draw;
-  result->resized = 1;
   result->redraw = 1;
+  result->resized = 1;
   *widget = result;
   return 0;
 error:
@@ -81,7 +81,8 @@ kk_widget_invalidate (kk_widget_t *widget)
 int
 kk_widget_set_position (kk_widget_t *widget, int x, int y)
 {
-  widget->resized = (widget->x != x) || (widget->y != y);
+  if ((widget->x != x) || (widget->y != y))
+    widget->resized = 1;
   widget->x = x;
   widget->y = y;
   return 0;
@@ -90,7 +91,8 @@ kk_widget_set_position (kk_widget_t *widget, int x, int y)
 int
 kk_widget_set_size (kk_widget_t *widget, int width, int height)
 {
-  widget->resized = (widget->width != width) || (widget->height != height);
+  if ((widget->width != width) || (widget->height != height))
+    widget->resized = 1;
   widget->width = width;
   widget->height = height;
   return 0;
