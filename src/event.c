@@ -80,7 +80,7 @@ kk_event_queue_get_write_fd (kk_event_queue_t *queue)
 static kk_event_loop_t *main_loop = NULL;
 
 static void
-_kk_event_loop_signal (int signo)
+event_loop_signal (int signo)
 {
   /**
    * If there's no event loop active, terminate process by calling exit().
@@ -97,13 +97,13 @@ _kk_event_loop_signal (int signo)
 }
 
 static int
-_kk_event_loop_init_sigaction (void)
+event_loop_init_sigaction (void)
 {
   struct sigaction act;
 
   sigemptyset (&act.sa_mask);
   act.sa_sigaction = NULL;
-  act.sa_handler = _kk_event_loop_signal;
+  act.sa_handler = event_loop_signal;
   act.sa_flags = 0;
 
   /**
@@ -116,6 +116,7 @@ _kk_event_loop_init_sigaction (void)
     return -1;
   return 0;
 }
+
 int
 kk_event_loop_init (kk_event_loop_t ** loop, size_t cap)
 {
@@ -129,7 +130,7 @@ kk_event_loop_init (kk_event_loop_t ** loop, size_t cap)
    * receiving the signals SIGTERM or SIGINT. This function may fail. We don't
    * really rely on the signal handler, it's just nice to have.
    */
-  if (_kk_event_loop_init_sigaction () != 0)
+  if (event_loop_init_sigaction () != 0)
     kk_log (KK_LOG_WARNING, "Could not register signal handlers.");
 
   result = calloc (1, sizeof (kk_event_loop_t) + cap * sizeof (kk_event_handler_t));
@@ -187,7 +188,7 @@ kk_event_loop_add (kk_event_loop_t *loop, int fd, kk_event_func_f func, void *ar
  * was fixed in glibc 2.16.
  */
 static inline int
-_kk_event_loop_dispatch (kk_event_loop_t *loop)
+event_loop_dispatch (kk_event_loop_t *loop)
 {
   kk_event_handler_t *handler;
   struct timeval tv;
@@ -227,7 +228,7 @@ kk_event_loop_run (kk_event_loop_t *loop)
   loop->running = 1;
   loop->exit = 0;
   for (;;) {
-    r = _kk_event_loop_dispatch (loop);
+    r = event_loop_dispatch (loop);
     if (r < 0)
       break;
   }

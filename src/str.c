@@ -56,7 +56,7 @@
  *
  * A Python code to generate those constants might look like
  *
- * >>> columns = [ shuffle([0] *128 + [1] * 128) for i in range(32) ]
+ * >>> columns = [ shuffle([0] * 128 + [1] * 128) for i in range(32) ]
  * ... for i in range(256):
  * ...   value = 0
  * ...   for j, column in enumerate(columns):
@@ -169,7 +169,7 @@ bloom_mask (uint32_t val)
 }
 
 static int
-_kk_str_search_add (kk_str_search_t *search, const char *pattern)
+str_search_add (kk_str_search_t *search, const char *pattern)
 {
   kk_str_pattern_t *pat;
 
@@ -228,14 +228,14 @@ kk_str_search_init (kk_str_search_t **search, const char *pattern, const char *d
   result->len = 0;
 
   if (delim == NULL) {
-    if (_kk_str_search_add (result, pattern) != 0)
+    if (str_search_add (result, pattern) != 0)
       goto error;
   }
   else {
     tok = strtok_r (dup, delim, &ptr);
     while (tok != NULL) {
       if (*tok) {
-        if (_kk_str_search_add (result, tok) != 0)
+        if (str_search_add (result, tok) != 0)
           goto error;
       }
       tok = strtok_r (NULL, delim, &ptr);
@@ -278,13 +278,13 @@ kk_str_search_free (kk_str_search_t *search)
 }
 
 static inline int
-_kk_str_pattern_is_match (kk_str_pattern_t *pattern, const char *haystack, uint32_t h)
+str_pattern_is_match (kk_str_pattern_t *pattern, const char *haystack, uint32_t h)
 {
   return (pattern->h == h) && (strncasecmp (haystack, (const char *) pattern->s, pattern->l) == 0);
 }
 
 static inline int
-_kk_str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match_t *match, int return_on_first_match)
+str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match_t *match, int return_on_first_match)
 {
   uint64_t m;
   uint32_t h;
@@ -308,7 +308,7 @@ _kk_str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match
      */
     if ((search->bloom & m) == m) {
       for (i = 0; i < search->len; i++)
-        if (_kk_str_pattern_is_match (search->pattern + i, haystack, h)) {
+        if (str_pattern_is_match (search->pattern + i, haystack, h)) {
           *match |= m;
           if ((return_on_first_match) || ((search->bloom & *match) == search->bloom))
             return 1;
@@ -327,13 +327,13 @@ _kk_str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match
 int
 kk_str_search_find_any (kk_str_search_t *search, const char *haystack, kk_str_match_t *match)
 {
-  return _kk_str_search_find (search, haystack, match, 1);
+  return str_search_find (search, haystack, match, 1);
 }
 
 int
 kk_str_search_find_all (kk_str_search_t *search, const char *haystack, kk_str_match_t *match)
 {
-  return _kk_str_search_find (search, haystack, match, 0);
+  return str_search_find (search, haystack, match, 0);
 }
 
 int

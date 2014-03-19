@@ -35,7 +35,7 @@ struct kk_window_s {
 };
 
 static xcb_atom_t
-_kk_window_get_atom (kk_window_t *win, const char *name)
+window_get_atom (kk_window_t *win, const char *name)
 {
   xcb_intern_atom_cookie_t cookie;
   xcb_intern_atom_reply_t *reply;
@@ -63,7 +63,7 @@ _kk_window_get_atom (kk_window_t *win, const char *name)
 }
 
 static int
-_kk_window_get_property (kk_window_t *win, xcb_atom_t property, char **dst)
+window_get_property (kk_window_t *win, xcb_atom_t property, char **dst)
 {
   xcb_get_property_cookie_t cookie;
   xcb_get_property_reply_t *reply = NULL;
@@ -111,7 +111,7 @@ error:
 }
 
 static int
-_kk_window_get_xid_str (kk_window_t *win, char *dst, size_t n)
+window_get_xid_str (kk_window_t *win, char *dst, size_t n)
 {
   int ret;
 
@@ -125,7 +125,7 @@ _kk_window_get_xid_str (kk_window_t *win, char *dst, size_t n)
 }
 
 static xcb_visualtype_t *
-_kk_window_get_visual_type (kk_window_t *win)
+window_get_visual_type (kk_window_t *win)
 {
   xcb_visualtype_t *visual_type;
   xcb_depth_iterator_t depth_iter;
@@ -146,13 +146,13 @@ _kk_window_get_visual_type (kk_window_t *win)
 }
 
 static void
-_kk_window_handle_configure_notify_event (kk_window_t *win, xcb_configure_notify_event_t *event)
+window_handle_configure_notify_event (kk_window_t *win, xcb_configure_notify_event_t *event)
 {
   kk_window_event_resize (win->events, event->width, event->height);
 }
 
 static void
-_kk_window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
+window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
 {
   (void) event;
 
@@ -161,7 +161,7 @@ _kk_window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
 }
 
 static void
-_kk_window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
+window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
 {
   int key = 0;
   int mod = 0;
@@ -178,14 +178,14 @@ _kk_window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *even
 }
 
 static void
-_kk_window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_event_t *event)
+window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_event_t *event)
 {
   static char *value;
 
   if (event->atom != win->input)
     return;
 
-  if (_kk_window_get_property (win, event->atom, &value) != 0) {
+  if (window_get_property (win, event->atom, &value) != 0) {
     kk_log (KK_LOG_ERROR, "Failed to retrieve input property value.");
     return;
   }
@@ -199,7 +199,7 @@ _kk_window_handle_property_notify_event (kk_window_t *win, xcb_property_notify_e
 }
 
 static void
-_kk_window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_event_t *event)
+window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_event_t *event)
 {
   /**
    * TODO: find a way to refresh keyboard mapping or completely switch back to
@@ -211,7 +211,7 @@ _kk_window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_eve
 }
 
 static void *
-_kk_window_event_handler (kk_window_t *win)
+window_event_handler (kk_window_t *win)
 {
   xcb_generic_event_t *event;
 
@@ -219,19 +219,19 @@ _kk_window_event_handler (kk_window_t *win)
   while ((event = xcb_wait_for_event (win->connection))) {
     switch (XCB_EVENT_RESPONSE_TYPE (event)) {
       case XCB_CONFIGURE_NOTIFY:
-        _kk_window_handle_configure_notify_event (win, (xcb_configure_notify_event_t *) event);
+        window_handle_configure_notify_event (win, (xcb_configure_notify_event_t *) event);
         break;
       case XCB_EXPOSE:
-        _kk_window_handle_expose_event (win, (xcb_expose_event_t *) event);
+        window_handle_expose_event (win, (xcb_expose_event_t *) event);
         break;
       case XCB_KEY_PRESS:
-        _kk_window_handle_key_press_event (win, (xcb_key_press_event_t *) event);
+        window_handle_key_press_event (win, (xcb_key_press_event_t *) event);
         break;
       case XCB_MAPPING_NOTIFY:
-        _kk_window_handle_mapping_notify_event (win, (xcb_mapping_notify_event_t *) event);
+        window_handle_mapping_notify_event (win, (xcb_mapping_notify_event_t *) event);
         break;
       case XCB_PROPERTY_NOTIFY:
-        _kk_window_handle_property_notify_event (win, (xcb_property_notify_event_t *) event);
+        window_handle_property_notify_event (win, (xcb_property_notify_event_t *) event);
         break;
       case XCB_CLIENT_MESSAGE:
         kk_window_event_close (win->events);
@@ -274,7 +274,7 @@ kk_window_init (kk_window_t **win, int width, int height)
   if (result->screen == NULL)
     goto error;
 
-  if (pthread_create (&result->thread, 0, (void *(*)(void *)) _kk_window_event_handler, result) != 0)
+  if (pthread_create (&result->thread, 0, (void *(*)(void *)) window_event_handler, result) != 0)
     goto error;
 
   result->width = width;
@@ -313,7 +313,7 @@ kk_window_free (kk_window_t *win)
     xcb_destroy_window (win->connection, win->window);
 
   /**
-   * Disconnectionecting causes a memory leak if the connectionection had an error,
+   * Disconnecting causes a memory leak if the connectionection had an error,
    * but there's nothing we can do about it. The function xcb_disconnect doesn't
    * do anything if the has_error flag of the xcb_connectionection_t struct is true.
    * However, we can't set this field to false since xcb.h exports xcb_connectionection_t
@@ -393,18 +393,18 @@ kk_window_show (kk_window_t *win)
    * event when the window get's closed. This allows us to shut down
    * the xcb session gracefully.
    */
-  xcb_atom_t del = _kk_window_get_atom (win, "WM_DELETE_WINDOW");
-  xcb_atom_t prt = _kk_window_get_atom (win, "WM_PROTOCOLS");
+  xcb_atom_t del = window_get_atom (win, "WM_DELETE_WINDOW");
+  xcb_atom_t prt = window_get_atom (win, "WM_PROTOCOLS");
 
   if ((del != XCB_NONE) && (prt != XCB_NONE))
     xcb_set_wm_protocols (win->connection, win->window, prt, 1, &del);
 
-  win->input = _kk_window_get_atom (win, KK_WINDOW_INPUT_PROP);
+  win->input = window_get_atom (win, KK_WINDOW_INPUT_PROP);
 
   xcb_map_window (win->connection, win->window);
   xcb_flush (win->connection);
 
-  visual_type = _kk_window_get_visual_type (win);
+  visual_type = window_get_visual_type (win);
   if (visual_type == NULL)
     return -1;
 
@@ -440,7 +440,7 @@ kk_window_get_input (kk_window_t *win)
   static char args_param[] = "-c";
   static char args_code[] = "val=`cat /dev/null | dmenu`; xprop -id $0 -f " KK_WINDOW_INPUT_PROP " 8s -set " KK_WINDOW_INPUT_PROP " \"$val\"";
 
-  if (_kk_window_get_xid_str (win, xid, 32) != 0)
+  if (window_get_xid_str (win, xid, 32) != 0)
     return -1;
 
   char *const *args = (char *const[]) {

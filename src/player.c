@@ -145,7 +145,7 @@ kk_player_free (kk_player_t *player)
 }
 
 static int
-_kk_player_start (kk_player_t *player)
+player_start (kk_player_t *player)
 {
   static kk_format_t format;
 
@@ -232,7 +232,7 @@ kk_player_start (kk_player_t *player)
 
   pthread_mutex_lock (&player->mutex);
   while (kk_player_queue_is_filled (player->queue)) {
-    ret = _kk_player_start (player);
+    ret = player_start (player);
     if (ret == 0)
       break;
   }

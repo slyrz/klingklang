@@ -3,15 +3,15 @@
 
 #ifdef HAVE_QSORT_R
 #  ifdef HAVE_QSORT_R_GNU
-static int _kk_list_compare (const void *a, const void *b, void *arg);
+static int list_compare (const void *a, const void *b, void *arg);
 #  else
-static int _kk_list_compare (void *arg, const void *a, const void *b);
+static int list_compare (void *arg, const void *a, const void *b);
 #  endif
 #else
-static int _kk_list_compare (const void *a, const void *b);
+static int list_compare (const void *a, const void *b);
 #endif
 
-static int _kk_list_enlarge (kk_list_t *list);
+static int list_enlarge (kk_list_t *list);
 
 #ifndef HAVE_QSORT_R
 #include <pthread.h>
@@ -23,12 +23,12 @@ static void *arg = NULL;
 static int
 #ifdef HAVE_QSORT_R
 #  ifdef HAVE_QSORT_R_GNU
-_kk_list_compare (const void *a, const void *b, void *arg)
+list_compare (const void *a, const void *b, void *arg)
 #  else
-_kk_list_compare (void *arg, const void *a, const void *b)
+list_compare (void *arg, const void *a, const void *b)
 #  endif
 #else
-_kk_list_compare (const void *a, const void *b)
+list_compare (const void *a, const void *b)
 #endif
 {
   /**
@@ -44,7 +44,7 @@ _kk_list_compare (const void *a, const void *b)
 }
 
 static int
-_kk_list_enlarge (kk_list_t *list)
+list_enlarge (kk_list_t *list)
 {
   const size_t cap = kk_get_next_pow2 (list->cap);
 
@@ -115,7 +115,7 @@ int
 kk_list_append (kk_list_t *list, void *item)
 {
   if (list->len >= list->cap) {
-    if (_kk_list_enlarge (list) != 0)
+    if (list_enlarge (list) != 0)
       return -1;
   }
   list->items[list->len++] = item;
@@ -130,14 +130,14 @@ kk_list_sort (kk_list_t *list, kk_list_cmp_f cmp)
 
 #ifdef HAVE_QSORT_R
 #  ifdef HAVE_QSORT_R_GNU
-  qsort_r (list->items, list->len, sizeof (void *), _kk_list_compare, cmp);
+  qsort_r (list->items, list->len, sizeof (void *), list_compare, cmp);
 #  else
-  qsort_r (list->items, list->len, sizeof (void *), cmp, _kk_list_compare);
+  qsort_r (list->items, list->len, sizeof (void *), cmp, list_compare);
 #  endif
 #else
   pthread_mutex_lock (&mutex);
   arg = cmp;
-  qsort (list->items, list->len, sizeof (void *), _kk_list_compare);
+  qsort (list->items, list->len, sizeof (void *), list_compare);
   arg = NULL;
   pthread_mutex_unlock (&mutex);
 #endif

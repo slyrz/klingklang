@@ -2,7 +2,7 @@
 #include <klingklang/util.h>
 
 static size_t
-_kk_frame_get_planes (kk_frame_t *frame)
+frame_get_planes (kk_frame_t *frame)
 {
   if (frame->planes < KK_FRAME_MAX_PLANES)
     return frame->planes;
@@ -11,11 +11,11 @@ _kk_frame_get_planes (kk_frame_t *frame)
 }
 
 static void
-_kk_frame_free_planes (kk_frame_t *frame)
+frame_free_planes (kk_frame_t *frame)
 {
   size_t i;
 
-  for (i = 0; i < _kk_frame_get_planes (frame); i++)
+  for (i = 0; i < frame_get_planes (frame); i++)
     free (frame->data[i]);
 
   for (i = 0; i < KK_FRAME_MAX_PLANES; i++)
@@ -46,13 +46,13 @@ kk_frame_free (kk_frame_t *frame)
 {
   if (frame == NULL)
     return 0;
-  _kk_frame_free_planes (frame);
+  frame_free_planes (frame);
   free (frame);
   return 0;
 }
 
 static int
-_kk_frame_realloc (kk_frame_t *frame, size_t planes, size_t size)
+frame_realloc (kk_frame_t *frame, size_t planes, size_t size)
 {
   size_t i;
 
@@ -66,7 +66,7 @@ _kk_frame_realloc (kk_frame_t *frame, size_t planes, size_t size)
     return -1;
   }
 
-  _kk_frame_free_planes (frame);
+  frame_free_planes (frame);
 
   for (i = 0; i < planes; i++) {
     frame->data[i] = calloc (size / planes, sizeof (uint8_t));
@@ -78,12 +78,12 @@ _kk_frame_realloc (kk_frame_t *frame, size_t planes, size_t size)
   frame->size = size;
   return 0;
 error:
-  _kk_frame_free_planes (frame);
+  frame_free_planes (frame);
   return -1;
 }
 
 static inline void
-_kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, size_t byte)
+frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, size_t byte)
 {
   register uint8_t *restrict ilp = dst->data[0];
   register uint8_t *restrict pla = src->data[0];
@@ -105,7 +105,7 @@ int
 kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, kk_format_t *fmt)
 {
   if ((src->size > dst->size) | (dst->planes != 1))
-    if (_kk_frame_realloc (dst, 1, src->size) != 0)
+    if (frame_realloc (dst, 1, src->size) != 0)
       return -1;
 
   if (fmt->channels == KK_CHANNELS_1) {
@@ -114,19 +114,19 @@ kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, kk_form
   else {
     switch (fmt->bits) {
       case KK_BITS_8:
-        _kk_frame_interleave (dst, src, 1);
+        frame_interleave (dst, src, 1);
         break;
       case KK_BITS_16:
-        _kk_frame_interleave (dst, src, 2);
+        frame_interleave (dst, src, 2);
         break;
       case KK_BITS_24:
-        _kk_frame_interleave (dst, src, 3);
+        frame_interleave (dst, src, 3);
         break;
       case KK_BITS_32:
-        _kk_frame_interleave (dst, src, 4);
+        frame_interleave (dst, src, 4);
         break;
       case KK_BITS_64:
-        _kk_frame_interleave (dst, src, 8);
+        frame_interleave (dst, src, 8);
         break;
     }
   }

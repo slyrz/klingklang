@@ -4,14 +4,14 @@
 
 #include <math.h>
 
-static void _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx);
+static void cover_draw (kk_widget_t *widget, cairo_t *ctx);
 
 int
 kk_cover_init (kk_cover_t **cover)
 {
   kk_cover_t *result;
 
-  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_cover_t), _kk_cover_draw) != 0)
+  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_cover_t), cover_draw) != 0)
     goto error;
 
   result->darkness = 0.333;
@@ -125,7 +125,7 @@ cairo_rounded_rectangle (cairo_t *cr, double x, double y, double width, double h
 }
 
 static void
-_kk_cover_resize (kk_cover_t *cover)
+cover_resize (kk_cover_t *cover)
 {
   const double margin = 40.0;
   const double cx = cover->x + (cover->width / 2);
@@ -148,7 +148,7 @@ _kk_cover_resize (kk_cover_t *cover)
 }
 
 static void
-_kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
+cover_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   kk_cover_t *cover = (kk_cover_t *) widget;
 
@@ -156,7 +156,7 @@ _kk_cover_draw (kk_widget_t *widget, cairo_t *ctx)
     return;
 
   if (widget->resized)
-    _kk_cover_resize (cover);
+    cover_resize (cover);
 
   /* Draw blurred background image */
   cairo_save (ctx);

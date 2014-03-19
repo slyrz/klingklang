@@ -38,7 +38,7 @@ static const char *log_level_str[] = {
 };
 
 static inline void
-_kk_vlogf (int level, const char *fmt, va_list args)
+vlogf (int level, const char *fmt, va_list args)
 {
   static pid_t pid = 0;
   static char info[64] = { '\0' };
@@ -71,7 +71,7 @@ kk_log (int level, const char *fmt, ...)
   va_list args;
 
   va_start (args, fmt);
-  _kk_vlogf (level, fmt, args);
+  vlogf (level, fmt, args);
   va_end (args);
 }
 
@@ -81,7 +81,7 @@ kk_err (int status, const char *fmt, ...)
   va_list args;
 
   va_start (args, fmt);
-  _kk_vlogf (KK_LOG_ERROR, fmt, args);
+  vlogf (KK_LOG_ERROR, fmt, args);
   va_end (args);
   exit (status);
 }

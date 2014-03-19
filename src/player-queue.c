@@ -1,7 +1,7 @@
 #include <klingklang/player-queue.h>
 
 static void
-_kk_player_queue_free_items (kk_player_queue_t *queue)
+player_queue_free_items (kk_player_queue_t *queue)
 {
   kk_player_item_t *item;
   kk_player_item_t *next;
@@ -41,7 +41,7 @@ kk_player_queue_free (kk_player_queue_t *queue)
     return 0;
 
   if (queue->fst)
-    _kk_player_queue_free_items (queue);
+    player_queue_free_items (queue);
 
   pthread_mutex_destroy (&queue->mutex);
   free (queue);
@@ -69,7 +69,7 @@ int
 kk_player_queue_clear (kk_player_queue_t *queue)
 {
   pthread_mutex_lock (&queue->mutex);
-  _kk_player_queue_free_items (queue);
+  player_queue_free_items (queue);
   queue->fst = NULL;
   queue->lst = NULL;
   queue->cur = NULL;

@@ -259,7 +259,7 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 };
 
 static void *
-_kk_window_event_handler (kk_window_t * win)
+window_event_handler (kk_window_t * win)
 {
   win->alive = 1;
 
@@ -278,7 +278,7 @@ _kk_window_event_handler (kk_window_t * win)
 }
 
 static int
-_kk_window_init_egl (kk_window_t * win)
+window_init_egl (kk_window_t * win)
 {
   EGLint conf_attr[] = {
     EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -336,7 +336,7 @@ _kk_window_init_egl (kk_window_t * win)
 }
 
 static int
-_kk_window_init_cairo (kk_window_t * win)
+window_init_cairo (kk_window_t * win)
 {
   win->cairo.device = cairo_egl_device_create (win->egl.dpy, win->egl.ctx);
   if (cairo_device_status (win->cairo.device) != CAIRO_STATUS_SUCCESS) {
@@ -395,7 +395,7 @@ kk_window_init (kk_window_t ** win, int width, int height)
     goto error;
   }
 
-  if (pthread_create (&result->thread, 0, (void *(*)(void *)) _kk_window_event_handler, result) != 0)
+  if (pthread_create (&result->thread, 0, (void *(*)(void *)) window_event_handler, result) != 0)
     goto error;
 
   result->width = width;
@@ -508,12 +508,12 @@ kk_window_show (kk_window_t * win)
   wl_shell_surface_add_listener (win->shell_surface, &shell_surface_listener, win);
   wl_shell_surface_set_toplevel (win->shell_surface);
 
-  if (_kk_window_init_egl (win) != 0) {
+  if (window_init_egl (win) != 0) {
     kk_log (KK_LOG_WARNING, "Initializing EGL failed.");
     return -1;
   }
 
-  if (_kk_window_init_cairo (win)  != 0 ) {
+  if (window_init_cairo (win)  != 0 ) {
     kk_log (KK_LOG_WARNING, "Initializing cairo failed.");
     return -1;
   }
