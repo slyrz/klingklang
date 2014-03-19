@@ -54,7 +54,6 @@ kk_device_pulseaudio_init (kk_device_t *dev_base)
 
   if (kk_frame_init (&dev_impl->buffer) != 0)
     return -1;
-
   return 0;
 }
 
@@ -65,7 +64,6 @@ kk_device_pulseaudio_free (kk_device_t *dev_base)
 
   if (dev_impl->handle)
     pa_simple_free(dev_impl->handle);
-
   kk_frame_free (dev_impl->buffer);
   return 0;
 }
@@ -77,7 +75,6 @@ kk_device_pulseaudio_drop (kk_device_t *dev_base)
 
   if (dev_impl->handle)
     pa_simple_drain (dev_impl->handle, NULL);
-
   return 0;
 }
 
@@ -144,7 +141,6 @@ kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format)
   dev_impl->handle = pa_simple_new (server, client, PA_STREAM_PLAYBACK, resource, stream, &spec, NULL, NULL, &status);
   if ((dev_impl->handle == NULL) || (status != 0))
     goto error;
-
   return 0;
 error:
   dev_impl->handle = NULL;
@@ -167,7 +163,6 @@ kk_device_pulseaudio_write (kk_device_t *dev_base, kk_frame_t *frame)
       error = pa_simple_write (dev_impl->handle, (void *) frame->data[0], frame->size, NULL);
       break;
   }
-
   if (error)
     return -1;
   return 0;

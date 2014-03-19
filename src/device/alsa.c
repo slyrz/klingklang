@@ -85,7 +85,6 @@ get_pcm_format (kk_format_t *fmt)
   idx = fmt->bits;
   idx = (idx << 2) | fmt->type;
   idx = (idx << 1) | fmt->byte_order;
-
   return sample_format[idx];
 }
 
@@ -105,7 +104,6 @@ kk_device_alsa_init (kk_device_t *dev_base)
 
   if (snd_pcm_open (&dev_impl->handle, "default", SND_PCM_STREAM_PLAYBACK, 0) < 0)
     return -1;
-
   return 0;
 }
 
@@ -120,7 +118,6 @@ kk_device_alsa_free (kk_device_t *dev_base)
 
   /* ... because valgrind errors */
   snd_config_update_free_global ();
-
   return 0;
 }
 

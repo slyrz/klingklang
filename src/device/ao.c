@@ -37,7 +37,6 @@ kk_device_ao_init (kk_device_t *dev_base)
   ao_initialize ();
   dev_impl->device = NULL;
   dev_impl->driver = ao_default_driver_id ();
-
   if (kk_frame_init (&dev_impl->buffer) != 0)
     return -1;
   return 0;
@@ -105,28 +104,21 @@ kk_device_ao_write (kk_device_t *dev_base, kk_frame_t *frame)
   int error = 0;
 
   if (dev_impl->device) {
-    uint32_t size;
-
     if (frame->size > UINT32_MAX)
       error = 1;
     else {
-      size = (uint32_t) frame->size;
-
-      /* ao_play returns 0 on error */
       switch (dev_base->format->layout) {
         case KK_LAYOUT_PLANAR:
           if ((error = kk_frame_interleave (dev_impl->buffer, frame, dev_base->format)) == 0)
-            error = (ao_play (dev_impl->device, (void *) dev_impl->buffer->data[0], size) == 0);
+            error = (ao_play (dev_impl->device, (void *) dev_impl->buffer->data[0], (uint32_t) frame->size) == 0);
           break;
         case KK_LAYOUT_INTERLEAVED:
-          error = (ao_play (dev_impl->device, (void *) frame->data[0], size) == 0);
+          error = (ao_play (dev_impl->device, (void *) frame->data[0], (uint32_t) frame->size) == 0);
           break;
       }
     }
   }
-
   if (error)
     return -1;
-
   return 0;
 }

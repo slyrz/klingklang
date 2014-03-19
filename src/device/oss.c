@@ -133,7 +133,6 @@ kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
     kk_log (KK_LOG_WARNING, "Device doesn't %d Hz sample rate.", req);
     goto error;
   }
-
   return 0;
 error:
   return -1;
@@ -158,7 +157,6 @@ kk_device_oss_write (kk_device_t * dev_base, kk_frame_t * frame)
 
   if (write (dev_impl->fd, data, frame->size) <= 0)
     goto error;
-
   return 0;
 error:
   kk_log (KK_LOG_WARNING, "Writing frame failed.");
