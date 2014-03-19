@@ -176,7 +176,9 @@ kk_device_alsa_write (kk_device_t *dev_base, kk_frame_t *frame)
       break;
   }
 
-  if ((nframes < 0) && (snd_pcm_recover (dev_impl->handle, (int) nframes, 1) < 0))
-    return -1;
+  if (nframes < 0) {
+    if (snd_pcm_recover (dev_impl->handle, (int) nframes, 1) < 0)
+      return -1;
+  }
   return 0;
 }
