@@ -2,17 +2,17 @@
 #include <klingklang/util.h>
 
 static void
-kk_player_worker_cleanup (kk_player_t *player)
+player_worker_cleanup (kk_player_t *player)
 {
   pthread_mutex_unlock (&player->mutex);
 }
 
 static void *
-kk_player_worker (kk_player_t *player)
+player_worker (kk_player_t *player)
 {
   const int max_retries = 3;
 
-  pthread_cleanup_push ((void (*)(void *)) kk_player_worker_cleanup, player);
+  pthread_cleanup_push ((void (*)(void *)) player_worker_cleanup, player);
 
   for (;;) {
     int d = 0;
@@ -108,7 +108,7 @@ kk_player_init (kk_player_t **player)
   if (pthread_mutex_init (&result->mutex, NULL) != 0)
     goto error;
 
-  if (pthread_create (&result->thread, 0, (void *(*)(void *)) kk_player_worker, result) != 0)
+  if (pthread_create (&result->thread, 0, (void *(*)(void *)) player_worker, result) != 0)
     goto error;
 
   *player = result;

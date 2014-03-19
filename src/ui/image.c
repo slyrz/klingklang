@@ -64,7 +64,7 @@
 extern int libav_initialized;
 
 static int
-kk_image_surface_load_nativ (kk_image_t *img, const char *path)
+image_surface_load_nativ (kk_image_t *img, const char *path)
 {
   cairo_status_t status;
 
@@ -79,7 +79,7 @@ kk_image_surface_load_nativ (kk_image_t *img, const char *path)
 }
 
 static int
-kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext *cctx, int stream_index)
+image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext *cctx, int stream_index)
 {
   const int iw = cctx->width;
   const int ih = cctx->height;
@@ -196,7 +196,7 @@ error:
 }
 
 static int
-kk_image_surface_load_other (kk_image_t *img, const char *path)
+image_surface_load_other (kk_image_t *img, const char *path)
 {
   AVCodecContext *cctx = NULL;
   AVFormatContext *fctx = NULL;
@@ -243,7 +243,7 @@ kk_image_surface_load_other (kk_image_t *img, const char *path)
   if (avcodec_open2 (cctx, avcodec_find_decoder (cctx->codec_id), NULL) < 0)
     goto error;
 
-  if (kk_image_surface_decode (img, fctx, cctx, (int) sidx) != 0)
+  if (image_surface_decode (img, fctx, cctx, (int) sidx) != 0)
     goto error;
 
   avcodec_close (cctx);
@@ -259,14 +259,14 @@ error:
 }
 
 static int
-kk_image_surface_load (kk_image_t *img, const char *path)
+image_surface_load (kk_image_t *img, const char *path)
 {
   char *ext = strrchr (path, '.');      /* No need to error check */
 
   if (strcmp (ext, ".png") == 0)
-    return kk_image_surface_load_nativ (img, path);
+    return image_surface_load_nativ (img, path);
   else
-    return kk_image_surface_load_other (img, path);
+    return image_surface_load_other (img, path);
 }
 
 int
@@ -278,7 +278,7 @@ kk_image_init (kk_image_t **img, const char *path)
   if (result == NULL)
     goto error;
 
-  if (kk_image_surface_load (result, path) != 0)
+  if (image_surface_load (result, path) != 0)
     goto error;
 
   result->width = cairo_image_surface_get_width (result->surface);

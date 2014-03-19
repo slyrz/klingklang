@@ -62,7 +62,7 @@ is_audio_file (const char *filename)
 }
 
 static size_t
-kk_append_path (char *dst, const char *src, size_t len, int append_pathsep)
+path_append (char *dst, const char *src, size_t len, int append_pathsep)
 {
   size_t out;
 
@@ -87,10 +87,10 @@ kk_library_dir_get_path (kk_library_dir_t *dir, char *dst, size_t len)
   size_t out;
 
   *dst = '\0';
-  out = kk_append_path (dst, dir->root, len, 1);
+  out = path_append (dst, dir->root, len, 1);
   if (out >= len)
     return out;
-  return kk_append_path (dst, dir->base, len, 1);
+  return path_append (dst, dir->base, len, 1);
 }
 
 size_t
@@ -102,7 +102,7 @@ kk_library_file_get_path (kk_library_file_t *file, char *dst, size_t len)
   out = kk_library_dir_get_path (file->parent, dst, len);
   if (out >= len)
     return out + NAME_MAX;
-  return kk_append_path (dst, file->name, len, 0);
+  return path_append (dst, file->name, len, 0);
 }
 
 size_t
@@ -133,7 +133,7 @@ error:
 }
 
 static int
-kk_library_dir_load (kk_library_dir_t *dir)
+library_dir_load (kk_library_dir_t *dir)
 {
   size_t len_root;
   size_t len_base;
@@ -173,8 +173,8 @@ kk_library_dir_load (kk_library_dir_t *dir)
   if (pfst == NULL)
     goto error;
 
-  len_root = kk_append_path (pfst, dir->root, len, 1);
-  len_base = kk_append_path (pfst, dir->base, len, 1);
+  len_root = path_append (pfst, dir->root, len, 1);
+  len_base = path_append (pfst, dir->base, len, 1);
   plst = pfst + len_base;
 
   dirst = opendir (pfst);
@@ -212,7 +212,7 @@ kk_library_dir_load (kk_library_dir_t *dir)
 
       next->root = dir->root;
       next->base = strdup (pfst + len_root);
-      kk_library_dir_load (next);
+      library_dir_load (next);
 
       /**
        * If the result has no children, it doesn't contain any regular files
@@ -278,7 +278,7 @@ kk_library_init (kk_library_t **lib, const char *path)
   if ((result->root == NULL) || (result->base == NULL))
     goto error;
 
-  if (kk_library_dir_load (result) != 0)
+  if (library_dir_load (result) != 0)
     goto error;
 
   if (result->children == NULL) {
@@ -339,7 +339,7 @@ kk_library_free (kk_library_t *lib)
 }
 
 static int
-kk_library_file_cmp (const void *a, const void *b)
+library_file_cmp (const void *a, const void *b)
 {
   const kk_library_file_t *fa = (const kk_library_file_t *) a;
   const kk_library_file_t *fb = (const kk_library_file_t *) b;
@@ -391,7 +391,7 @@ kk_library_find (kk_library_t *lib, const char *keyword, kk_list_t **sel)
 
   kk_str_search_free (search);
   if (result->len)
-    kk_list_sort (result, kk_library_file_cmp);
+    kk_list_sort (result, library_file_cmp);
   *sel = result;
   return 0;
 error:
