@@ -163,7 +163,6 @@ kk_device_alsa_write (kk_device_t *dev_base, kk_frame_t *frame)
 
   sframes = snd_pcm_bytes_to_frames (dev_impl->handle, (ssize_t) frame->size);
   uframes = (snd_pcm_uframes_t) sframes;
-
   if (sframes <= 0)
     return -1;
 
