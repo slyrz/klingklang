@@ -31,9 +31,11 @@ struct kk_input_s {
   AVFormatContext *fctx;
   AVFrame *frame;
   int32_t sidx;
-  float time_end;
-  float time_cur;
-  float time_div;
+  struct {
+    float end;
+    float cur;
+    float div;
+  } time;
 };
 
 int
@@ -73,18 +75,13 @@ kk_input_init (kk_input_t **inp, const char *filename)
    * We want to use these as unsigned values, therefore check if we can
    * convert them without changing signedness
    */
-  if (result->cctx->channels < 0)
+  if ((result->cctx->channels < 0) || (result->cctx->sample_rate < 0))
     goto error;
 
-  if (result->cctx->sample_rate < 0)
-    goto error;
-
-  result->time_end = (float) result->fctx->duration / AV_TIME_BASE;
-  result->time_cur = 0.0f;
-
-  result->time_div = (float) result->fctx->streams[result->sidx]->time_base.den \
+  result->time.cur = 0.0f;
+  result->time.end = (float) result->fctx->duration / AV_TIME_BASE;
+  result->time.div = (float) result->fctx->streams[result->sidx]->time_base.den \
                    * (float) result->fctx->streams[result->sidx]->time_base.num;
-
   *inp = result;
   return 0;
 error:
@@ -112,19 +109,23 @@ kk_input_free (kk_input_t *inp)
   return 0;
 }
 
+static int64_t
+input_timestamp (kk_input_t *inp, float perc)
+{
+  return (int64_t) ((perc * inp->time.end) * inp->time.div);
+}
+
 int
 kk_input_seek (kk_input_t *inp, float perc)
 {
-  int64_t timestamp = 0ll;
-  int flags = 0;
+  int error;
 
-  if (perc < (inp->time_cur / inp->time_end)) {
-     flags = AVSEEK_FLAG_BACKWARD;
-  }
+  if (perc >= (inp->time.cur / inp->time.end))
+    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp(inp, perc), 0);
+  else
+    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp(inp, perc), AVSEEK_FLAG_BACKWARD);
 
-  timestamp = (int64_t) ((perc * inp->time_end) * inp->time_div);
-
-  if (av_seek_frame (inp->fctx, inp->sidx, timestamp, flags) < 0)
+  if (error < 0)
     return -1;
   return 0;
 }
@@ -180,10 +181,10 @@ kk_input_get_frame (kk_input_t *inp, kk_frame_t *frame)
   else
     frame->samples = 0u;
 
-  inp->time_cur = (float) packet.pts / inp->time_div;
+  inp->time.cur = (float) packet.pts / inp->time.div;
 
   /* We store a percentage value in frame, not the time in seconds */
-  frame->prog = inp->time_cur / inp->time_end;
+  frame->prog = inp->time.cur / inp->time.end;
 
   if (av_sample_fmt_is_planar (inp->cctx->sample_fmt)) {
     frame->planes = (size_t) inp->cctx->channels;
@@ -288,6 +289,5 @@ kk_input_get_format (kk_input_t *inp, kk_format_t *format)
 
   format->byte_order = KK_BYTE_ORDER_NATIVE;
   format->sample_rate = (unsigned int) inp->cctx->sample_rate;
-
   return 0;
 }
