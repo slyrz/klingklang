@@ -132,9 +132,9 @@ cover_resize (kk_cover_t *cover)
   const double cy = cover->y + (cover->height / 2);
 
   if (cover->width < cover->height)
-    cover->radius = (cover->width + margin) / 2.0;
+    cover->radius = (cover->width - margin) / 2.0;
   else
-    cover->radius = (cover->height + margin) / 2.0;
+    cover->radius = (cover->height - margin) / 2.0;
 
   if (cover->contour)
     cairo_pattern_destroy (cover->contour);
