@@ -108,7 +108,7 @@ kk_player_init (kk_player_t **player)
   if (pthread_mutex_init (&result->mutex, NULL) != 0)
     goto error;
 
-  if (pthread_create (&result->thread, 0, (void *(*)(void *)) player_worker, result) != 0)
+  if (pthread_create (&result->thread, NULL, (void *(*)(void *)) player_worker, result) != 0)
     goto error;
 
   *player = result;
