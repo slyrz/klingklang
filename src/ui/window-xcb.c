@@ -335,7 +335,7 @@ extern int window_get_input (kk_event_queue_t *queue);
 int
 kk_window_get_input (kk_window_t *win)
 {
-  return window_get_input (win->events);
+  return kk_window_input_request (win->events);
 }
 
 int

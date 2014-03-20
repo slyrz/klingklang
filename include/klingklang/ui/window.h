@@ -5,6 +5,7 @@
 #include <klingklang/ui/widget.h>
 #include <klingklang/ui/keys.h>
 #include <klingklang/ui/window-events.h>
+#include <klingklang/ui/window-input.h>
 
 #include <pthread.h>
 
