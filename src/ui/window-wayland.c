@@ -96,7 +96,8 @@ keyboard_handle_modifiers (void *data, struct wl_keyboard *keyboard,
 
   kk_window_t *window = (kk_window_t *) data;
 
-  kk_keys_set_modifiers (window->keys, mods_depressed, mods_latched, mods_locked, group);
+  kk_keys_set_modifiers (window->keys, mods_depressed, mods_latched,
+      mods_locked, group);
   return;
 }
 
@@ -282,6 +283,8 @@ window_init_egl (kk_window_t *win)
     EGL_NONE
   };
 
+  EGLBoolean status;
+
   int major;
   int minor;
   int count;
@@ -293,12 +296,15 @@ window_init_egl (kk_window_t *win)
     return -1;
   }
 
-  if (eglBindAPI (EGL_OPENGL_API) == EGL_FALSE) {
+  status = eglBindAPI (EGL_OPENGL_API);
+  if (status == EGL_FALSE) {
     kk_log (KK_LOG_WARNING, "eglBindAPI failed.");
     return -1;
   }
 
-  if (eglChooseConfig (win->egl.dpy, conf_attr, &win->egl.conf, 1, &count) == EGL_FALSE) {
+  status =
+      eglChooseConfig (win->egl.dpy, conf_attr, &win->egl.conf, 1, &count);
+  if (status == EGL_FALSE) {
     kk_log (KK_LOG_WARNING, "eglChooseConfig failed.");
     return -1;
   }
@@ -308,19 +314,25 @@ window_init_egl (kk_window_t *win)
     return -1;
   }
 
-  win->egl.ctx = eglCreateContext (win->egl.dpy, win->egl.conf, EGL_NO_CONTEXT, NULL);
+  win->egl.ctx =
+      eglCreateContext (win->egl.dpy, win->egl.conf, EGL_NO_CONTEXT, NULL);
   if (win->egl.ctx == EGL_NO_CONTEXT) {
     kk_log (KK_LOG_WARNING, "eglCreateContext failed.");
     return -1;
   }
 
-  win->egl.surface = eglCreateWindowSurface (win->egl.dpy, win->egl.conf, (EGLNativeWindowType) win->window, NULL);
+  win->egl.surface =
+      eglCreateWindowSurface (win->egl.dpy, win->egl.conf,
+          (EGLNativeWindowType) win->window, NULL);
   if (win->egl.surface == EGL_NO_SURFACE) {
     kk_log (KK_LOG_WARNING, "eglCreateWindowSurface failed.");
     return -1;
   }
 
-  if (eglMakeCurrent (win->egl.dpy, win->egl.surface, win->egl.surface, win->egl.ctx) == EGL_FALSE) {
+  status =
+      eglMakeCurrent (win->egl.dpy, win->egl.surface, win->egl.surface,
+          win->egl.ctx);
+  if (status == EGL_FALSE) {
     kk_log (KK_LOG_WARNING, "eglMakeCurrent failed.");
     return -1;
   }
@@ -340,7 +352,7 @@ window_init_cairo (kk_window_t *win)
   win->cairo.surface = cairo_gl_surface_create_for_egl (win->cairo.device,
       win->egl.surface, win->width, win->height);
   if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS) {
-    kk_log (KK_LOG_WARNING, "Creating cairo gl surface from egl device failed.");
+    kk_log (KK_LOG_WARNING, "Creating cairo surface from egl device failed.");
     return -1;
   }
   return 0;
@@ -388,7 +400,8 @@ kk_window_init (kk_window_t **win, int width, int height)
     goto error;
   }
 
-  if (pthread_create (&result->thread, 0, (void *(*)(void *)) window_event_handler, result) != 0)
+  if (pthread_create (&result->thread, 0,
+          (void *(*)(void *)) window_event_handler, result) != 0)
     goto error;
 
   result->width = width;
@@ -433,7 +446,8 @@ kk_window_free (kk_window_t *win)
     eglDestroyContext (win->egl.dpy, win->egl.ctx);
 
   if (win->egl.dpy) {
-    eglMakeCurrent (win->egl.dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglMakeCurrent (win->egl.dpy,
+        EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglReleaseThread ();
     eglTerminate (win->egl.dpy);
   }
@@ -498,7 +512,8 @@ kk_window_show (kk_window_t *win)
     return -1;
   }
 
-  wl_shell_surface_add_listener (win->shell_surface, &shell_surface_listener, win);
+  wl_shell_surface_add_listener (win->shell_surface,
+      &shell_surface_listener, win);
   wl_shell_surface_set_toplevel (win->shell_surface);
 
   if (window_init_egl (win) != 0) {
@@ -511,7 +526,8 @@ kk_window_show (kk_window_t *win)
     return -1;
   }
 
-  shell_surface_handle_configure (win, win->shell_surface, 0, win->width, win->height);
+  shell_surface_handle_configure (win, win->shell_surface, 0,
+      win->width, win->height);
 
   kk_widget_invalidate ((kk_widget_t *) win);
   kk_window_draw (win);

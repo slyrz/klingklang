@@ -98,7 +98,7 @@ kk_device_portaudio_setup (kk_device_t *dev_base, kk_format_t *format)
 
   if (format->type == KK_TYPE_FLOAT) {
     if (format->bits != KK_BITS_32) {
-      kk_log (KK_LOG_WARNING, "Only 32 bit float sample format supported by PortAudio.");
+      kk_log (KK_LOG_WARNING, "Only 32 bit float sample format supported.");
       return -1;
     }
     sample_format = paFloat32;
@@ -119,7 +119,7 @@ kk_device_portaudio_setup (kk_device_t *dev_base, kk_format_t *format)
         sample_format = paInt32;
         break;
       case KK_BITS_64:
-        kk_log (KK_LOG_WARNING, "64 bits sample format not supported by PortAudio.");
+        kk_log (KK_LOG_WARNING, "64 bits sample format not supported.");
         return -1;
     }
   }
@@ -138,16 +138,19 @@ kk_device_portaudio_setup (kk_device_t *dev_base, kk_format_t *format)
   params.suggestedLatency = Pa_GetDeviceInfo (params.device)->defaultLowOutputLatency;
   params.hostApiSpecificStreamInfo = NULL;
 
-  status = Pa_OpenStream (&dev_impl->handle, NULL, &params, (double) format->sample_rate, paFramesPerBufferUnspecified, paClipOff, NULL, NULL);
+  status =
+      Pa_OpenStream (&dev_impl->handle, NULL, &params,
+          (double) format->sample_rate, paFramesPerBufferUnspecified,
+          paClipOff, NULL, NULL);
+
   if (status != paNoError) {
-    kk_log (KK_LOG_ERROR, "Pa_OpenStream failed. Maybe an unsupported PCM format.");
+    kk_log (KK_LOG_ERROR, "Pa_OpenStream failed. Unsupported PCM format?");
     return -1;
   }
 
   status = Pa_StartStream (dev_impl->handle);
   if (status != paNoError) {
     kk_log (KK_LOG_WARNING, "Starting stream failed.");
-
     status = Pa_CloseStream (dev_impl->handle);
     if (status != paNoError) {
       kk_log (KK_LOG_WARNING, "Emergency close failed too.");
@@ -169,10 +172,12 @@ kk_device_portaudio_write (kk_device_t *dev_base, kk_frame_t *frame)
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      status = Pa_WriteStream (dev_impl->handle, (const void *) frame->data, frame->samples);
+      status =
+          Pa_WriteStream (dev_impl->handle, (const void *) frame->data, frame->samples);
       break;
     case KK_LAYOUT_INTERLEAVED:
-      status = Pa_WriteStream (dev_impl->handle, (const void *) frame->data[0], frame->samples);
+      status =
+          Pa_WriteStream (dev_impl->handle, (const void *) frame->data[0], frame->samples);
       break;
   }
 

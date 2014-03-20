@@ -55,13 +55,15 @@ frame_realloc (kk_frame_t *frame, size_t planes, size_t size)
   size_t i;
 
   if ((size % planes) != 0) {
-    kk_log (KK_LOG_WARNING, "Frame size of %zu bytes not divisible into %zu planes.",
+    kk_log (KK_LOG_WARNING,
+        "Frame size of %zu bytes not divisible into %zu planes.",
         size, planes);
     return -1;
   }
 
   if (planes > KK_FRAME_MAX_PLANES) {
-    kk_log (KK_LOG_WARNING, "%zu planes requested, but only %d planes supported.",
+    kk_log (KK_LOG_WARNING,
+        "%zu planes requested, but only %d planes supported.",
         planes, KK_FRAME_MAX_PLANES);
     return -1;
   }
@@ -83,7 +85,8 @@ error:
 }
 
 static inline void
-frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, size_t byte)
+frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src,
+    size_t byte)
 {
   register uint8_t *restrict ilp = dst->data[0];
   register uint8_t *restrict pla = src->data[0];
@@ -101,7 +104,8 @@ frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, size_t byt
 }
 
 int
-kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src, kk_format_t *fmt)
+kk_frame_interleave (kk_frame_t *restrict dst, kk_frame_t *restrict src,
+    kk_format_t *fmt)
 {
   if ((src->size > dst->size) || (dst->planes != 1)) {
     if (frame_realloc (dst, 1, src->size) != 0)

@@ -19,11 +19,22 @@
   (sizeof (x) / sizeof ((x)[0]))
 
 static const char *extensions[] = {
-  "aac", "flac", "m4a", "mp3", "ogg", "wav", "wma"
+  "aac",
+  "flac",
+  "m4a",
+  "mp3",
+  "ogg",
+  "wav",
+  "wma"
 };
 
 static const char *cover_filenames[] = {
-  "albumart.jpg", "albumart.jpeg", "albumart.png", "cover.jpg", "cover.jpeg", "cover.png"
+  "albumart.jpg",
+  "albumart.jpeg",
+  "albumart.png",
+  "cover.jpg",
+  "cover.jpeg",
+  "cover.png"
 };
 
 static int
@@ -37,7 +48,7 @@ is_regular_file (const char *path)
 }
 
 /**
- * Crude check if a file is an audio file. It's based on the filename only (!!!)
+ * Crude check if a file is an audio file. It's based on the filename only
  * and just based checks for known file extension. Since we use it on
  * readdir results only, we already know filename belongs to a regular file.
  */
@@ -75,8 +86,12 @@ path_append (char *dst, const char *src, size_t len, int append_pathsep)
       if ((out == 0) || ((out > 0) && (dst[out - 1] != '/')))
         dst[out++] = '/';
     }
-    else
-      out++;                    /* dst too small. We need a buffer of src + 1x '/' + 1x '\0' */
+    else {
+      /**
+       * dst too small. We need a buffer of src + 1x '/' + 1x '\0'
+       */
+      out++;
+    }
   }
   return out;
 }
@@ -106,7 +121,8 @@ kk_library_file_get_path (kk_library_file_t *file, char *dst, size_t len)
 }
 
 size_t
-kk_library_file_get_album_cover_path (kk_library_file_t *file, char *dst, size_t len)
+kk_library_file_get_album_cover_path (kk_library_file_t *file, char *dst,
+    size_t len)
 {
   size_t i;
   size_t out;

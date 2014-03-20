@@ -138,7 +138,8 @@ kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format)
   spec.channels = (uint8_t) channels;
   spec.rate = format->sample_rate;
 
-  dev_impl->handle = pa_simple_new (server, client, PA_STREAM_PLAYBACK, resource, stream, &spec, NULL, NULL, &status);
+  dev_impl->handle = pa_simple_new (server, client, PA_STREAM_PLAYBACK,
+      resource, stream, &spec, NULL, NULL, &status);
   if ((dev_impl->handle == NULL) || (status != 0))
     goto error;
   return 0;
@@ -156,11 +157,15 @@ kk_device_pulseaudio_write (kk_device_t *dev_base, kk_frame_t *frame)
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      if ((error = kk_frame_interleave (dev_impl->buffer, frame, dev_base->format)) == 0)
-        error = pa_simple_write (dev_impl->handle, (void *) dev_impl->buffer->data[0], frame->size, NULL);
+      error = kk_frame_interleave (dev_impl->buffer, frame, dev_base->format);
+      if (error)
+        break;
+      error = pa_simple_write (dev_impl->handle,
+          (void *) dev_impl->buffer->data[0], frame->size, NULL);
       break;
     case KK_LAYOUT_INTERLEAVED:
-      error = pa_simple_write (dev_impl->handle, (void *) frame->data[0], frame->size, NULL);
+      error = pa_simple_write (dev_impl->handle,
+          (void *) frame->data[0], frame->size, NULL);
       break;
   }
   if (error)

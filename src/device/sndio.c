@@ -36,7 +36,6 @@ kk_device_sndio_init (kk_device_t *dev_base)
   dev_impl->device = sio_open (SIO_DEVANY, SIO_PLAY, 0);
   if (dev_impl->device == NULL)
     return -1;
-
   if (kk_frame_init (&dev_impl->buffer) != 0)
     return -1;
   return 0;
@@ -95,20 +94,20 @@ int
 kk_device_sndio_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
   kk_device_sndio_t *dev_impl = (kk_device_sndio_t *) dev_base;
-  int error = 0;
+
+  void *data = NULL;
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      if ((error = kk_frame_interleave (dev_impl->buffer, frame, dev_base->format)) == 0)
-        error = (sio_write (dev_impl->device, (void *) dev_impl->buffer->data[0], frame->size) == 0);
+      if (kk_frame_interleave (dev_impl->buffer, frame, dev_base->format) != 0)
+        return -1;
+      data = (void *) dev_impl->buffer->data[0];
       break;
     case KK_LAYOUT_INTERLEAVED:
-      error = (sio_write (dev_impl->device, (void *) frame->data[0], frame->size) == 0);
+      data = (void *) frame->data[0];
       break;
   }
-
-  if (error)
+  if (sio_write (dev_impl->device, data, frame->size) == 0)
     return -1;
-
   return 0;
 }

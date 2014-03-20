@@ -51,7 +51,9 @@ player_worker (kk_player_t *player)
       for (e = 0; e < max_retries; e++) {
         if ((s = kk_input_get_frame (player->input, &frame)) >= 0)
           break;
-        kk_log (KK_LOG_WARNING, "Error while reading and decoding frame (%d). Trying to recover.", s);
+        kk_log (KK_LOG_WARNING,
+            "Error while reading and decoding frame (%d). " \
+            "Trying to recover.", s);
       }
       pthread_setcancelstate (PTHREAD_CANCEL_ENABLE, NULL);
       pthread_mutex_unlock (&player->mutex);
@@ -65,7 +67,8 @@ player_worker (kk_player_t *player)
        * frame.
        */
       if (e == max_retries) {
-        kk_log (KK_LOG_WARNING, "Reading frame failed %d times. I'm giving up now.", max_retries);
+        kk_log (KK_LOG_WARNING,
+            "Reading frame failed %d times. I'm giving up now.", max_retries);
         break;
       }
 
@@ -108,7 +111,8 @@ kk_player_init (kk_player_t **player)
   if (pthread_mutex_init (&result->mutex, NULL) != 0)
     goto error;
 
-  if (pthread_create (&result->thread, NULL, (void *(*)(void *)) player_worker, result) != 0)
+  if (pthread_create (&result->thread, NULL,
+        (void *(*)(void *)) player_worker, result) != 0)
     goto error;
 
   *player = result;
@@ -190,15 +194,20 @@ player_start (kk_player_t *player)
 
   memset (&format, 0, sizeof (kk_format_t));
   if (kk_input_get_format (player->input, &format)) {
-    kk_log (KK_LOG_WARNING, "Could not determine format of file '%s'...", path);
+    kk_log (KK_LOG_WARNING, "Could not determine format of file '%s'...",
+        path);
     goto error;
   }
 
   kk_log (KK_LOG_DEBUG, "Detected audio format of '%s':", item.file->name);
-  kk_log (KK_LOG_ATTACH, "Byte Order: %s", kk_format_get_byte_order_str (&format));
-  kk_log (KK_LOG_ATTACH, "Channels: %d", kk_format_get_channels (&format));
-  kk_log (KK_LOG_ATTACH, "Datatype: %d bits %s", kk_format_get_bits (&format), kk_format_get_type_str (&format));
-  kk_log (KK_LOG_ATTACH, "Layout: %s", kk_format_get_layout_str (&format));
+  kk_log (KK_LOG_ATTACH, "Byte Order: %s",
+      kk_format_get_byte_order_str (&format));
+  kk_log (KK_LOG_ATTACH, "Channels: %d",
+      kk_format_get_channels (&format));
+  kk_log (KK_LOG_ATTACH, "Datatype: %d bits %s",
+      kk_format_get_bits (&format), kk_format_get_type_str (&format));
+  kk_log (KK_LOG_ATTACH, "Layout: %s",
+      kk_format_get_layout_str (&format));
 
   if (kk_device_setup (player->device, &format)) {
     kk_log (KK_LOG_WARNING, "Setting up device failed.");

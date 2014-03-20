@@ -58,14 +58,15 @@ window_get_atom (kk_window_t *win, const char *name)
 static xcb_visualtype_t *
 window_get_visual_type (kk_window_t *win)
 {
-  xcb_visualtype_t *visual_type;
   xcb_depth_iterator_t depth_iter;
+  xcb_visualtype_iterator_t visual_iter;
+  xcb_visualtype_t *visual_type;
 
   depth_iter = xcb_screen_allowed_depths_iterator (win->screen);
 
   visual_type = NULL;
   for (; depth_iter.rem; xcb_depth_next (&depth_iter)) {
-    xcb_visualtype_iterator_t visual_iter = xcb_depth_visuals_iterator (depth_iter.data);
+    visual_iter = xcb_depth_visuals_iterator (depth_iter.data);
     for (; visual_iter.rem; xcb_visualtype_next (&visual_iter)) {
       if (win->screen->root_visual == visual_iter.data->visual_id) {
         visual_type = visual_iter.data;
@@ -77,13 +78,13 @@ window_get_visual_type (kk_window_t *win)
 }
 
 static void
-window_handle_configure_notify_event (kk_window_t *win, xcb_configure_notify_event_t *event)
+window_configure_notify (kk_window_t *win, xcb_configure_notify_event_t *event)
 {
   kk_window_event_resize (win->events, event->width, event->height);
 }
 
 static void
-window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
+window_expose (kk_window_t *win, xcb_expose_event_t *event)
 {
   (void) event;
 
@@ -92,7 +93,7 @@ window_handle_expose_event (kk_window_t *win, xcb_expose_event_t *event)
 }
 
 static void
-window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
+window_key_press (kk_window_t *win, xcb_key_press_event_t *event)
 {
   int key = 0;
   int mod = 0;
@@ -109,7 +110,7 @@ window_handle_key_press_event (kk_window_t *win, xcb_key_press_event_t *event)
 }
 
 static void
-window_handle_mapping_notify_event (kk_window_t *win, xcb_mapping_notify_event_t *event)
+window_mapping_notify (kk_window_t *win, xcb_mapping_notify_event_t *event)
 {
   /**
    * TODO: find a way to refresh keyboard mapping or completely switch back to
@@ -129,19 +130,18 @@ window_event_handler (kk_window_t *win)
   while ((event = xcb_wait_for_event (win->connection))) {
     switch (XCB_EVENT_RESPONSE_TYPE (event)) {
       case XCB_CONFIGURE_NOTIFY:
-        window_handle_configure_notify_event (win, (xcb_configure_notify_event_t *) event);
+        window_configure_notify (win, (xcb_configure_notify_event_t *) event);
         break;
       case XCB_EXPOSE:
-        window_handle_expose_event (win, (xcb_expose_event_t *) event);
+        window_expose (win, (xcb_expose_event_t *) event);
         break;
       case XCB_KEY_PRESS:
-        window_handle_key_press_event (win, (xcb_key_press_event_t *) event);
+        window_key_press (win, (xcb_key_press_event_t *) event);
         break;
       case XCB_MAPPING_NOTIFY:
-        window_handle_mapping_notify_event (win, (xcb_mapping_notify_event_t *) event);
+        window_mapping_notify (win, (xcb_mapping_notify_event_t *) event);
         break;
       case XCB_CLIENT_MESSAGE:
-        kk_window_event_close (win->events);
         win->alive = 0;
         break;
       default:
@@ -151,10 +151,7 @@ window_event_handler (kk_window_t *win)
     if (!win->alive)
       break;
   }
-
-  if (win->alive)
-    kk_window_event_close (win->events);
-
+  kk_window_event_close (win->events);
   win->alive = 0;
   return NULL;
 }
@@ -162,6 +159,7 @@ window_event_handler (kk_window_t *win)
 int
 kk_window_init (kk_window_t **win, int width, int height)
 {
+  const xcb_setup_t *setup = NULL;
   kk_window_t *result;
 
   if (kk_widget_init ((kk_widget_t **) &result, sizeof (kk_window_t), NULL) != 0)
@@ -177,11 +175,16 @@ kk_window_init (kk_window_t **win, int width, int height)
   if (result->connection == NULL)
     goto error;
 
-  result->screen = xcb_setup_roots_iterator (xcb_get_setup (result->connection)).data;
+  setup = xcb_get_setup (result->connection);
+  if (setup == NULL)
+    goto error;
+
+  result->screen = xcb_setup_roots_iterator (setup).data;
   if (result->screen == NULL)
     goto error;
 
-  if (pthread_create (&result->thread, 0, (void *(*)(void *)) window_event_handler, result) != 0)
+  if (pthread_create (&result->thread, 0,
+        (void *(*)(void *)) window_event_handler, result) != 0)
     goto error;
 
   result->width = width;
@@ -219,11 +222,11 @@ kk_window_free (kk_window_t *win)
     xcb_destroy_window (win->connection, win->window);
 
   /**
-   * Disconnecting causes a memory leak if the connectionection had an error,
-   * but there's nothing we can do about it. The function xcb_disconnect doesn't
-   * do anything if the has_error flag of the xcb_connectionection_t struct is true.
-   * However, we can't set this field to false since xcb.h exports xcb_connectionection_t
-   * as opaque struct.
+   * Disconnecting causes a memory leak if the connection had an error,
+   * but there's nothing we can do about it. The function xcb_disconnect
+   * doesn't do anything if the has_error flag of the xcb_connection_t struct
+   * is true. However, we can't set this field to false since xcb.h exports
+   * xcb_connection_t as opaque struct.
    * And besides ruining our valgrind reports, it really doesn't affect us.
    */
   if (win->connection)
@@ -251,7 +254,8 @@ kk_window_set_title (kk_window_t *win, const char *title)
   if (len == KK_WINDOW_MAX_TITLE_LEN)
     kk_log (KK_LOG_WARNING, "Title exceeds maximum title length.");
 
-  xcb_change_property (win->connection, XCB_PROP_MODE_REPLACE, win->window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, (uint32_t) len, title);
+  xcb_change_property (win->connection, XCB_PROP_MODE_REPLACE, win->window,
+      XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, (uint32_t) len, title);
   xcb_flush (win->connection);
   return 0;
 }
@@ -307,7 +311,8 @@ kk_window_show (kk_window_t *win)
   if (visual_type == NULL)
     return -1;
 
-  win->cairo.surface = cairo_xcb_surface_create (win->connection, win->window, visual_type, win->width, win->height);
+  win->cairo.surface = cairo_xcb_surface_create (win->connection, win->window,
+      visual_type, win->width, win->height);
   if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS)
     return -1;
 

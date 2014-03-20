@@ -102,7 +102,11 @@ kk_device_alsa_init (kk_device_t *dev_base)
 {
   kk_device_alsa_t *dev_impl = (kk_device_alsa_t *) dev_base;
 
-  if (snd_pcm_open (&dev_impl->handle, "default", SND_PCM_STREAM_PLAYBACK, 0) < 0)
+  const char *name = "default";
+  const int mode = 0;
+  const snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
+
+  if (snd_pcm_open (&dev_impl->handle, name, stream, mode) < 0)
     return -1;
   return 0;
 }
@@ -144,7 +148,8 @@ kk_device_alsa_setup (kk_device_t *dev_base, kk_format_t *format)
   const unsigned int latency = 500000u;
   const int soft_resample = 1;
 
-  if (snd_pcm_set_params (dev_impl->handle, pcm_format, pcm_access, channels, rate, soft_resample, latency) < 0)
+  if (snd_pcm_set_params (dev_impl->handle, pcm_format, pcm_access, channels,
+          rate, soft_resample, latency) < 0)
     return -1;
   return 0;
 }
@@ -168,10 +173,12 @@ kk_device_alsa_write (kk_device_t *dev_base, kk_frame_t *frame)
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      nframes = snd_pcm_writen (dev_impl->handle, (void **) frame->data, uframes);
+      nframes =
+          snd_pcm_writen (dev_impl->handle, (void **) frame->data, uframes);
       break;
     case KK_LAYOUT_INTERLEAVED:
-      nframes = snd_pcm_writei (dev_impl->handle, (void *) frame->data[0], uframes);
+      nframes =
+          snd_pcm_writei (dev_impl->handle, (void *) frame->data[0], uframes);
       break;
   }
 

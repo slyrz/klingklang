@@ -17,7 +17,8 @@
  * libavcodec versions >= 55.28.1:
  * av_frame_alloc(), av_frame_unref() and av_frame_free() now can and should be
  * used instead of avcodec_alloc_frame(), avcodec_get_frame_defaults() and
- * avcodec_free_frame() respectively. The latter three functions are deprecated.
+ * avcodec_free_frame() respectively. The latter three functions are
+ * deprecated.
  */
 #if !((LIBAVCODEC_VERSION_MAJOR >= 55) && (LIBAVCODEC_VERSION_MINOR >= 28))
 #  define av_frame_alloc(x) avcodec_alloc_frame(x)
@@ -27,9 +28,11 @@
 int libav_initialized = 0;
 
 struct kk_input_s {
+  AVCodec *codec;
   AVCodecContext *cctx;
   AVFormatContext *fctx;
   AVFrame *frame;
+  AVStream *stream;
   int32_t sidx;
   struct {
     float end;
@@ -59,16 +62,20 @@ kk_input_init (kk_input_t **inp, const char *filename)
   if (avformat_find_stream_info (result->fctx, NULL) < 0)
     goto error;
 
-  for (result->sidx = 0; result->sidx < (int) result->fctx->nb_streams; result->sidx++) {
-    if (result->fctx->streams[result->sidx]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
+  int32_t i;
+  for (i = 0; i < (int) result->fctx->nb_streams; i++) {
+    result->stream = result->fctx->streams[i];
+    if (result->stream->codec->codec_type == AVMEDIA_TYPE_AUDIO)
       break;
   }
 
-  if (result->sidx == (int) result->fctx->nb_streams)
+  if (i == (int) result->fctx->nb_streams)
     goto error;
 
-  result->cctx = result->fctx->streams[result->sidx]->codec;
-  if (avcodec_open2 (result->cctx, avcodec_find_decoder (result->cctx->codec_id), NULL) < 0)
+  result->sidx = i;
+  result->cctx = result->stream->codec;
+  result->codec = avcodec_find_decoder (result->cctx->codec_id);
+  if (avcodec_open2 (result->cctx, result->codec, NULL) < 0)
     goto error;
 
   /**
@@ -80,8 +87,8 @@ kk_input_init (kk_input_t **inp, const char *filename)
 
   result->time.cur = 0.0f;
   result->time.end = (float) result->fctx->duration / AV_TIME_BASE;
-  result->time.div = (float) result->fctx->streams[result->sidx]->time_base.den \
-                   * (float) result->fctx->streams[result->sidx]->time_base.num;
+  result->time.div = (float) result->stream->time_base.den \
+                   * (float) result->stream->time_base.num;
   *inp = result;
   return 0;
 error:
@@ -118,12 +125,13 @@ input_timestamp (kk_input_t *inp, float perc)
 int
 kk_input_seek (kk_input_t *inp, float perc)
 {
+  const int64_t ts = input_timestamp (inp, perc);
   int error;
 
   if (perc >= (inp->time.cur / inp->time.end))
-    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp (inp, perc), 0);
+    error = av_seek_frame (inp->fctx, inp->sidx, ts, 0);
   else
-    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp (inp, perc), AVSEEK_FLAG_BACKWARD);
+    error = av_seek_frame (inp->fctx, inp->sidx, ts, AVSEEK_FLAG_BACKWARD);
 
   if (error < 0)
     return -1;
@@ -169,7 +177,8 @@ kk_input_get_frame (kk_input_t *inp, kk_frame_t *frame)
   if (ret < 0)
     goto cleanup;
 
-  ret = av_samples_get_buffer_size (&ls, inp->cctx->channels, inp->frame->nb_samples, inp->cctx->sample_fmt, 1);
+  ret = av_samples_get_buffer_size (&ls, inp->cctx->channels,
+            inp->frame->nb_samples, inp->cctx->sample_fmt, 1);
   if (ret <= 0)
     goto cleanup;
 

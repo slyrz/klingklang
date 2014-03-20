@@ -159,7 +159,9 @@ buzhash_init (uint32_t *hash, const unsigned char *data, size_t len)
 static inline void
 buzhash_update (uint32_t *hash, const unsigned char *data, size_t len)
 {
-  *hash = rol32 (*hash, 1) ^ rol32 (buzhash_table[(size_t) (*data)], len) ^ buzhash_table[(size_t) (*(data + len))];
+  *hash = rol32 (*hash, 1)
+        ^ rol32 (buzhash_table[(size_t) (*data)], len)
+        ^ buzhash_table[(size_t) (*(data + len))];
 }
 
 static inline uint64_t
@@ -191,7 +193,8 @@ str_search_add (kk_str_search_t *search, const char *pattern)
 }
 
 int
-kk_str_search_init (kk_str_search_t **search, const char *pattern, const char *delim)
+kk_str_search_init (kk_str_search_t **search, const char *pattern,
+    const char *delim)
 {
   kk_str_search_t *result = NULL;
 
@@ -221,7 +224,8 @@ kk_str_search_init (kk_str_search_t **search, const char *pattern, const char *d
     }
   }
 
-  result = calloc (1, sizeof (kk_str_search_t) + cap *sizeof (kk_str_pattern_t));
+  result =
+      calloc (1, sizeof (kk_str_search_t) + cap * sizeof (kk_str_pattern_t));
   if (result == NULL)
     goto error;
   result->cap = cap;
@@ -278,13 +282,16 @@ kk_str_search_free (kk_str_search_t *search)
 }
 
 static inline int
-str_pattern_is_match (kk_str_pattern_t *pattern, const char *haystack, uint32_t h)
+str_pattern_is_match (kk_str_pattern_t *pattern, const char *haystack,
+    uint32_t h)
 {
-  return (pattern->h == h) && (strncasecmp (haystack, (const char *) pattern->s, pattern->l) == 0);
+  return (pattern->h == h)
+      && (strncasecmp (haystack, (const char *) pattern->s, pattern->l) == 0);
 }
 
 static inline int
-str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match_t *match, int return_on_first_match)
+str_search_find (kk_str_search_t *search, const char *haystack,
+    kk_str_match_t *match, int return_on_first_match)
 {
   uint64_t m;
   uint32_t h;
@@ -310,7 +317,9 @@ str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match_t *
       for (i = 0; i < search->len; i++)
         if (str_pattern_is_match (search->pattern + i, haystack, h)) {
           *match |= m;
-          if ((return_on_first_match) || ((search->bloom & *match) == search->bloom))
+          if (return_on_first_match)
+            return 1;
+          if ((search->bloom & *match) == search->bloom)
             return 1;
         }
     }
@@ -325,13 +334,15 @@ str_search_find (kk_str_search_t *search, const char *haystack, kk_str_match_t *
 }
 
 int
-kk_str_search_find_any (kk_str_search_t *search, const char *haystack, kk_str_match_t *match)
+kk_str_search_find_any (kk_str_search_t *search, const char *haystack,
+    kk_str_match_t *match)
 {
   return str_search_find (search, haystack, match, 1);
 }
 
 int
-kk_str_search_find_all (kk_str_search_t *search, const char *haystack, kk_str_match_t *match)
+kk_str_search_find_all (kk_str_search_t *search, const char *haystack,
+    kk_str_match_t *match)
 {
   return str_search_find (search, haystack, match, 0);
 }
