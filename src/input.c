@@ -41,6 +41,21 @@ struct kk_input_s {
   } time;
 };
 
+static int
+input_stream_detect (kk_input_t *inp)
+{
+  int32_t i;
+
+  for (i = 0; i < (int32_t) inp->fctx->nb_streams; i++) {
+    inp->stream = inp->fctx->streams[i];
+    if (inp->stream->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+      inp->sidx = i;
+      return 0;
+    }
+  }
+  return -1;
+}
+
 int
 kk_input_init (kk_input_t **inp, const char *filename)
 {
@@ -62,17 +77,9 @@ kk_input_init (kk_input_t **inp, const char *filename)
   if (avformat_find_stream_info (result->fctx, NULL) < 0)
     goto error;
 
-  int32_t i;
-  for (i = 0; i < (int) result->fctx->nb_streams; i++) {
-    result->stream = result->fctx->streams[i];
-    if (result->stream->codec->codec_type == AVMEDIA_TYPE_AUDIO)
-      break;
-  }
-
-  if (i == (int) result->fctx->nb_streams)
+  if (input_stream_detect (result) != 0)
     goto error;
 
-  result->sidx = i;
   result->cctx = result->stream->codec;
   result->codec = avcodec_find_decoder (result->cctx->codec_id);
   if (avcodec_open2 (result->cctx, result->codec, NULL) < 0)
@@ -89,6 +96,7 @@ kk_input_init (kk_input_t **inp, const char *filename)
   result->time.end = (float) result->fctx->duration / AV_TIME_BASE;
   result->time.div = (float) result->stream->time_base.den \
                    * (float) result->stream->time_base.num;
+
   *inp = result;
   return 0;
 error:
