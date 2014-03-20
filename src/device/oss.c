@@ -18,11 +18,11 @@ struct kk_device_oss_s {
   int fd;
 };
 
-int kk_device_oss_init (kk_device_t * dev_base);
-int kk_device_oss_free (kk_device_t * dev_base);
-int kk_device_oss_drop (kk_device_t * dev_base);
-int kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format);
-int kk_device_oss_write (kk_device_t * dev_base, kk_frame_t * frame);
+int kk_device_oss_init (kk_device_t *dev_base);
+int kk_device_oss_free (kk_device_t *dev_base);
+int kk_device_oss_drop (kk_device_t *dev_base);
+int kk_device_oss_setup (kk_device_t *dev_base, kk_format_t *format);
+int kk_device_oss_write (kk_device_t *dev_base, kk_frame_t *frame);
 
 const kk_device_backend_t kk_device_backend = {
   .size = sizeof (kk_device_oss_t),
@@ -44,7 +44,7 @@ device_ctrl (int fd, unsigned long req, int val)
 }
 
 int
-kk_device_oss_init (kk_device_t * dev_base)
+kk_device_oss_init (kk_device_t *dev_base)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
 
@@ -54,7 +54,7 @@ kk_device_oss_init (kk_device_t * dev_base)
 }
 
 int
-kk_device_oss_free (kk_device_t * dev_base)
+kk_device_oss_free (kk_device_t *dev_base)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
 
@@ -64,7 +64,7 @@ kk_device_oss_free (kk_device_t * dev_base)
 }
 
 int
-kk_device_oss_drop (kk_device_t * dev_base)
+kk_device_oss_drop (kk_device_t *dev_base)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
 
@@ -74,7 +74,7 @@ kk_device_oss_drop (kk_device_t * dev_base)
 }
 
 int
-kk_device_oss_setup (kk_device_t * dev_base, kk_format_t * format)
+kk_device_oss_setup (kk_device_t *dev_base, kk_format_t *format)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
   int req;
@@ -139,7 +139,7 @@ error:
 }
 
 int
-kk_device_oss_write (kk_device_t * dev_base, kk_frame_t * frame)
+kk_device_oss_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
   kk_device_oss_t *dev_impl = (kk_device_oss_t *) dev_base;
   void *data;

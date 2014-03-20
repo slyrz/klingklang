@@ -10,7 +10,7 @@ const struct xkb_rule_names rules = {
 };
 
 int
-kk_keys_init (kk_keys_t ** keys)
+kk_keys_init (kk_keys_t **keys)
 {
   kk_keys_t *result;
 
@@ -42,7 +42,7 @@ error:
 }
 
 int
-kk_keys_free (kk_keys_t * keys)
+kk_keys_free (kk_keys_t *keys)
 {
   if (keys == NULL)
     return 0;
@@ -60,13 +60,13 @@ kk_keys_free (kk_keys_t * keys)
 }
 
 int
-kk_keys_get_symbol (kk_keys_t * keys, uint32_t code)
+kk_keys_get_symbol (kk_keys_t *keys, uint32_t code)
 {
   return (int) xkb_state_key_get_one_sym (keys->state, code);
 }
 
 int
-kk_keys_get_modifiers (kk_keys_t * keys)
+kk_keys_get_modifiers (kk_keys_t *keys)
 {
   xkb_mod_mask_t mask;
   int result;

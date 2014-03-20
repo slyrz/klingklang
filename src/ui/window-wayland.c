@@ -252,7 +252,7 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 };
 
 static void *
-window_event_handler (kk_window_t * win)
+window_event_handler (kk_window_t *win)
 {
   win->alive = 1;
 
@@ -271,7 +271,7 @@ window_event_handler (kk_window_t * win)
 }
 
 static int
-window_init_egl (kk_window_t * win)
+window_init_egl (kk_window_t *win)
 {
   EGLint conf_attr[] = {
     EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -329,7 +329,7 @@ window_init_egl (kk_window_t * win)
 }
 
 static int
-window_init_cairo (kk_window_t * win)
+window_init_cairo (kk_window_t *win)
 {
   win->cairo.device = cairo_egl_device_create (win->egl.dpy, win->egl.ctx);
   if (cairo_device_status (win->cairo.device) != CAIRO_STATUS_SUCCESS) {
@@ -347,7 +347,7 @@ window_init_cairo (kk_window_t * win)
 }
 
 int
-kk_window_init (kk_window_t ** win, int width, int height)
+kk_window_init (kk_window_t **win, int width, int height)
 {
   kk_window_t *result;
 
@@ -402,7 +402,7 @@ error:
 }
 
 int
-kk_window_free (kk_window_t * win)
+kk_window_free (kk_window_t *win)
 {
   if (win == NULL)
     return 0;
@@ -460,7 +460,7 @@ kk_window_free (kk_window_t * win)
 }
 
 int
-kk_window_show (kk_window_t * win)
+kk_window_show (kk_window_t *win)
 {
   /**
    * Block and wait till we receive global compositor from registry. If we have
@@ -520,7 +520,7 @@ kk_window_show (kk_window_t * win)
 }
 
 int
-kk_window_draw (kk_window_t * win)
+kk_window_draw (kk_window_t *win)
 {
   cairo_t *ctx;
 
@@ -547,7 +547,7 @@ kk_window_get_input (kk_window_t *win)
 }
 
 int
-kk_window_set_title (kk_window_t * win, const char *title)
+kk_window_set_title (kk_window_t *win, const char *title)
 {
   if (win->shell_surface == NULL)
     return -1;
@@ -557,7 +557,7 @@ kk_window_set_title (kk_window_t * win, const char *title)
 }
 
 int
-kk_window_get_event_fd (kk_window_t * win)
+kk_window_get_event_fd (kk_window_t *win)
 {
   return kk_event_queue_get_read_fd (win->events);
 }
