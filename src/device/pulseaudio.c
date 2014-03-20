@@ -63,7 +63,7 @@ kk_device_pulseaudio_free (kk_device_t *dev_base)
   kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
 
   if (dev_impl->handle)
-    pa_simple_free(dev_impl->handle);
+    pa_simple_free (dev_impl->handle);
   kk_frame_free (dev_impl->buffer);
   return 0;
 }
@@ -98,7 +98,7 @@ kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format)
   };
 
   if (dev_impl->handle) {
-    pa_simple_free(dev_impl->handle);
+    pa_simple_free (dev_impl->handle);
     dev_impl->handle = NULL;
   }
 

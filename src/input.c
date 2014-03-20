@@ -121,9 +121,9 @@ kk_input_seek (kk_input_t *inp, float perc)
   int error;
 
   if (perc >= (inp->time.cur / inp->time.end))
-    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp(inp, perc), 0);
+    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp (inp, perc), 0);
   else
-    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp(inp, perc), AVSEEK_FLAG_BACKWARD);
+    error = av_seek_frame (inp->fctx, inp->sidx, input_timestamp (inp, perc), AVSEEK_FLAG_BACKWARD);
 
   if (error < 0)
     return -1;
