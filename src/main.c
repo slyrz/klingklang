@@ -321,8 +321,8 @@ main (int argc, char **argv)
   if (kk_event_loop_init (&context.loop, 3) != 0)
     kk_err (EXIT_FAILURE, "Could not initialize event loop.");
 
-  kk_widget_add_child ((kk_widget_t*)context.window, (kk_widget_t*) context.cover);
-  kk_widget_add_child ((kk_widget_t*)context.window, (kk_widget_t*) context.progressbar);
+  kk_widget_add_child ((kk_widget_t*) context.window, (kk_widget_t*) context.cover);
+  kk_widget_add_child ((kk_widget_t*) context.window, (kk_widget_t*) context.progressbar);
 
   /* Initialize size of the window, cover and progressbar widget. */
   context_set_window_size (&context, KK_WINDOW_WIDTH, KK_WINDOW_HEIGHT);
