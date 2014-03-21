@@ -9,14 +9,26 @@
 
 #include <pthread.h>
 
-#define kk_window_fields \
-  kk_widget_fields; \
-  kk_event_queue_t *events; \
-  kk_keys_t *keys; \
-  pthread_t thread; \
-  unsigned alive:1;
-
 typedef struct kk_window_s kk_window_t;
+typedef struct kk_window_backend_s kk_window_backend_t;
+
+struct kk_window_s {
+  kk_widget_fields;
+  kk_event_queue_t *events;
+  kk_keys_t *keys;
+
+  unsigned has_title:1;
+  unsigned is_alive:1;
+};
+
+struct kk_window_backend_s {
+  size_t size;
+  int (*init) (kk_window_t *win);
+  int (*free) (kk_window_t *win);
+  int (*show) (kk_window_t *win);
+  int (*draw) (kk_window_t *win);
+  int (*set_title) (kk_window_t *win, const char *title);
+};
 
 int kk_window_init (kk_window_t **win, int width, int height);
 int kk_window_free (kk_window_t *win);

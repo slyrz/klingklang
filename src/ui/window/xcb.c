@@ -16,8 +16,10 @@
 #define KK_WINDOW_MAX_TITLE_LEN         0x80u
 #define KK_WINDOW_MAX_ATOM_LEN          0x80u
 
-struct kk_window_s {
-  kk_window_fields;
+typedef struct kk_window_xcb_s kk_window_xcb_t;
+
+struct kk_window_xcb_s {
+  kk_window_t base;
   xcb_connection_t *connection;
   xcb_screen_t *screen;
   xcb_window_t window;
@@ -25,10 +27,27 @@ struct kk_window_s {
     cairo_surface_t *surface;
     cairo_t *context;
   } cairo;
+  pthread_t thread;
+  unsigned alive:1;
+};
+
+static int window_init (kk_window_t *);
+static int window_free (kk_window_t *);
+static int window_show (kk_window_t *);
+static int window_draw (kk_window_t *);
+static int window_set_title (kk_window_t *, const char *);
+
+const kk_window_backend_t kk_window_backend = {
+  .size = sizeof (kk_window_xcb_t),
+  .init = window_init,
+  .free = window_free,
+  .show = window_show,
+  .draw = window_draw,
+  .set_title = window_set_title
 };
 
 static xcb_atom_t
-window_get_atom (kk_window_t *win, const char *name)
+window_get_atom (kk_window_xcb_t *win, const char *name)
 {
   xcb_intern_atom_cookie_t cookie;
   xcb_intern_atom_reply_t *reply;
@@ -56,7 +75,7 @@ window_get_atom (kk_window_t *win, const char *name)
 }
 
 static xcb_visualtype_t *
-window_get_visual_type (kk_window_t *win)
+window_get_visual_type (kk_window_xcb_t *win)
 {
   xcb_depth_iterator_t depth_iter;
   xcb_visualtype_iterator_t visual_iter;
@@ -78,27 +97,27 @@ window_get_visual_type (kk_window_t *win)
 }
 
 static void
-window_configure_notify (kk_window_t *win, xcb_configure_notify_event_t *event)
+window_configure_notify (kk_window_xcb_t *win, xcb_configure_notify_event_t *event)
 {
-  kk_window_event_resize (win->events, event->width, event->height);
+  kk_window_event_resize (win->base.events, event->width, event->height);
 }
 
 static void
-window_expose (kk_window_t *win, xcb_expose_event_t *event)
+window_expose (kk_window_xcb_t *win, xcb_expose_event_t *event)
 {
   (void) event;
 
-  kk_widget_invalidate ((kk_widget_t*) win);
-  kk_window_event_expose (win->events, win->width, win->height);
+  kk_widget_invalidate ((kk_widget_t *) win);
+  kk_window_event_expose (win->base.events, win->base.width, win->base.height);
 }
 
 static void
-window_key_press (kk_window_t *win, xcb_key_press_event_t *event)
+window_key_press (kk_window_xcb_t *win, xcb_key_press_event_t *event)
 {
   int key = 0;
   int mod = 0;
 
-  key = kk_keys_get_symbol (win->keys, event->detail);
+  key = kk_keys_get_symbol (win->base.keys, event->detail);
 
   if (event->state & XCB_MOD_MASK_SHIFT)
     mod |= KK_MOD_SHIFT;
@@ -106,11 +125,11 @@ window_key_press (kk_window_t *win, xcb_key_press_event_t *event)
   if (event->state & XCB_MOD_MASK_CONTROL)
     mod |= KK_MOD_CONTROL;
 
-  kk_window_event_key_press (win->events, mod, key);
+  kk_window_event_key_press (win->base.events, mod, key);
 }
 
 static void
-window_mapping_notify (kk_window_t *win, xcb_mapping_notify_event_t *event)
+window_mapping_notify (kk_window_xcb_t *win, xcb_mapping_notify_event_t *event)
 {
   /**
    * TODO: find a way to refresh keyboard mapping or completely switch back to
@@ -122,7 +141,7 @@ window_mapping_notify (kk_window_t *win, xcb_mapping_notify_event_t *event)
 }
 
 static void *
-window_event_handler (kk_window_t *win)
+window_event_handler (kk_window_xcb_t *win)
 {
   xcb_generic_event_t *event;
 
@@ -151,57 +170,38 @@ window_event_handler (kk_window_t *win)
     if (!win->alive)
       break;
   }
-  kk_window_event_close (win->events);
+  kk_window_event_close (win->base.events);
   win->alive = 0;
   return NULL;
 }
 
-int
-kk_window_init (kk_window_t **win, int width, int height)
+static int
+window_init (kk_window_t *win_base)
 {
-  const xcb_setup_t *setup = NULL;
-  kk_window_t *result;
+  kk_window_xcb_t *win = (kk_window_xcb_t *) win_base;
 
-  if (kk_widget_init ((kk_widget_t **) &result, sizeof (kk_window_t), NULL) != 0)
-    goto error;
+  win->connection = xcb_connect (NULL, NULL);
+  if (win->connection == NULL)
+    return -1;
 
-  if (kk_event_queue_init (&result->events) != 0)
-    goto error;
-
-  if (kk_keys_init (&result->keys) != 0)
-    goto error;
-
-  result->connection = xcb_connect (NULL, NULL);
-  if (result->connection == NULL)
-    goto error;
-
-  setup = xcb_get_setup (result->connection);
+  const xcb_setup_t *setup = xcb_get_setup (win->connection);
   if (setup == NULL)
-    goto error;
+    return -1;
 
-  result->screen = xcb_setup_roots_iterator (setup).data;
-  if (result->screen == NULL)
-    goto error;
+  win->screen = xcb_setup_roots_iterator (setup).data;
+  if (win->screen == NULL)
+    return -1;
 
-  if (pthread_create (&result->thread, 0,
-        (void *(*)(void *)) window_event_handler, result) != 0)
-    goto error;
+  if (pthread_create (&win->thread, 0, (void *(*)(void *)) window_event_handler, win) != 0)
+    return -1;
 
-  result->width = width;
-  result->height = height;
-  *win = result;
   return 0;
-error:
-  kk_window_free (result);
-  *win = NULL;
-  return -1;
 }
 
-int
-kk_window_free (kk_window_t *win)
+static int
+window_free (kk_window_t *win_base)
 {
-  if (win == NULL)
-    return 0;
+  kk_window_xcb_t *win = (kk_window_xcb_t *) win_base;
 
   if (win->alive)
     pthread_cancel (win->thread);
@@ -232,19 +232,13 @@ kk_window_free (kk_window_t *win)
   if (win->connection)
     xcb_disconnect (win->connection);
 
-  if (win->events)
-    kk_event_queue_free (win->events);
-
-  if (win->keys)
-    kk_keys_free (win->keys);
-
-  kk_widget_free ((kk_widget_t*) win);
   return 0;
 }
 
-int
-kk_window_set_title (kk_window_t *win, const char *title)
+static int
+window_set_title (kk_window_t *win_base, const char *title)
 {
+  kk_window_xcb_t *win = (kk_window_xcb_t *) win_base;
   size_t len;
 
   if (win->window == 0u)
@@ -260,9 +254,11 @@ kk_window_set_title (kk_window_t *win, const char *title)
   return 0;
 }
 
-int
-kk_window_show (kk_window_t *win)
+static int
+window_show (kk_window_t *win_base)
 {
+  kk_window_xcb_t *win = (kk_window_xcb_t *) win_base;
+
   xcb_visualtype_t *visual_type;
   uint32_t value_mask;
   uint32_t value_list[3];
@@ -285,8 +281,8 @@ kk_window_show (kk_window_t *win)
       win->screen->root,
       0,
       0,
-      (uint16_t) win->width,
-      (uint16_t) win->height,
+      (uint16_t) win->base.width,
+      (uint16_t) win->base.height,
       0,
       XCB_WINDOW_CLASS_INPUT_OUTPUT,
       win->screen->root_visual,
@@ -312,7 +308,7 @@ kk_window_show (kk_window_t *win)
     return -1;
 
   win->cairo.surface = cairo_xcb_surface_create (win->connection, win->window,
-      visual_type, win->width, win->height);
+      visual_type, win->base.width, win->base.height);
   if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS)
     return -1;
 
@@ -320,31 +316,17 @@ kk_window_show (kk_window_t *win)
   if (cairo_status (win->cairo.context) != CAIRO_STATUS_SUCCESS)
     return -1;
 
-  kk_window_set_title (win, PACKAGE_NAME);
-  kk_widget_invalidate ((kk_widget_t*) win);
   return 0;
 }
 
-int
-kk_window_draw (kk_window_t *win)
+static int
+window_draw (kk_window_t *win_base)
 {
-  if (win->resized)
-    cairo_xcb_surface_set_size (win->cairo.surface, win->width, win->height);
+  kk_window_xcb_t *win = (kk_window_xcb_t *) win_base;
+
+  if (win->base.resized)
+    cairo_xcb_surface_set_size (win->cairo.surface, win->base.width, win->base.height);
   kk_widget_draw ((kk_widget_t*) win, win->cairo.context);
   xcb_flush (win->connection);
   return 0;
-}
-
-extern int window_get_input (kk_event_queue_t *queue);
-
-int
-kk_window_get_input (kk_window_t *win)
-{
-  return kk_window_input_request (win->events);
-}
-
-int
-kk_window_get_event_fd (kk_window_t *win)
-{
-  return kk_event_queue_get_read_fd (win->events);
 }
