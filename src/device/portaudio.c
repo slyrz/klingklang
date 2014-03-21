@@ -141,7 +141,6 @@ device_setup (kk_device_t *dev_base, kk_format_t *format)
   status =
       Pa_OpenStream (&dev->handle, NULL, &params, (double) format->sample_rate,
           paFramesPerBufferUnspecified, paClipOff, NULL, NULL);
-
   if (status != paNoError) {
     kk_log (KK_LOG_ERROR, "Pa_OpenStream failed. Unsupported PCM format?");
     return -1;
@@ -164,6 +163,7 @@ static int
 device_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
   kk_device_portaudio_t *dev = (kk_device_portaudio_t *) dev_base;
+
   const void *data = NULL;
 
   if (dev->handle == NULL)

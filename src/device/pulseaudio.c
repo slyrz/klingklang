@@ -89,12 +89,11 @@ device_setup (kk_device_t *dev_base, kk_format_t *format)
   const char *resource = NULL;
 
   int status = 0;
-  int channels;
 
   pa_sample_spec spec = {
     .format = PA_SAMPLE_INVALID,
     .channels = 0,
-    .rate = 0
+    .rate = format->sample_rate,
   };
 
   if (dev->handle) {
@@ -130,16 +129,19 @@ device_setup (kk_device_t *dev_base, kk_format_t *format)
     goto error;
   }
 
-  channels = kk_format_get_channels (format);
-  if ((channels <= 0) | (channels >= (int) UINT8_MAX)) {
-    kk_log (KK_LOG_WARNING, "Invalid number of channels encountered.");
-    goto error;
+  switch (format->channels) {
+    case KK_CHANNELS_1:
+      spec.channels = 1;
+      break;
+    case KK_CHANNELS_2:
+      spec.channels = 2;
+      break;
   }
-  spec.channels = (uint8_t) channels;
-  spec.rate = format->sample_rate;
 
-  dev->handle = pa_simple_new (server, client, PA_STREAM_PLAYBACK,
-      resource, stream, &spec, NULL, NULL, &status);
+  dev->handle =
+      pa_simple_new (server, client, PA_STREAM_PLAYBACK, resource, stream,
+          &spec, NULL, NULL, &status);
+
   if ((dev->handle == NULL) || (status != 0))
     goto error;
   return 0;
@@ -153,22 +155,20 @@ device_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
   kk_device_pulseaudio_t *dev = (kk_device_pulseaudio_t *) dev_base;
 
-  int error = 0;
+  void *data = NULL;
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      error = kk_frame_interleave (dev->buffer, frame, dev_base->format);
-      if (error)
-        break;
-      error = pa_simple_write (dev->handle,
-          (void *) dev->buffer->data[0], frame->size, NULL);
+      if (kk_frame_interleave (dev->buffer, frame, dev_base->format) != 0)
+        return -1;
+      data = (void *) dev->buffer->data[0];
       break;
     case KK_LAYOUT_INTERLEAVED:
-      error = pa_simple_write (dev->handle,
-          (void *) frame->data[0], frame->size, NULL);
+      data = (void *) frame->data[0];
       break;
   }
-  if (error)
+
+  if (pa_simple_write (dev->handle, data, frame->size, NULL) != 0)
     return -1;
   return 0;
 }
