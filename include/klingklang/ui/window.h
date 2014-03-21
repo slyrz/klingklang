@@ -5,18 +5,22 @@
 #include <klingklang/ui/widget.h>
 #include <klingklang/ui/keys.h>
 #include <klingklang/ui/window-events.h>
-#include <klingklang/ui/window-input.h>
 
 #include <pthread.h>
 
-typedef struct kk_window_s kk_window_t;
 typedef struct kk_window_backend_s kk_window_backend_t;
+typedef struct kk_window_input_state_s kk_window_input_state_t;
+typedef struct kk_window_s kk_window_t;
+
+struct kk_window_input_state_s {
+  kk_window_t *window;
+  int fd;
+};
 
 struct kk_window_s {
   kk_widget_fields;
   kk_event_queue_t *events;
   kk_keys_t *keys;
-
   unsigned has_title:1;
   unsigned is_alive:1;
 };
