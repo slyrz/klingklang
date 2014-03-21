@@ -12,19 +12,19 @@ struct kk_device_alsa_s {
   snd_pcm_t *handle;
 };
 
-int kk_device_alsa_init (kk_device_t *dev_base);
-int kk_device_alsa_free (kk_device_t *dev_base);
-int kk_device_alsa_drop (kk_device_t *dev_base);
-int kk_device_alsa_setup (kk_device_t *dev_base, kk_format_t *format);
-int kk_device_alsa_write (kk_device_t *dev_base, kk_frame_t *frame);
+static int device_init (kk_device_t *);
+static int device_free (kk_device_t *);
+static int device_drop (kk_device_t *);
+static int device_setup (kk_device_t *, kk_format_t *);
+static int device_write (kk_device_t *, kk_frame_t *);
 
 const kk_device_backend_t kk_device_backend = {
   .size = sizeof (kk_device_alsa_t),
-  .init = kk_device_alsa_init,
-  .free = kk_device_alsa_free,
-  .drop = kk_device_alsa_drop,
-  .setup = kk_device_alsa_setup,
-  .write = kk_device_alsa_write
+  .init = device_init,
+  .free = device_free,
+  .drop = device_drop,
+  .setup = device_setup,
+  .write = device_write
 };
 
 /**
@@ -52,7 +52,6 @@ const kk_device_backend_t kk_device_backend = {
  *   100 = 64 sample bits
  *
  */
- /**INDENT-OFF**/
 static const snd_pcm_format_t sample_format[42] = {
   [ 0] = SND_PCM_FORMAT_U8,          /* index = 000|00|0 */
   [ 1] = SND_PCM_FORMAT_U8,          /* index = 000|00|1 */
@@ -75,7 +74,6 @@ static const snd_pcm_format_t sample_format[42] = {
   [36] = SND_PCM_FORMAT_FLOAT64_LE,  /* index = 100|10|0 */
   [37] = SND_PCM_FORMAT_FLOAT64_BE,  /* index = 100|10|1 */
 };
-/**INDENT-ON**/
 
 static snd_pcm_format_t
 get_pcm_format (kk_format_t *fmt)
@@ -97,48 +95,48 @@ get_pcm_access (kk_format_t *fmt)
     return SND_PCM_ACCESS_RW_NONINTERLEAVED;
 }
 
-int
-kk_device_alsa_init (kk_device_t *dev_base)
+static int
+device_init (kk_device_t *dev_base)
 {
-  kk_device_alsa_t *dev_impl = (kk_device_alsa_t *) dev_base;
+  kk_device_alsa_t *dev = (kk_device_alsa_t *) dev_base;
 
   const char *name = "default";
   const int mode = 0;
   const snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
 
-  if (snd_pcm_open (&dev_impl->handle, name, stream, mode) < 0)
+  if (snd_pcm_open (&dev->handle, name, stream, mode) < 0)
     return -1;
   return 0;
 }
 
-int
-kk_device_alsa_free (kk_device_t *dev_base)
+static int
+device_free (kk_device_t *dev_base)
 {
-  kk_device_alsa_t *dev_impl = (kk_device_alsa_t *) dev_base;
+  kk_device_alsa_t *dev = (kk_device_alsa_t *) dev_base;
 
-  snd_pcm_drop (dev_impl->handle);
-  snd_pcm_close (dev_impl->handle);
-  dev_impl->handle = NULL;
+  snd_pcm_drop (dev->handle);
+  snd_pcm_close (dev->handle);
+  dev->handle = NULL;
 
   /* ... because valgrind errors */
   snd_config_update_free_global ();
   return 0;
 }
 
-int
-kk_device_alsa_drop (kk_device_t *dev_base)
+static int
+device_drop (kk_device_t *dev_base)
 {
-  kk_device_alsa_t *dev_impl = (kk_device_alsa_t *) dev_base;
+  kk_device_alsa_t *dev = (kk_device_alsa_t *) dev_base;
 
-  if (snd_pcm_drop (dev_impl->handle) < 0)
+  if (snd_pcm_drop (dev->handle) < 0)
     return -1;
   return 0;
 }
 
-int
-kk_device_alsa_setup (kk_device_t *dev_base, kk_format_t *format)
+static int
+device_setup (kk_device_t *dev_base, kk_format_t *format)
 {
-  kk_device_alsa_t *dev_impl = (kk_device_alsa_t *) dev_base;
+  kk_device_alsa_t *dev = (kk_device_alsa_t *) dev_base;
 
   const snd_pcm_format_t pcm_format = get_pcm_format (format);
   const snd_pcm_access_t pcm_access = get_pcm_access (format);
@@ -148,16 +146,16 @@ kk_device_alsa_setup (kk_device_t *dev_base, kk_format_t *format)
   const unsigned int latency = 500000u;
   const int soft_resample = 1;
 
-  if (snd_pcm_set_params (dev_impl->handle, pcm_format, pcm_access, channels,
+  if (snd_pcm_set_params (dev->handle, pcm_format, pcm_access, channels,
           rate, soft_resample, latency) < 0)
     return -1;
   return 0;
 }
 
-int
-kk_device_alsa_write (kk_device_t *dev_base, kk_frame_t *frame)
+static int
+device_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
-  kk_device_alsa_t *dev_impl = (kk_device_alsa_t *) dev_base;
+  kk_device_alsa_t *dev = (kk_device_alsa_t *) dev_base;
 
   snd_pcm_sframes_t nframes = 0;
   snd_pcm_uframes_t uframes = 0;
@@ -166,24 +164,22 @@ kk_device_alsa_write (kk_device_t *dev_base, kk_frame_t *frame)
   if (frame->size > SSIZE_MAX)
     return -1;
 
-  sframes = snd_pcm_bytes_to_frames (dev_impl->handle, (ssize_t) frame->size);
+  sframes = snd_pcm_bytes_to_frames (dev->handle, (ssize_t) frame->size);
   uframes = (snd_pcm_uframes_t) sframes;
   if (sframes <= 0)
     return -1;
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      nframes =
-          snd_pcm_writen (dev_impl->handle, (void **) frame->data, uframes);
+      nframes = snd_pcm_writen (dev->handle, (void **) frame->data, uframes);
       break;
     case KK_LAYOUT_INTERLEAVED:
-      nframes =
-          snd_pcm_writei (dev_impl->handle, (void *) frame->data[0], uframes);
+      nframes = snd_pcm_writei (dev->handle, (void *) frame->data[0], uframes);
       break;
   }
 
   if (nframes < 0) {
-    if (snd_pcm_recover (dev_impl->handle, (int) nframes, 1) < 0)
+    if (snd_pcm_recover (dev->handle, (int) nframes, 1) < 0)
       return -1;
   }
   return 0;

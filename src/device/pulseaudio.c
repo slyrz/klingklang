@@ -15,19 +15,19 @@ struct kk_device_pulseaudio_s {
   pa_simple *handle;
 };
 
-int kk_device_pulseaudio_init (kk_device_t *dev_base);
-int kk_device_pulseaudio_free (kk_device_t *dev_base);
-int kk_device_pulseaudio_drop (kk_device_t *dev_base);
-int kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format);
-int kk_device_pulseaudio_write (kk_device_t *dev_base, kk_frame_t *frame);
+static int device_init (kk_device_t *);
+static int device_free (kk_device_t *);
+static int device_drop (kk_device_t *);
+static int device_setup (kk_device_t *, kk_format_t *);
+static int device_write (kk_device_t *, kk_frame_t *);
 
 const kk_device_backend_t kk_device_backend = {
   .size = sizeof (kk_device_pulseaudio_t),
-  .init = kk_device_pulseaudio_init,
-  .free = kk_device_pulseaudio_free,
-  .drop = kk_device_pulseaudio_drop,
-  .setup = kk_device_pulseaudio_setup,
-  .write = kk_device_pulseaudio_write
+  .init = device_init,
+  .free = device_free,
+  .drop = device_drop,
+  .setup = device_setup,
+  .write = device_write
 };
 
 static const enum pa_sample_format sample_format[2][5] = {
@@ -47,41 +47,41 @@ static const enum pa_sample_format sample_format[2][5] = {
   }
 };
 
-int
-kk_device_pulseaudio_init (kk_device_t *dev_base)
+static int
+device_init (kk_device_t *dev_base)
 {
-  kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
+  kk_device_pulseaudio_t *dev = (kk_device_pulseaudio_t *) dev_base;
 
-  if (kk_frame_init (&dev_impl->buffer) != 0)
+  if (kk_frame_init (&dev->buffer) != 0)
     return -1;
   return 0;
 }
 
-int
-kk_device_pulseaudio_free (kk_device_t *dev_base)
+static int
+device_free (kk_device_t *dev_base)
 {
-  kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
+  kk_device_pulseaudio_t *dev = (kk_device_pulseaudio_t *) dev_base;
 
-  if (dev_impl->handle)
-    pa_simple_free (dev_impl->handle);
-  kk_frame_free (dev_impl->buffer);
+  if (dev->handle)
+    pa_simple_free (dev->handle);
+  kk_frame_free (dev->buffer);
   return 0;
 }
 
-int
-kk_device_pulseaudio_drop (kk_device_t *dev_base)
+static int
+device_drop (kk_device_t *dev_base)
 {
-  kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
+  kk_device_pulseaudio_t *dev = (kk_device_pulseaudio_t *) dev_base;
 
-  if (dev_impl->handle)
-    pa_simple_drain (dev_impl->handle, NULL);
+  if (dev->handle)
+    pa_simple_drain (dev->handle, NULL);
   return 0;
 }
 
-int
-kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format)
+static int
+device_setup (kk_device_t *dev_base, kk_format_t *format)
 {
-  kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
+  kk_device_pulseaudio_t *dev = (kk_device_pulseaudio_t *) dev_base;
 
   const char *client = PACKAGE_STRING;
   const char *stream = "playback";
@@ -97,9 +97,9 @@ kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format)
     .rate = 0
   };
 
-  if (dev_impl->handle) {
-    pa_simple_free (dev_impl->handle);
-    dev_impl->handle = NULL;
+  if (dev->handle) {
+    pa_simple_free (dev->handle);
+    dev->handle = NULL;
   }
 
   if (format->type == KK_TYPE_FLOAT) {
@@ -138,33 +138,33 @@ kk_device_pulseaudio_setup (kk_device_t *dev_base, kk_format_t *format)
   spec.channels = (uint8_t) channels;
   spec.rate = format->sample_rate;
 
-  dev_impl->handle = pa_simple_new (server, client, PA_STREAM_PLAYBACK,
+  dev->handle = pa_simple_new (server, client, PA_STREAM_PLAYBACK,
       resource, stream, &spec, NULL, NULL, &status);
-  if ((dev_impl->handle == NULL) || (status != 0))
+  if ((dev->handle == NULL) || (status != 0))
     goto error;
   return 0;
 error:
-  dev_impl->handle = NULL;
+  dev->handle = NULL;
   return -1;
 }
 
-int
-kk_device_pulseaudio_write (kk_device_t *dev_base, kk_frame_t *frame)
+static int
+device_write (kk_device_t *dev_base, kk_frame_t *frame)
 {
-  kk_device_pulseaudio_t *dev_impl = (kk_device_pulseaudio_t *) dev_base;
+  kk_device_pulseaudio_t *dev = (kk_device_pulseaudio_t *) dev_base;
 
   int error = 0;
 
   switch (dev_base->format->layout) {
     case KK_LAYOUT_PLANAR:
-      error = kk_frame_interleave (dev_impl->buffer, frame, dev_base->format);
+      error = kk_frame_interleave (dev->buffer, frame, dev_base->format);
       if (error)
         break;
-      error = pa_simple_write (dev_impl->handle,
-          (void *) dev_impl->buffer->data[0], frame->size, NULL);
+      error = pa_simple_write (dev->handle,
+          (void *) dev->buffer->data[0], frame->size, NULL);
       break;
     case KK_LAYOUT_INTERLEAVED:
-      error = pa_simple_write (dev_impl->handle,
+      error = pa_simple_write (dev->handle,
           (void *) frame->data[0], frame->size, NULL);
       break;
   }
