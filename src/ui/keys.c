@@ -9,6 +9,12 @@ const struct xkb_rule_names rules = {
   .options = KK_KEYS_OPTIONS
 };
 
+static xkb_mod_mask_t
+keys_get_mod_mask (kk_keys_t *keys, const char *mod)
+{
+  return (xkb_mod_mask_t) 1 << xkb_keymap_mod_get_index (keys->keymap, mod);
+}
+
 int
 kk_keys_init (kk_keys_t **keys)
 {
@@ -30,11 +36,8 @@ kk_keys_init (kk_keys_t **keys)
   if (result->state == NULL)
     goto error;
 
-  result->mask.control =
-      (xkb_mod_mask_t) 1 << xkb_keymap_mod_get_index (result->keymap, "Control");
-  result->mask.shift =
-      (xkb_mod_mask_t) 1 << xkb_keymap_mod_get_index (result->keymap, "Shift");
-
+  result->mask.control = keys_get_mod_mask (result, "Control");
+  result->mask.shift = keys_get_mod_mask (result, "Shift");
   *keys = result;
   return 0;
 error:
