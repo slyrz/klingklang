@@ -33,9 +33,6 @@
 #  include <unistd.h>
 #endif
 
-#include <cairo.h>
-#include <math.h>
-
 #define KK_WINDOW_WIDTH         300
 #define KK_WINDOW_HEIGHT        220
 #define KK_PROGRESSBAR_HEIGHT   4
