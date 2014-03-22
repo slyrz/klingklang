@@ -47,7 +47,7 @@ if DEBUGGING
     -Wpointer-arith \
     -Wshadow \
     -Wstrict-overflow=2 \
-    -Wstrict-prototype\
+    -Wstrict-prototypes \
     -Wswitch-enum \
     -Wundef \
     -Wuninitialized \
