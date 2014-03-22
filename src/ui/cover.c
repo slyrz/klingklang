@@ -12,7 +12,7 @@ cairo_rounded_rectangle (cairo_t *cr, double x, double y, double width,
 
   cairo_arc (cr, x + width - radius, y + radius, radius, -90.0 * d, 0.0);
   cairo_arc (cr, x + width - radius, y + height - radius, radius, 0.0, 90.0 * d);
-  cairo_arc (cr, x + radius, y + height - radius, radius,  90.0 * d, 180.0 * d);
+  cairo_arc (cr, x + radius, y + height - radius, radius, 90.0 * d, 180.0 * d);
   cairo_arc (cr, x + radius, y + radius, radius, 180.0 * d, 270.0 * d);
   cairo_line_to (cr, x + width - radius, y);
 }
