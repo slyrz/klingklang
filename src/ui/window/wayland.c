@@ -44,7 +44,7 @@ static int window_show (kk_window_t *);
 static int window_draw (kk_window_t *);
 static int window_set_title (kk_window_t *, const char *);
 
-const kk_window_backend_t kk_window_backend = {
+const kk_window_backend_t window_backend = {
   .size = sizeof (kk_window_wayland_t),
   .init = window_init,
   .free = window_free,

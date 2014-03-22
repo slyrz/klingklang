@@ -18,7 +18,7 @@ static int device_drop (kk_device_t *);
 static int device_setup (kk_device_t *, kk_format_t *);
 static int device_write (kk_device_t *, kk_frame_t *);
 
-const kk_device_backend_t kk_device_backend = {
+const kk_device_backend_t device_backend = {
   .size = sizeof (kk_device_portaudio_t),
   .init = device_init,
   .free = device_free,
