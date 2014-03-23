@@ -237,13 +237,10 @@ event_loop_dispatch (kk_event_loop_t *loop)
 int
 kk_event_loop_run (kk_event_loop_t *loop)
 {
-  int r;
-
   loop->running = 1;
   loop->exit = 0;
-  for (;;) {
-    r = event_loop_dispatch (loop);
-    if (r < 0)
+  while (!loop->exit) {
+    if (event_loop_dispatch (loop) < 0)
       break;
   }
   loop->running = 0;
