@@ -278,7 +278,7 @@ main (int argc, char **argv)
   if (kk_progressbar_init (&context.progressbar) != 0)
     kk_err (EXIT_FAILURE, "Could not initialize progressbar widget.");
 
-  if (kk_event_loop_init (&context.loop, 3) != 0)
+  if (kk_event_loop_init (&context.loop, 2) != 0)
     kk_err (EXIT_FAILURE, "Could not initialize event loop.");
 
   kk_widget_add_child ((kk_widget_t*) context.window, (kk_widget_t*) context.cover);
