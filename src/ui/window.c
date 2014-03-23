@@ -102,7 +102,7 @@ kk_window_init (kk_window_t **win, int width, int height)
   kk_widget_add_child ((kk_widget_t*) result, (kk_widget_t*) result->progressbar);
 
   /**
-   * Update the size of the children, otherwise it's uninitialized..
+   * Update the size of the children, otherwise it's uninitialized.
    */
    window_resize (result, width, height);
 
