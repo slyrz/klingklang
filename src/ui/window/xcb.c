@@ -99,7 +99,7 @@ window_get_visual_type (kk_window_xcb_t *win)
 static void
 window_configure_notify (kk_window_xcb_t *win, xcb_configure_notify_event_t *event)
 {
-  kk_window_event_resize (win->base.events, event->width, event->height);
+  kk_widget_set_size ((kk_widget_t *) win, event->width, event->height);
 }
 
 static void
@@ -108,7 +108,6 @@ window_expose (kk_window_xcb_t *win, xcb_expose_event_t *event)
   (void) event;
 
   kk_widget_invalidate ((kk_widget_t *) win);
-  kk_window_event_expose (win->base.events, win->base.width, win->base.height);
 }
 
 static void
@@ -281,8 +280,8 @@ window_show (kk_window_t *win_base)
       win->screen->root,
       0,
       0,
-      (uint16_t) win->base.width,
-      (uint16_t) win->base.height,
+      (uint16_t) win->base.widget.width,
+      (uint16_t) win->base.widget.height,
       0,
       XCB_WINDOW_CLASS_INPUT_OUTPUT,
       win->screen->root_visual,
@@ -308,7 +307,7 @@ window_show (kk_window_t *win_base)
     return -1;
 
   win->cairo.surface = cairo_xcb_surface_create (win->connection, win->window,
-      visual_type, win->base.width, win->base.height);
+      visual_type, win->base.widget.width, win->base.widget.height);
   if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS)
     return -1;
 
@@ -324,8 +323,12 @@ window_draw (kk_window_t *win_base)
 {
   kk_window_xcb_t *win = (kk_window_xcb_t *) win_base;
 
-  if (win->base.state.resized)
-    cairo_xcb_surface_set_size (win->cairo.surface, win->base.width, win->base.height);
+  if (win->base.widget.state.resized) {
+    cairo_xcb_surface_set_size (win->cairo.surface,
+        win->base.widget.width,
+        win->base.widget.height);
+  }
+
   kk_widget_draw ((kk_widget_t*) win, win->cairo.context);
   xcb_flush (win->connection);
   return 0;

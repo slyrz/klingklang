@@ -34,8 +34,13 @@ struct kk_window_wayland_s {
     cairo_device_t *device;
     cairo_surface_t *surface;
   } cairo;
+  struct  {
+    unsigned alive:1;
+    unsigned flush:1;
+    unsigned initialized:1;
+    unsigned shown:1;
+  } state;
   pthread_t thread;
-  unsigned alive:1;
 };
 
 static int window_init (kk_window_t *);
@@ -241,16 +246,16 @@ shell_surface_handle_configure (void *data,
   (void) shell_surface;
   (void) edges;
 
-  kk_window_wayland_t *window = (kk_window_wayland_t *) data;
+  kk_window_wayland_t *win = (kk_window_wayland_t *) data;
 
-  window->base.width = width;
-  window->base.height = height;
-  window->base.state.resized = 1;
-  window->base.state.redraw = 1;
+  if ((width < 10) || (height < 10))
+    return;
 
-  wl_egl_window_resize (window->window, width, height, 0, 0);
-  cairo_gl_surface_set_size (window->cairo.surface, width, height);
-  kk_window_event_resize (window->base.events, width, height);
+  wl_egl_window_resize (win->window, width, height, 0, 0);
+  cairo_gl_surface_set_size (win->cairo.surface, width, height);
+
+  kk_widget_set_size ((kk_widget_t *) win, width, height);
+  kk_widget_invalidate ((kk_widget_t *) win);
 }
 
 /**
@@ -276,19 +281,19 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 static void *
 window_event_handler (kk_window_wayland_t *win)
 {
-  win->alive = 1;
+  win->state.alive = 1;
 
   /* Make calling thread the main thread. */
   wl_display_dispatch (win->display);
   wl_display_roundtrip (win->display);
 
   /* Run main loop */
-  while (win->alive) {
+  while (win->state.alive) {
     kk_log (KK_LOG_DEBUG, "Event loop.");
     if (wl_display_dispatch (win->display) == -1)
       break;
   }
-  win->alive = 0;
+  win->state.alive = 0;
   return NULL;
 }
 
@@ -370,8 +375,11 @@ window_init_cairo (kk_window_wayland_t *win)
     return -1;
   }
 
-  win->cairo.surface = cairo_gl_surface_create_for_egl (win->cairo.device,
-      win->egl.surface, win->base.width, win->base.height);
+  win->cairo.surface =
+      cairo_gl_surface_create_for_egl (win->cairo.device,
+          win->egl.surface,
+          win->base.widget.width,
+          win->base.widget.height);
   if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS) {
     kk_log (KK_LOG_WARNING, "Creating cairo surface from egl device failed.");
     return -1;
@@ -412,8 +420,7 @@ window_init (kk_window_t *win_base)
     return -1;
   }
 
-  if (pthread_create (&win->thread, 0,
-          (void *(*)(void *)) window_event_handler, win) != 0)
+  if (pthread_create (&win->thread, 0, (void *(*)(void *)) window_event_handler, win) != 0)
     return -1;
 
   return 0;
@@ -424,7 +431,7 @@ window_free (kk_window_t *win_base)
 {
   kk_window_wayland_t *win = (kk_window_wayland_t *) win_base;
 
-  if (win->alive) {
+  if (win->state.alive) {
     pthread_cancel (win->thread);
     pthread_join (win->thread, NULL);
   }
@@ -450,8 +457,7 @@ window_free (kk_window_t *win_base)
     eglDestroyContext (win->egl.dpy, win->egl.ctx);
 
   if (win->egl.dpy) {
-    eglMakeCurrent (win->egl.dpy,
-        EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglMakeCurrent (win->egl.dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglReleaseThread ();
     eglTerminate (win->egl.dpy);
   }
@@ -490,8 +496,10 @@ window_show (kk_window_t *win_base)
   /**
    * Compositor still NULL? Exit.
    */
-  if (win->compositor == NULL)
+  if (win->compositor == NULL) {
+    kk_log (KK_LOG_ERROR, "Compositor is null.");
     return -1;
+  }
 
   win->surface = wl_compositor_create_surface (win->compositor);
   if (win->surface == NULL) {
@@ -505,30 +513,20 @@ window_show (kk_window_t *win_base)
     return -1;
   }
 
-  win->window = wl_egl_window_create (win->surface, win->base.width, win->base.height);
+  win->window =
+      wl_egl_window_create (win->surface,
+          win->base.widget.width,
+          win->base.widget.height);
+
   if (win->window == NULL) {
     kk_log (KK_LOG_WARNING, "wl_egl_window_create");
     return -1;
   }
 
-  wl_shell_surface_add_listener (win->shell_surface,
-      &shell_surface_listener, win);
+  wl_shell_surface_add_listener (win->shell_surface, &shell_surface_listener, win);
   wl_shell_surface_set_toplevel (win->shell_surface);
-
-  if (window_init_egl (win) != 0) {
-    kk_log (KK_LOG_WARNING, "Initializing EGL failed.");
-    return -1;
-  }
-
-  if (window_init_cairo (win) != 0 ) {
-    kk_log (KK_LOG_WARNING, "Initializing cairo failed.");
-    return -1;
-  }
-
-  shell_surface_handle_configure (win, win->shell_surface, 0,
-      win->base.width, win->base.height);
-
-  wl_display_flush (win->display);
+  win->state.shown = 1;
+  win->state.initialized = 0;
   return 0;
 }
 
@@ -536,22 +534,57 @@ static int
 window_draw (kk_window_t *win_base)
 {
   kk_window_wayland_t *win = (kk_window_wayland_t *) win_base;
-
   cairo_t *ctx;
 
+  /**
+   * We need a window_show call prior to a window_draw call.
+   */
+  if (!win->state.shown)
+    return 0;
+
+  /**
+   * We perform some sort of lazy initialization because these calls need
+   * to happen in the drawing thread which the caller of the window_show
+   * function might not be.
+   */
+  if (!win->state.initialized) {
+    if (window_init_egl (win) != 0) {
+      kk_log (KK_LOG_WARNING, "Initializing EGL failed.");
+      return -1;
+    }
+
+    if (window_init_cairo (win) != 0) {
+      kk_log (KK_LOG_WARNING, "Initializing cairo failed.");
+      return -1;
+    }
+
+    shell_surface_handle_configure (win, win->shell_surface, 0,
+        win->base.widget.width, win->base.widget.height);
+
+    win->state.initialized = 1;
+    win->state.flush = 1;
+  }
+
   ctx = cairo_create (win->cairo.surface);
-  if (cairo_status (ctx) != CAIRO_STATUS_SUCCESS)
+  if (cairo_status (ctx) != CAIRO_STATUS_SUCCESS) {
+    kk_log (KK_LOG_WARNING, "Creating cairo context failed.");
     return -1;
+  }
 
   cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
-  cairo_rectangle (ctx, 0.0, 0.0, win->base.width, win->base.height);
+  cairo_rectangle (ctx, 0.0, 0.0, win->base.widget.width, win->base.widget.height);
   cairo_fill (ctx);
 
   kk_widget_invalidate ((kk_widget_t *) win);
   kk_widget_draw ((kk_widget_t *) win, ctx);
-  cairo_destroy (ctx);
 
+  cairo_destroy (ctx);
   cairo_gl_surface_swapbuffers (win->cairo.surface);
+
+  if (win->state.flush) {
+    wl_display_flush (win->display);
+    win->state.flush = 0;
+  }
   return 0;
 }
 

@@ -9,26 +9,40 @@
 #  include <unistd.h>
 #endif
 
-
 extern const kk_window_backend_t window_backend;
 
 static int
 window_draw (kk_window_t *win)
 {
-  kk_log (KK_LOG_DEBUG, "Drawing window.");
+  if (!win->state.shown)
+    return 0;
 
-  if (window_backend.draw (win) != 0)
+  kk_log (KK_LOG_DEBUG, "Drawing window.");
+  if (window_backend.draw (win) != 0) {
+    kk_log (KK_LOG_WARNING, "Drawing window failed.");
     return -1;
+  }
   return 0;
 }
 
+static void
+window_resize (kk_window_t *win, int width, int height)
+{
+  kk_log (KK_LOG_DEBUG, "Window resized to %d, %d.", width, height);
 
+  kk_widget_set_size ((kk_widget_t *) win->cover,  width, height - 4);
+  kk_widget_set_size ((kk_widget_t *) win->progressbar, width, 4);
+
+  kk_widget_set_position ((kk_widget_t *) win->cover, 0, 0);
+  kk_widget_set_position ((kk_widget_t *) win->progressbar, 0, height - 4);
+}
 
 static void *
 window_draw_thread (kk_window_t *win) {
   struct timespec wakeup;
   int status;
 
+  win->state.alive = 1;
   for (;;) {
     pthread_mutex_lock (&win->draw.mutex);
 
@@ -52,6 +66,7 @@ window_draw_thread (kk_window_t *win) {
     window_draw (win);
     pthread_mutex_unlock (&win->draw.mutex);
   }
+  win->state.alive = 0;
   return NULL;
 }
 
@@ -63,18 +78,41 @@ kk_window_init (kk_window_t **win, int width, int height)
   if (kk_widget_init ((kk_widget_t **) &result, window_backend.size) != 0)
     goto error;
 
+  if (kk_widget_bind_resize ((kk_widget_t *) result, (kk_widget_resize_f) window_resize) != 0)
+    goto error;
+
   if (kk_event_queue_init (&result->events) != 0)
     goto error;
 
   if (kk_keys_init (&result->keys) != 0)
     goto error;
 
-  result->width = width;
-  result->height = height;
+  result->widget.width = width;
+  result->widget.height = height;
 
   if (window_backend.init (result) < 0)
     goto error;
 
+  /**
+   * Initialize the window content.
+   */
+  if (kk_cover_init (&result->cover) != 0)
+    goto error;
+
+  if (kk_progressbar_init (&result->progressbar) != 0)
+    goto error;
+
+  kk_widget_add_child ((kk_widget_t*) result, (kk_widget_t*) result->cover);
+  kk_widget_add_child ((kk_widget_t*) result, (kk_widget_t*) result->progressbar);
+
+  /**
+   * Update the size of the children, otherwise it's uninitialized..
+   */
+   window_resize (result, width, height);
+
+  /**
+   * Fire up the draw thread.
+   */
   if (pthread_cond_init (&result->draw.cond, NULL) != 0)
     goto error;
 
@@ -98,7 +136,16 @@ kk_window_free (kk_window_t *win)
   if (win == NULL)
     return 0;
 
+  if (win->state.alive)
+    pthread_cancel (win->draw.thread);
+
+  pthread_cond_destroy (&win->draw.cond);
+  pthread_mutex_destroy (&win->draw.mutex);
+
   window_backend.free (win);
+
+  kk_progressbar_free (win->progressbar);
+  kk_cover_free (win->cover);
 
   if (win->events)
     kk_event_queue_free (win->events);
@@ -113,12 +160,15 @@ kk_window_free (kk_window_t *win)
 int
 kk_window_show (kk_window_t *win)
 {
+  kk_widget_invalidate ((kk_widget_t *) win);
+
   if (window_backend.show (win) != 0)
     return -1;
 
-  if (!win->has_title)
+  if (!win->state.title)
     kk_window_set_title (win, PACKAGE_NAME);
 
+  win->state.shown = 1;
   kk_window_update (win);
   return 0;
 }
@@ -138,7 +188,7 @@ kk_window_set_title (kk_window_t *win, const char *title)
 {
   if (window_backend.set_title (win, title) != 0)
     return -1;
-  win->has_title = 1;
+  win->state.title = 1;
   return 0;
 }
 

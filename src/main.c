@@ -34,7 +34,6 @@
 
 #define KK_WINDOW_WIDTH         300
 #define KK_WINDOW_HEIGHT        220
-#define KK_PROGRESSBAR_HEIGHT   4
 
 typedef struct kk_context_s kk_context_t;
 
@@ -43,23 +42,7 @@ struct kk_context_s {
   kk_library_t *library;
   kk_player_t *player;
   kk_window_t *window;
-  kk_cover_t *cover;
-  kk_progressbar_t *progressbar;
 };
-
-static void
-context_set_window_size (kk_context_t *ctx, int width, int height)
-{
-  const int height_p = KK_PROGRESSBAR_HEIGHT;
-  const int height_c = height - KK_PROGRESSBAR_HEIGHT;
-
-  kk_widget_set_size ((kk_widget_t *) ctx->window, width, height);
-  kk_widget_set_size ((kk_widget_t *) ctx->cover,  width, height_c);
-  kk_widget_set_size ((kk_widget_t *) ctx->progressbar, width, height_p);
-
-  kk_widget_set_position ((kk_widget_t *) ctx->cover, 0, 0);
-  kk_widget_set_position ((kk_widget_t *) ctx->progressbar, 0, height_c);
-}
 
 static void
 on_player_pause (kk_context_t *ctx, kk_player_event_pause_t *event)
@@ -75,14 +58,14 @@ static void
 on_player_progress (kk_context_t *ctx, kk_player_event_progress_t *event)
 {
   kk_log (KK_LOG_DEBUG, "Player progress %f [0,1].", (double) event->progress);
-  kk_progressbar_set_value (ctx->progressbar, event->progress);
+  kk_progressbar_set_value (ctx->window->progressbar, event->progress);
 }
 
 static void
 on_player_seek (kk_context_t *ctx, kk_player_event_seek_t *event)
 {
   kk_log (KK_LOG_DEBUG, "Player seeked position %f [0,1].", (double) event->perc);
-  kk_widget_invalidate ((kk_widget_t*) ctx->progressbar);
+  kk_widget_invalidate ((kk_widget_t*) ctx->window->progressbar);
 }
 
 static void
@@ -90,9 +73,8 @@ on_player_start (kk_context_t *ctx, kk_player_event_start_t *event)
 {
   kk_log (KK_LOG_INFO, "Player started playing '%s'.", event->file->name);
 
-  kk_progressbar_set_value (ctx->progressbar, 0.0);
-  kk_cover_load (ctx->cover, event->file);
-
+  kk_progressbar_set_value (ctx->window->progressbar, 0.0);
+  kk_cover_load (ctx->window->cover, event->file);
   kk_window_set_title (ctx->window, event->file->name);
   kk_window_update (ctx->window);
 }
@@ -103,15 +85,8 @@ on_player_stop (kk_context_t *ctx, kk_player_event_stop_t *event)
   (void) event;
 
   kk_log (KK_LOG_INFO, "Player stopped.");
-  kk_progressbar_set_value (ctx->progressbar, 1.0);
+  kk_progressbar_set_value (ctx->window->progressbar, 1.0);
   kk_window_update (ctx->window);
-}
-
-static void
-on_window_expose (kk_context_t *ctx, kk_window_event_expose_t *event)
-{
-  (void) event;
-  (void) ctx;
 }
 
 static void
@@ -142,12 +117,6 @@ on_window_input (kk_context_t *ctx, kk_window_event_input_t *event)
 cleanup:
   kk_list_free (sel);
   free (event->text);
-}
-
-static void
-on_window_resize (kk_context_t *ctx, kk_window_event_resize_t *event)
-{
-  context_set_window_size (ctx, event->width, event->height);
 }
 
 static void
@@ -232,14 +201,8 @@ on_window_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
       case KK_WINDOW_KEY_PRESS:
         on_window_key_press (ctx, (kk_window_event_key_press_t *) &event);
         break;
-      case KK_WINDOW_EXPOSE:
-        on_window_expose (ctx, (kk_window_event_expose_t *) &event);
-        break;
       case KK_WINDOW_INPUT:
         on_window_input (ctx, (kk_window_event_input_t *) &event);
-        break;
-      case KK_WINDOW_RESIZE:
-        on_window_resize (ctx, (kk_window_event_resize_t *) &event);
         break;
       case KK_WINDOW_CLOSE:
         kk_event_loop_exit (loop);
@@ -272,20 +235,8 @@ main (int argc, char **argv)
   if (kk_window_init (&context.window, KK_WINDOW_WIDTH, KK_WINDOW_HEIGHT) < 0)
     kk_err (EXIT_FAILURE, "Could not initialize window.");
 
-  if (kk_cover_init (&context.cover) != 0)
-    kk_err (EXIT_FAILURE, "Could not initialize cover widget.");
-
-  if (kk_progressbar_init (&context.progressbar) != 0)
-    kk_err (EXIT_FAILURE, "Could not initialize progressbar widget.");
-
   if (kk_event_loop_init (&context.loop, 2) != 0)
     kk_err (EXIT_FAILURE, "Could not initialize event loop.");
-
-  kk_widget_add_child ((kk_widget_t*) context.window, (kk_widget_t*) context.cover);
-  kk_widget_add_child ((kk_widget_t*) context.window, (kk_widget_t*) context.progressbar);
-
-  /* Initialize size of the window, cover and progressbar widget. */
-  context_set_window_size (&context, KK_WINDOW_WIDTH, KK_WINDOW_HEIGHT);
 
   kk_event_loop_add (context.loop, kk_player_get_event_fd (context.player),
       (kk_event_func_f) on_player_event, &context);
@@ -293,7 +244,6 @@ main (int argc, char **argv)
       (kk_event_func_f) on_window_event, &context);
 
   kk_window_show (context.window);
-
   kk_player_start (context.player);
   kk_event_loop_run (context.loop);
   kk_player_stop (context.player);
@@ -301,8 +251,6 @@ main (int argc, char **argv)
   kk_event_loop_free (context.loop);
   kk_library_free (context.library);
   kk_player_free (context.player);
-  kk_progressbar_free (context.progressbar);
-  kk_cover_free (context.cover);
   kk_window_free (context.window);
 
   return EXIT_SUCCESS;
