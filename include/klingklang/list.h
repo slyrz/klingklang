@@ -22,9 +22,6 @@ struct kk_list_s {
 int kk_list_init (kk_list_t **list);
 int kk_list_free (kk_list_t *list);
 
-int kk_list_is_empty (kk_list_t *list);
-int kk_list_is_filled (kk_list_t *list);
-
 int kk_list_append (kk_list_t *list, void *item);
 int kk_list_sort (kk_list_t *list, kk_list_cmp_f cmp);
 

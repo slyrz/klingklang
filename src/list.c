@@ -100,18 +100,6 @@ kk_list_free (kk_list_t *list)
 }
 
 int
-kk_list_is_empty (kk_list_t *list)
-{
-  return (list->len == 0);
-}
-
-int
-kk_list_is_filled (kk_list_t *list)
-{
-  return (list->len > 0);
-}
-
-int
 kk_list_append (kk_list_t *list, void *item)
 {
   if (list->len >= list->cap) {
