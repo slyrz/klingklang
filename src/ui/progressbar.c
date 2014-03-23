@@ -38,7 +38,7 @@ progressbar_draw (kk_widget_t *widget, cairo_t *ctx)
      * If progress is zero or the widget needs a redraw, fill background black
      * to override the previously displayed progress.
      */
-    if (widget->resized || widget->redraw) {
+    if (widget->state.resized || widget->state.redraw) {
       cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
       cairo_rectangle (ctx,
           (double) progressbar->x,
@@ -54,11 +54,13 @@ int
 kk_progressbar_init (kk_progressbar_t **progressbar)
 {
   kk_progressbar_t *result = NULL;
-  kk_widget_t **widget;
 
-  widget = (kk_widget_t **) &result;
-  if (kk_widget_init (widget, sizeof (kk_progressbar_t), progressbar_draw) != 0)
+  if (kk_widget_init ((kk_widget_t **) &result, sizeof (kk_progressbar_t)) != 0)
     goto error;
+
+  if (kk_widget_bind_draw ((kk_widget_t *) result, progressbar_draw) != 0)
+    goto error;
+
   *progressbar = result;
   return 0;
 error:

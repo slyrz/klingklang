@@ -324,7 +324,7 @@ window_draw (kk_window_t *win_base)
 {
   kk_window_xcb_t *win = (kk_window_xcb_t *) win_base;
 
-  if (win->base.resized)
+  if (win->base.state.resized)
     cairo_xcb_surface_set_size (win->cairo.surface, win->base.width, win->base.height);
   kk_widget_draw ((kk_widget_t*) win, win->cairo.context);
   xcb_flush (win->connection);

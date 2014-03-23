@@ -245,8 +245,8 @@ shell_surface_handle_configure (void *data,
 
   window->base.width = width;
   window->base.height = height;
-  window->base.resized = 1;
-  window->base.redraw = 1;
+  window->base.state.resized = 1;
+  window->base.state.redraw = 1;
 
   wl_egl_window_resize (window->window, width, height, 0, 0);
   cairo_gl_surface_set_size (window->cairo.surface, width, height);

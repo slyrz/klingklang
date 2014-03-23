@@ -48,7 +48,7 @@ cover_draw (kk_widget_t *widget, cairo_t *ctx)
   if ((cover->foreground == NULL) || (cover->background == NULL))
     return;
 
-  if (widget->resized)
+  if (widget->state.resized)
     cover_resize (cover);
 
   /* Draw blurred background image */
@@ -116,11 +116,13 @@ int
 kk_cover_init (kk_cover_t **cover)
 {
   kk_cover_t *result;
-  kk_widget_t **widget;
 
-  widget = (kk_widget_t **) &result;
-  if (kk_widget_init (widget, sizeof (kk_cover_t), cover_draw) != 0)
+  if (kk_widget_init ((kk_widget_t **) &result, sizeof (kk_cover_t)) != 0)
     goto error;
+
+  if (kk_widget_bind_draw ((kk_widget_t *) result, cover_draw) != 0)
+    goto error;
+
   result->darkness = 0.333;
   result->blur = 0.08;
   *cover = result;
