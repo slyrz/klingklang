@@ -17,7 +17,6 @@ window_draw (kk_window_t *win)
   if (!win->state.shown)
     return 0;
 
-  kk_log (KK_LOG_DEBUG, "Drawing window.");
   if (window_backend.draw (win) != 0) {
     kk_log (KK_LOG_WARNING, "Drawing window failed.");
     return -1;
@@ -28,11 +27,8 @@ window_draw (kk_window_t *win)
 static void
 window_resize (kk_window_t *win, int width, int height)
 {
-  kk_log (KK_LOG_DEBUG, "Window resized to %d, %d.", width, height);
-
   kk_widget_set_size ((kk_widget_t *) win->cover,  width, height - 4);
   kk_widget_set_size ((kk_widget_t *) win->progressbar, width, 4);
-
   kk_widget_set_position ((kk_widget_t *) win->cover, 0, 0);
   kk_widget_set_position ((kk_widget_t *) win->progressbar, 0, height - 4);
 }
