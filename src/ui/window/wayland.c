@@ -1,14 +1,5 @@
 #include <klingklang/ui/window.h>
-#include <klingklang/base.h>
-#include <klingklang/str.h>
 #include <klingklang/util.h>
-
-#include <errno.h>
-#include <pthread.h>
-
-#ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-#endif
 
 #include <wayland-client.h>
 #include <wayland-egl.h>
@@ -17,8 +8,12 @@
 #include <cairo.h>
 #include <cairo-gl.h>
 
-struct kk_window_s {
-  kk_widget_fields;
+#include <unistd.h> /* usleep */
+
+typedef struct kk_window_wayland_s kk_window_wayland_t;
+
+struct kk_window_wayland_s {
+  kk_window_t base;
   struct wl_callback *callback;
   struct wl_compositor *compositor;
   struct wl_display *display;
@@ -39,46 +34,29 @@ struct kk_window_s {
     cairo_device_t *device;
     cairo_surface_t *surface;
   } cairo;
-  kk_event_queue_t *events;
-  kk_keys_t *keys;
+  struct  {
+    unsigned alive:1;
+    unsigned flush:1;
+    unsigned initialized:1;
+    unsigned shown:1;
+  } state;
   pthread_t thread;
-  unsigned alive:1;
 };
 
-static void
-_kk_window_event_input (kk_window_t *window, char *text)
-{
-  kk_window_event_input_t event;
+static int window_init (kk_window_t *);
+static int window_free (kk_window_t *);
+static int window_show (kk_window_t *);
+static int window_draw (kk_window_t *);
+static int window_set_title (kk_window_t *, const char *);
 
-  memset (&event, 0, sizeof (kk_window_event_input_t));
-  event.type = KK_WINDOW_INPUT;
-  event.text = strdup (text);
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_input_t));
-}
-
-static void
-_kk_window_event_key_press (kk_window_t *window, int modifier, int key)
-{
-  kk_window_event_key_press_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_key_press_t));
-  event.type = KK_WINDOW_KEY_PRESS;
-  event.key = key;
-  event.mod = modifier;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_key_press_t));
-}
-
-static void
-_kk_window_event_resize (kk_window_t *window, int width, int height)
-{
-  kk_window_event_resize_t event;
-
-  memset (&event, 0, sizeof (kk_window_event_resize_t));
-  event.type = KK_WINDOW_RESIZE;
-  event.width = width;
-  event.height = height;
-  kk_event_queue_write (window->events, (void *) &event, sizeof (kk_window_event_resize_t));
-}
+const kk_window_backend_t window_backend = {
+  .size = sizeof (kk_window_wayland_t),
+  .init = window_init,
+  .free = window_free,
+  .show = window_show,
+  .draw = window_draw,
+  .set_title = window_set_title
+};
 
 static void
 keyboard_handle_enter (void *data, struct wl_keyboard *keyboard,
@@ -100,15 +78,15 @@ keyboard_handle_key (void *data, struct wl_keyboard *keyboard, uint32_t serial,
   (void) serial;
   (void) time;
 
-  kk_window_t *window = (kk_window_t *) data;
+  kk_window_wayland_t *window = (kk_window_wayland_t *) data;
 
   if (state != WL_KEYBOARD_KEY_STATE_RELEASED)
     return;
 
-  int sym = kk_keys_get_symbol (window->keys, key + 8);
-  int mod = kk_keys_get_modifiers (window->keys);
+  int sym = kk_keys_get_symbol (window->base.keys, key + 8);
+  int mod = kk_keys_get_modifiers (window->base.keys);
 
-  _kk_window_event_key_press (window, mod, sym);
+  kk_window_event_key_press (window->base.events, mod, sym);
 }
 
 static void
@@ -142,9 +120,10 @@ keyboard_handle_modifiers (void *data, struct wl_keyboard *keyboard,
   (void) keyboard;
   (void) serial;
 
-  kk_window_t *window = (kk_window_t *) data;
+  kk_window_wayland_t *window = (kk_window_wayland_t *) data;
 
-  kk_keys_set_modifiers (window->keys, mods_depressed, mods_latched, mods_locked, group);
+  kk_keys_set_modifiers (window->base.keys, mods_depressed, mods_latched,
+      mods_locked, group);
   return;
 }
 
@@ -162,7 +141,7 @@ seat_handle_capabilities (void *data, struct wl_seat *seat,
 {
   (void) seat;
 
-  kk_window_t *window = (kk_window_t *) data;
+  kk_window_wayland_t *window = (kk_window_wayland_t *) data;
 
   if (window->keyboard)
     return;
@@ -200,7 +179,7 @@ registry_handle_global (void *data, struct wl_registry *registry,
     "wl_seat"
   };
 
-  kk_window_t *window = (kk_window_t *) data;
+  kk_window_wayland_t *window = (kk_window_wayland_t *) data;
 
   int i = 0;
   int n = sizeof (interfaces) / sizeof (char *);
@@ -267,16 +246,16 @@ shell_surface_handle_configure (void *data,
   (void) shell_surface;
   (void) edges;
 
-  kk_window_t *window = (kk_window_t *) data;
+  kk_window_wayland_t *win = (kk_window_wayland_t *) data;
 
-  window->width = width;
-  window->height = height;
-  window->resized = 1;
-  window->redraw = 1;
+  if ((width < 10) || (height < 10))
+    return;
 
-  wl_egl_window_resize (window->window, width, height, 0, 0);
-  cairo_gl_surface_set_size (window->cairo.surface, width, height);
-  _kk_window_event_resize (window, width, height);
+  wl_egl_window_resize (win->window, width, height, 0, 0);
+  cairo_gl_surface_set_size (win->cairo.surface, width, height);
+
+  kk_widget_set_size ((kk_widget_t *) win, width, height);
+  kk_widget_invalidate ((kk_widget_t *) win);
 }
 
 /**
@@ -300,26 +279,26 @@ static const struct wl_shell_surface_listener shell_surface_listener = {
 };
 
 static void *
-_kk_window_event_handler (kk_window_t * win)
+window_event_handler (kk_window_wayland_t *win)
 {
-  win->alive = 1;
+  win->state.alive = 1;
 
   /* Make calling thread the main thread. */
   wl_display_dispatch (win->display);
   wl_display_roundtrip (win->display);
 
   /* Run main loop */
-  while (win->alive) {
+  while (win->state.alive) {
     kk_log (KK_LOG_DEBUG, "Event loop.");
     if (wl_display_dispatch (win->display) == -1)
       break;
   }
-  win->alive = 0;
+  win->state.alive = 0;
   return NULL;
 }
 
 static int
-_kk_window_init_egl (kk_window_t * win)
+window_init_egl (kk_window_wayland_t *win)
 {
   EGLint conf_attr[] = {
     EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -329,6 +308,8 @@ _kk_window_init_egl (kk_window_t * win)
     EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
     EGL_NONE
   };
+
+  EGLBoolean status;
 
   int major;
   int minor;
@@ -341,12 +322,15 @@ _kk_window_init_egl (kk_window_t * win)
     return -1;
   }
 
-  if (eglBindAPI (EGL_OPENGL_API) == EGL_FALSE) {
+  status = eglBindAPI (EGL_OPENGL_API);
+  if (status == EGL_FALSE) {
     kk_log (KK_LOG_WARNING, "eglBindAPI failed.");
     return -1;
   }
 
-  if (eglChooseConfig (win->egl.dpy, conf_attr, &win->egl.conf, 1, &count) == EGL_FALSE) {
+  status =
+      eglChooseConfig (win->egl.dpy, conf_attr, &win->egl.conf, 1, &count);
+  if (status == EGL_FALSE) {
     kk_log (KK_LOG_WARNING, "eglChooseConfig failed.");
     return -1;
   }
@@ -356,19 +340,25 @@ _kk_window_init_egl (kk_window_t * win)
     return -1;
   }
 
-  win->egl.ctx = eglCreateContext (win->egl.dpy, win->egl.conf, EGL_NO_CONTEXT, NULL);
+  win->egl.ctx =
+      eglCreateContext (win->egl.dpy, win->egl.conf, EGL_NO_CONTEXT, NULL);
   if (win->egl.ctx == EGL_NO_CONTEXT) {
     kk_log (KK_LOG_WARNING, "eglCreateContext failed.");
     return -1;
   }
 
-  win->egl.surface = eglCreateWindowSurface (win->egl.dpy, win->egl.conf, (EGLNativeWindowType) win->window, NULL);
+  win->egl.surface =
+      eglCreateWindowSurface (win->egl.dpy, win->egl.conf,
+          (EGLNativeWindowType) win->window, NULL);
   if (win->egl.surface == EGL_NO_SURFACE) {
     kk_log (KK_LOG_WARNING, "eglCreateWindowSurface failed.");
     return -1;
   }
 
-  if (eglMakeCurrent (win->egl.dpy, win->egl.surface, win->egl.surface, win->egl.ctx) == EGL_FALSE) {
+  status =
+      eglMakeCurrent (win->egl.dpy, win->egl.surface, win->egl.surface,
+          win->egl.ctx);
+  if (status == EGL_FALSE) {
     kk_log (KK_LOG_WARNING, "eglMakeCurrent failed.");
     return -1;
   }
@@ -377,7 +367,7 @@ _kk_window_init_egl (kk_window_t * win)
 }
 
 static int
-_kk_window_init_cairo (kk_window_t * win)
+window_init_cairo (kk_window_wayland_t *win)
 {
   win->cairo.device = cairo_egl_device_create (win->egl.dpy, win->egl.ctx);
   if (cairo_device_status (win->cairo.device) != CAIRO_STATUS_SUCCESS) {
@@ -385,78 +375,63 @@ _kk_window_init_cairo (kk_window_t * win)
     return -1;
   }
 
-  win->cairo.surface = cairo_gl_surface_create_for_egl (win->cairo.device,
-      win->egl.surface, win->width, win->height);
+  win->cairo.surface =
+      cairo_gl_surface_create_for_egl (win->cairo.device,
+          win->egl.surface,
+          win->base.widget.width,
+          win->base.widget.height);
   if (cairo_surface_status (win->cairo.surface) != CAIRO_STATUS_SUCCESS) {
-    kk_log (KK_LOG_WARNING, "Creating cairo gl surface from egl device failed.");
+    kk_log (KK_LOG_WARNING, "Creating cairo surface from egl device failed.");
     return -1;
   }
   return 0;
 }
 
-int
-kk_window_init (kk_window_t ** win, int width, int height)
+static int
+window_init (kk_window_t *win_base)
 {
-  kk_window_t *result = NULL;
-
-  if (kk_widget_init ((kk_widget_t **) & result, sizeof (kk_window_t), NULL) != 0)
-    goto error;
-
-  if (kk_event_queue_init (&result->events) != 0)
-    goto error;
-
-  if (kk_keys_init (&result->keys) != 0)
-    goto error;
+  kk_window_wayland_t *win = (kk_window_wayland_t *) win_base;
 
   /**
    * Connect to Wayland
    */
-  result->display = wl_display_connect (NULL);
-  if (result->display == NULL) {
+  win->display = wl_display_connect (NULL);
+  if (win->display == NULL) {
     kk_log (KK_LOG_WARNING, "wl_display_connect failed.");
-    goto error;
+    return -1;
   }
 
   /**
    * Registry allows the client to list and bind the global objects
    * available from the compositor.
    */
-  result->registry = wl_display_get_registry (result->display);
-  if (result->registry == NULL) {
+  win->registry = wl_display_get_registry (win->display);
+  if (win->registry == NULL) {
     kk_log (KK_LOG_WARNING, "wl_display_get_registry failed.");
-    goto error;
+    return -1;
   }
 
   /**
    * Listener contains callbacks that tell us about global objects
    * becoming available and global objects getting removed.
    */
-  if (wl_registry_add_listener (result->registry, &registry_listener, result) != 0) {
+  if (wl_registry_add_listener (win->registry, &registry_listener, win) != 0) {
     kk_log (KK_LOG_WARNING, "wl_registry_add_listener failed.");
-    goto error;
+    return -1;
   }
 
-  if (pthread_create (&result->thread, 0, (void *(*)(void *)) _kk_window_event_handler, result) != 0)
-    goto error;
+  if (pthread_create (&win->thread, 0, (void *(*)(void *)) window_event_handler, win) != 0)
+    return -1;
 
-  result->width = width;
-  result->height = height;
-
-  *win = result;
   return 0;
-error:
-  kk_window_free (result);
-  *win = NULL;
-  return -1;
 }
 
-int
-kk_window_free (kk_window_t * win)
+static int
+window_free (kk_window_t *win_base)
 {
-  if (win == NULL)
-    return 0;
+  kk_window_wayland_t *win = (kk_window_wayland_t *) win_base;
 
-  if (win->alive) {
+  if (win->state.alive) {
     pthread_cancel (win->thread);
     pthread_join (win->thread, NULL);
   }
@@ -498,19 +473,14 @@ kk_window_free (kk_window_t * win)
     wl_display_disconnect (win->display);
   }
 
-  if (win->keys)
-    kk_keys_free (win->keys);
-
-  if (win->events)
-    kk_event_queue_free (win->events);
-
-  kk_widget_free ((kk_widget_t *) win);
   return 0;
 }
 
-int
-kk_window_show (kk_window_t * win)
+static int
+window_show (kk_window_t *win_base)
 {
+  kk_window_wayland_t *win = (kk_window_wayland_t *) win_base;
+
   /**
    * Block and wait till we receive global compositor from registry. If we have
    * to wait longer than 1 second, something is fishy and we return with an
@@ -526,8 +496,10 @@ kk_window_show (kk_window_t * win)
   /**
    * Compositor still NULL? Exit.
    */
-  if (win->compositor == NULL)
+  if (win->compositor == NULL) {
+    kk_log (KK_LOG_ERROR, "Compositor is null.");
     return -1;
+  }
 
   win->surface = wl_compositor_create_surface (win->compositor);
   if (win->surface == NULL) {
@@ -541,7 +513,11 @@ kk_window_show (kk_window_t * win)
     return -1;
   }
 
-  win->window = wl_egl_window_create (win->surface, win->width, win->height);
+  win->window =
+      wl_egl_window_create (win->surface,
+          win->base.widget.width,
+          win->base.widget.height);
+
   if (win->window == NULL) {
     kk_log (KK_LOG_WARNING, "wl_egl_window_create");
     return -1;
@@ -549,133 +525,77 @@ kk_window_show (kk_window_t * win)
 
   wl_shell_surface_add_listener (win->shell_surface, &shell_surface_listener, win);
   wl_shell_surface_set_toplevel (win->shell_surface);
-
-  if (_kk_window_init_egl (win) != 0) {
-    kk_log (KK_LOG_WARNING, "Initializing EGL failed.");
-    return -1;
-  }
-
-  if (_kk_window_init_cairo (win)  != 0 ) {
-    kk_log (KK_LOG_WARNING, "Initializing cairo failed.");
-    return -1;
-  }
-
-  shell_surface_handle_configure (win, win->shell_surface, 0, win->width, win->height);
-
-  kk_widget_invalidate ((kk_widget_t *) win);
-  kk_window_draw (win);
-  wl_display_flush (win->display);
+  win->state.shown = 1;
+  win->state.initialized = 0;
   return 0;
 }
 
-int
-kk_window_draw (kk_window_t * win)
+static int
+window_draw (kk_window_t *win_base)
 {
+  kk_window_wayland_t *win = (kk_window_wayland_t *) win_base;
   cairo_t *ctx;
 
+  /**
+   * We need a window_show call prior to a window_draw call.
+   */
+  if (!win->state.shown)
+    return 0;
+
+  /**
+   * We perform some sort of lazy initialization because these calls need
+   * to happen in the drawing thread which the caller of the window_show
+   * function might not be.
+   */
+  if (!win->state.initialized) {
+    if (window_init_egl (win) != 0) {
+      kk_log (KK_LOG_WARNING, "Initializing EGL failed.");
+      return -1;
+    }
+
+    if (window_init_cairo (win) != 0) {
+      kk_log (KK_LOG_WARNING, "Initializing cairo failed.");
+      return -1;
+    }
+
+    shell_surface_handle_configure (win, win->shell_surface, 0,
+        win->base.widget.width, win->base.widget.height);
+
+    win->state.initialized = 1;
+    win->state.flush = 1;
+  }
+
   ctx = cairo_create (win->cairo.surface);
-  if (cairo_status (ctx) != CAIRO_STATUS_SUCCESS)
+  if (cairo_status (ctx) != CAIRO_STATUS_SUCCESS) {
+    kk_log (KK_LOG_WARNING, "Creating cairo context failed.");
     return -1;
+  }
 
   cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
-  cairo_rectangle (ctx, 0.0, 0.0, win->width, win->height);
+  cairo_rectangle (ctx, 0.0, 0.0, win->base.widget.width, win->base.widget.height);
   cairo_fill (ctx);
 
   kk_widget_invalidate ((kk_widget_t *) win);
   kk_widget_draw ((kk_widget_t *) win, ctx);
+
   cairo_destroy (ctx);
-
   cairo_gl_surface_swapbuffers (win->cairo.surface);
+
+  if (win->state.flush) {
+    wl_display_flush (win->display);
+    win->state.flush = 0;
+  }
   return 0;
 }
 
-int
-kk_window_get_input (kk_window_t * win)
+static int
+window_set_title (kk_window_t *win_base, const char *title)
 {
-  static char buffer[1024] = { 0 };
+  kk_window_wayland_t *win = (kk_window_wayland_t *) win_base;
 
-  int pofd[2];                  /* stdout of child */
-  int pifd[2];                  /* stdin of child */
-
-  if (pipe (pifd) != 0)
-    return -1;
-
-  if (pipe (pofd) != 0)
-    return -1;
-
-  if (fork () == 0) {
-    dup2 (pifd[0], STDIN_FILENO);
-    dup2 (pofd[1], STDOUT_FILENO);
-
-    close (pofd[0]);
-    close (pifd[1]);
-
-    setsid ();
-    if (execlp ("dmenu", "dmenu", NULL) != 0)
-      kk_err (EXIT_FAILURE, "execlp() failed.");
-  }
-  else {
-    close (pifd[0]);
-    close (pofd[1]);
-
-    /**
-     * Upon start, dmenu wants to read the menu entries from stdin.
-     * Since we use dmenu as simple text input, we don't pass menu
-     * entries to dmenu. Therefore, we close stdin directly.
-     */
-    close (pifd[1]);
-
-    int err = 0;
-    ssize_t ret = 0;
-    size_t tot = 0;
-
-    for (;;) {
-      if (tot >= sizeof (buffer))
-        break;
-
-      errno = 0;
-      ret = read (pofd[0], buffer + tot, sizeof (buffer) - tot);
-      err = errno;
-
-      /* Break on error, but keep going on interrupts. */
-      if ((ret <= 0) && (err != EINTR))
-          break;
-
-      if (ret > 0)
-        tot += (size_t) ret;
-    }
-
-    /* No input read? Must have been canceled by user, so no error. */
-    if (tot == 0)
-      return 0;
-
-    /* No input read? Must have been canceled by user, so no error. */
-    if (tot >= sizeof (buffer))
-      return -1;
-
-    /* Remove trailing newline. */
-    if (buffer[tot - 1] == '\n')
-      buffer[--tot] = '\0';
-
-    if (tot > 0)
-      _kk_window_event_input (win, buffer);
-  }
-
-  return 0;
-}
-
-int
-kk_window_set_title (kk_window_t * win, const char *title)
-{
   if (win->shell_surface == NULL)
     return -1;
 
   wl_shell_surface_set_title (win->shell_surface, title);
   return 0;
-}
-
-int
-kk_window_get_event_fd (kk_window_t * win)
-{
-  return kk_event_queue_get_read_fd (win->events);
 }

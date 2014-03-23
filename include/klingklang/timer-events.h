@@ -13,4 +13,6 @@ struct kk_timer_event_fired_s {
   kk_event_fields;
 };
 
+void kk_timer_event_fired (kk_event_queue_t *queue);
+
 #endif

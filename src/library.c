@@ -19,11 +19,22 @@
   (sizeof (x) / sizeof ((x)[0]))
 
 static const char *extensions[] = {
-  "aac", "flac", "m4a", "mp3", "ogg", "wav", "wma"
+  "aac",
+  "flac",
+  "m4a",
+  "mp3",
+  "ogg",
+  "wav",
+  "wma"
 };
 
 static const char *cover_filenames[] = {
-  "albumart.jpg", "albumart.jpeg", "albumart.png", "cover.jpg", "cover.jpeg", "cover.png"
+  "albumart.jpg",
+  "albumart.jpeg",
+  "albumart.png",
+  "cover.jpg",
+  "cover.jpeg",
+  "cover.png"
 };
 
 static int
@@ -37,7 +48,7 @@ is_regular_file (const char *path)
 }
 
 /**
- * Crude check if a file is an audio file. It's based on the filename only (!!!)
+ * Crude check if a file is an audio file. It's based on the filename only
  * and just based checks for known file extension. Since we use it on
  * readdir results only, we already know filename belongs to a regular file.
  */
@@ -62,7 +73,7 @@ is_audio_file (const char *filename)
 }
 
 static size_t
-kk_append_path (char *dst, const char *src, size_t len, int append_pathsep)
+path_append (char *dst, const char *src, size_t len, int append_pathsep)
 {
   size_t out;
 
@@ -72,11 +83,15 @@ kk_append_path (char *dst, const char *src, size_t len, int append_pathsep)
 
   if (append_pathsep) {
     if (out < len) {
-      if ((out == 0) | ((out > 0) && (dst[out - 1] != '/')))
+      if ((out == 0) || ((out > 0) && (dst[out - 1] != '/')))
         dst[out++] = '/';
     }
-    else
-      out++;                    /* dst too small. We need a buffer of src + 1x '/' + 1x '\0' */
+    else {
+      /**
+       * dst too small. We need a buffer of src + 1x '/' + 1x '\0'
+       */
+      out++;
+    }
   }
   return out;
 }
@@ -87,10 +102,10 @@ kk_library_dir_get_path (kk_library_dir_t *dir, char *dst, size_t len)
   size_t out;
 
   *dst = '\0';
-  out = kk_append_path (dst, dir->root, len, 1);
+  out = path_append (dst, dir->root, len, 1);
   if (out >= len)
     return out;
-  return kk_append_path (dst, dir->base, len, 1);
+  return path_append (dst, dir->base, len, 1);
 }
 
 size_t
@@ -102,11 +117,12 @@ kk_library_file_get_path (kk_library_file_t *file, char *dst, size_t len)
   out = kk_library_dir_get_path (file->parent, dst, len);
   if (out >= len)
     return out + NAME_MAX;
-  return kk_append_path (dst, file->name, len, 0);
+  return path_append (dst, file->name, len, 0);
 }
 
 size_t
-kk_library_file_get_album_cover_path (kk_library_file_t *file, char *dst, size_t len)
+kk_library_file_get_album_cover_path (kk_library_file_t *file, char *dst,
+    size_t len)
 {
   size_t i;
   size_t out;
@@ -133,7 +149,7 @@ error:
 }
 
 static int
-kk_library_dir_load (kk_library_dir_t *dir)
+library_dir_load (kk_library_dir_t *dir)
 {
   size_t len_root;
   size_t len_base;
@@ -173,8 +189,8 @@ kk_library_dir_load (kk_library_dir_t *dir)
   if (pfst == NULL)
     goto error;
 
-  len_root = kk_append_path (pfst, dir->root, len, 1);
-  len_base = kk_append_path (pfst, dir->base, len, 1);
+  len_root = path_append (pfst, dir->root, len, 1);
+  len_base = path_append (pfst, dir->base, len, 1);
   plst = pfst + len_base;
 
   dirst = opendir (pfst);
@@ -188,10 +204,8 @@ kk_library_dir_load (kk_library_dir_t *dir)
       break;
 
     /* Ignore "." and ".." */
-    if (ent->d_name[0] == '.') {
-      if ((ent->d_name[1] == '\0') || ((ent->d_name[1] == '.') & (ent->d_name[2] == '\0')))
+    if ((strcmp (ent->d_name, ".") && strcmp (ent->d_name, "..")) == 0)
         continue;
-    }
 
     if (ent->d_type == DT_DIR) {
       kk_library_dir_t *next;
@@ -212,7 +226,7 @@ kk_library_dir_load (kk_library_dir_t *dir)
 
       next->root = dir->root;
       next->base = strdup (pfst + len_root);
-      kk_library_dir_load (next);
+      library_dir_load (next);
 
       /**
        * If the result has no children, it doesn't contain any regular files
@@ -278,7 +292,7 @@ kk_library_init (kk_library_t **lib, const char *path)
   if ((result->root == NULL) || (result->base == NULL))
     goto error;
 
-  if (kk_library_dir_load (result) != 0)
+  if (library_dir_load (result) != 0)
     goto error;
 
   if (result->children == NULL) {
@@ -339,7 +353,7 @@ kk_library_free (kk_library_t *lib)
 }
 
 static int
-kk_library_file_cmp (const void *a, const void *b)
+library_file_cmp (const void *a, const void *b)
 {
   const kk_library_file_t *fa = (const kk_library_file_t *) a;
   const kk_library_file_t *fb = (const kk_library_file_t *) b;
@@ -391,7 +405,7 @@ kk_library_find (kk_library_t *lib, const char *keyword, kk_list_t **sel)
 
   kk_str_search_free (search);
   if (result->len)
-    kk_list_sort (result, kk_library_file_cmp);
+    kk_list_sort (result, library_file_cmp);
   *sel = result;
   return 0;
 error:

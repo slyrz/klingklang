@@ -29,8 +29,11 @@
     (b) -= (uint8_t) (((col)      ) & 0xffu); \
   } while (0)
 
+#define uimod(v) \
+  ((uint32_t)(v) & 0xffu)
+
 #define rgb_build(r,g,b) \
-  ((((uint32_t)(r) & 0xffu) << 16) | (((uint32_t)(g) & 0xffu) << 8) | ((uint32_t)(b) & 0xffu))
+  ((uimod(r) << 16) | (uimod(g) << 8) | uimod(b))
 
 /**
  * libavutil versions >= 51.42.0:
@@ -43,8 +46,8 @@
 
 /**
  * libavcodec versions >= 54.28.0:
- * Introduced avcodec_free_frame() function which must now be used for freeing an
- * AVFrame.
+ * Introduced avcodec_free_frame() function which must now be used for freeing
+ * an AVFrame.
  */
 #if !((LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 28))
 #  define avcodec_free_frame(x) av_free(*(x))
@@ -54,7 +57,8 @@
  * libavcodec versions >= 55.28.1:
  * av_frame_alloc(), av_frame_unref() and av_frame_free() now can and should be
  * used instead of avcodec_alloc_frame(), avcodec_get_frame_defaults() and
- * avcodec_free_frame() respectively. The latter three functions are deprecated.
+ * avcodec_free_frame() respectively. The latter three functions are
+ * deprecated.
  */
 #if !((LIBAVCODEC_VERSION_MAJOR >= 55) && (LIBAVCODEC_VERSION_MINOR >= 28))
 #  define av_frame_free(x) avcodec_free_frame(x)
@@ -64,7 +68,7 @@
 extern int libav_initialized;
 
 static int
-kk_image_surface_load_nativ (kk_image_t *img, const char *path)
+image_surface_load_nativ (kk_image_t *img, const char *path)
 {
   cairo_status_t status;
 
@@ -72,14 +76,17 @@ kk_image_surface_load_nativ (kk_image_t *img, const char *path)
 
   status = cairo_surface_status (img->surface);
   if (status != CAIRO_STATUS_SUCCESS) {
-    kk_log (KK_LOG_WARNING, "Failed to load file '%s'. Cairo returned '%s'.", path, cairo_status_to_string (status));
+    kk_log (KK_LOG_WARNING,
+        "Failed to load file '%s'. Cairo returned '%s'.",
+        path, cairo_status_to_string (status));
     return -1;
   }
   return 0;
 }
 
 static int
-kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext *cctx, int stream_index)
+image_surface_decode (kk_image_t *img, AVFormatContext *fctx,
+    AVCodecContext *cctx, int stream_index)
 {
   const int iw = cctx->width;
   const int ih = cctx->height;
@@ -105,7 +112,8 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
 
   const int os = cairo_format_stride_for_width (CAIRO_FORMAT_RGB24, ow);
 
-  const size_t buffer_size = (size_t) avpicture_get_size (AV_PIX_FMT_RGB24, ow, oh);
+  const size_t buffer_size =
+      (size_t) avpicture_get_size (AV_PIX_FMT_RGB24, ow, oh);
 
   struct SwsContext *sctx = NULL;
   AVFrame *iframe = NULL;
@@ -146,18 +154,24 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
     av_free_packet (&packet);
   }
 
-  if ((avcodec_decode_video2 (cctx, iframe, &got_frame, &packet) <= 0) || (!got_frame))
+  if (avcodec_decode_video2 (cctx, iframe, &got_frame, &packet) <= 0)
+    goto error;
+
+  if (!got_frame)
     goto error;
 
   /**
    * We read a frame. Now we use libswscale to convert the pixel format
    * to rgb24, because cairo won't like our frame's pixel format.
    */
-  sctx = sws_getCachedContext (NULL, iw, ih, cctx->pix_fmt, ow, oh, AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR , NULL, NULL, NULL);
+  sctx =
+      sws_getCachedContext (NULL, iw, ih, cctx->pix_fmt, ow, oh,
+          AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR , NULL, NULL, NULL);
   if (sctx == NULL)
     goto error;
 
-  sws_scale (sctx, (const uint8_t *const *) iframe->data, iframe->linesize, 0, oh, oframe->data, oframe->linesize);
+  sws_scale (sctx, (const uint8_t *const *) iframe->data,
+      iframe->linesize, 0, oh, oframe->data, oframe->linesize);
 
   fdata = oframe->data[0];
   cdata = calloc ((size_t) ow * (size_t) oh, sizeof (uint32_t));
@@ -173,7 +187,9 @@ kk_image_surface_decode (kk_image_t *img, AVFormatContext *fctx, AVCodecContext 
   for (i = j = 0; i < (ow * oh); i++, j += 3)
     cdata[i] = rgb_build (fdata[j], fdata[j + 1], fdata[j + 2]);
 
-  img->surface = cairo_image_surface_create_for_data ((unsigned char*) cdata, CAIRO_FORMAT_RGB24, ow, oh, os);
+  img->surface =
+      cairo_image_surface_create_for_data ((unsigned char*) cdata,
+          CAIRO_FORMAT_RGB24, ow, oh, os);
   img->buffer = (unsigned char*) cdata;
 
   sws_freeContext (sctx);
@@ -196,7 +212,7 @@ error:
 }
 
 static int
-kk_image_surface_load_other (kk_image_t *img, const char *path)
+image_surface_load_other (kk_image_t *img, const char *path)
 {
   AVCodecContext *cctx = NULL;
   AVFormatContext *fctx = NULL;
@@ -243,7 +259,7 @@ kk_image_surface_load_other (kk_image_t *img, const char *path)
   if (avcodec_open2 (cctx, avcodec_find_decoder (cctx->codec_id), NULL) < 0)
     goto error;
 
-  if (kk_image_surface_decode (img, fctx, cctx, (int) sidx) != 0)
+  if (image_surface_decode (img, fctx, cctx, (int) sidx) != 0)
     goto error;
 
   avcodec_close (cctx);
@@ -259,14 +275,14 @@ error:
 }
 
 static int
-kk_image_surface_load (kk_image_t *img, const char *path)
+image_surface_load (kk_image_t *img, const char *path)
 {
   char *ext = strrchr (path, '.');      /* No need to error check */
 
   if (strcmp (ext, ".png") == 0)
-    return kk_image_surface_load_nativ (img, path);
+    return image_surface_load_nativ (img, path);
   else
-    return kk_image_surface_load_other (img, path);
+    return image_surface_load_other (img, path);
 }
 
 int
@@ -278,7 +294,7 @@ kk_image_init (kk_image_t **img, const char *path)
   if (result == NULL)
     goto error;
 
-  if (kk_image_surface_load (result, path) != 0)
+  if (image_surface_load (result, path) != 0)
     goto error;
 
   result->width = cairo_image_surface_get_width (result->surface);
@@ -328,7 +344,7 @@ kk_image_blur (kk_image_t *img, double intensity)
   else
     colors = calloc ((size_t) img->height, sizeof (uint32_t));
 
-  if ((pixels == NULL) | (colors == NULL))
+  if ((pixels == NULL) || (colors == NULL))
     goto error;
 
   i = 0;

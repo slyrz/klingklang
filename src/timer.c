@@ -12,16 +12,10 @@
 static kk_timer_t *active = NULL;
 
 static void
-_kk_timer_signal_handler (void)
+timer_signal_handler (void)
 {
-  kk_timer_event_fired_t event;
-
-  if (active == NULL)
-    return;
-
-  memset (&event, 0, sizeof (kk_timer_event_fired_t));
-  event.type = KK_TIMER_FIRED;
-  kk_event_queue_write (active->events, (void *) &event, sizeof (kk_timer_event_fired_t));
+  if (active)
+    kk_timer_event_fired (active->events);
 }
 
 int
@@ -109,7 +103,7 @@ kk_timer_start (kk_timer_t *timer, int seconds)
   memset (&its, 0, sizeof (struct itimerval));
 #endif
 
-  sac.sa_handler = (void (*)(int)) _kk_timer_signal_handler;
+  sac.sa_handler = (void (*)(int)) timer_signal_handler;
   sigemptyset (&sac.sa_mask);
   if (sigaction (SIGALRM, &sac, NULL) != 0)
     goto error;

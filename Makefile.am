@@ -9,14 +9,19 @@ klingklang_SOURCES = \
   src/library.c \
   src/list.c \
   src/main.c \
+  src/player-events.c \
+  src/player-queue.c \
   src/player.c \
   src/str.c \
+  src/timer-events.c \
   src/timer.c \
   src/ui/cover.c \
   src/ui/image.c \
   src/ui/keys.c \
   src/ui/progressbar.c \
   src/ui/widget.c \
+  src/ui/window-events.c \
+  src/ui/window.c \
   src/util.c
 
 klingklang_WARNINGS = \
@@ -26,13 +31,13 @@ klingklang_WARNINGS = \
 if DEBUGGING
   klingklang_WARNINGS += \
     @VENDOR_FLAGS@ \
-    -Wbad-function-cast  \
+    -Wbad-function-cast \
     -Wcast-qual \
-    -Wconversion  \
+    -Wconversion \
     -Wfloat-equal \
     -Wformat=2 \
     -Winit-self \
-    -Winline  \
+    -Winline \
     -Wmissing-declarations \
     -Wmissing-include-dirs \
     -Wmissing-prototypes \
@@ -40,11 +45,11 @@ if DEBUGGING
     -Wno-format-nonliteral \
     -Wold-style-definition \
     -Wpointer-arith \
-    -Wshadow  \
+    -Wshadow \
     -Wstrict-overflow=2 \
-    -Wstrict-prototypes  \
+    -Wstrict-prototypes \
     -Wswitch-enum \
-    -Wundef  \
+    -Wundef \
     -Wuninitialized \
     -Wunreachable-code \
     -Wwrite-strings
@@ -53,14 +58,14 @@ endif
 klingklang_CFLAGS = -pthread -I$(top_builddir)/include
 klingklang_LDADD = $(libavcodec_LIBS) $(libavformat_LIBS) $(libavutil_LIBS)
 
-klingklang_CFLAGS += $(cairo_CFLAGS)  $(xkbcommon_CLFAGS) $(libswscale_CFLAGS)
+klingklang_CFLAGS += $(cairo_CFLAGS) $(xkbcommon_CLFAGS) $(libswscale_CFLAGS)
 klingklang_LDADD += $(cairo_LIBS) $(xkbcommon_LIBS) $(libswscale_LIBS)
 
 klingklang_CFLAGS += $(klingklang_WARNINGS)
 
 if DISPLAY_SERVER_X11
   klingklang_SOURCES += src/ui/window/xcb.c
-  klingklang_CFLAGS += $(xcb_CFLAGS) $(xcb_icccm_CFLAGS)  $(xcb_event_CFLAGS)
+  klingklang_CFLAGS += $(xcb_CFLAGS) $(xcb_icccm_CFLAGS) $(xcb_event_CFLAGS)
   klingklang_LDADD += $(xcb_LIBS) $(xcb_icccm_LIBS) $(xcb_event_LIBS)
 endif
 

@@ -11,7 +11,7 @@
 typedef struct kk_cover_s kk_cover_t;
 
 struct kk_cover_s {
-  kk_widget_fields;
+  kk_widget_t widget;
   kk_image_t *foreground;
   kk_image_t *background;
   cairo_pattern_t *contour;

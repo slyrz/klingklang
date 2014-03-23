@@ -7,7 +7,7 @@
 typedef struct kk_progressbar_s kk_progressbar_t;
 
 struct kk_progressbar_s {
-  kk_widget_fields;
+  kk_widget_t widget;
   double progress;
 };
 

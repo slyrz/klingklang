@@ -3,15 +3,15 @@
 
 #ifdef HAVE_QSORT_R
 #  ifdef HAVE_QSORT_R_GNU
-static int _kk_list_compare (const void *a, const void *b, void *arg);
+static int list_compare (const void *a, const void *b, void *arg);
 #  else
-static int _kk_list_compare (void *arg, const void *a, const void *b);
+static int list_compare (void *arg, const void *a, const void *b);
 #  endif
 #else
-static int _kk_list_compare (const void *a, const void *b);
+static int list_compare (const void *a, const void *b);
 #endif
 
-static int _kk_list_enlarge (kk_list_t *list);
+static int list_enlarge (kk_list_t *list);
 
 #ifndef HAVE_QSORT_R
 #include <pthread.h>
@@ -23,26 +23,28 @@ static void *arg = NULL;
 static int
 #ifdef HAVE_QSORT_R
 #  ifdef HAVE_QSORT_R_GNU
-_kk_list_compare (const void *a, const void *b, void *arg)
+list_compare (const void *a, const void *b, void *arg)
 #  else
-_kk_list_compare (void *arg, const void *a, const void *b)
+list_compare (void *arg, const void *a, const void *b)
 #  endif
 #else
-_kk_list_compare (const void *a, const void *b)
+list_compare (const void *a, const void *b)
 #endif
 {
   /**
-   * kk_list_t stores void* pointers. Calling qsort,
-   * we receive pointers to those pointers in this function. Function parameters
-   * are declared void*to not break the qsort compare function prototype.
-   * So we cast them to void**, dereference them and cast them to
-   * actual void*pointers and call the user-defined compare function.
+   * kk_list_t stores void* pointers. The qsort function passes pointers to
+   * these pointers to this function. So the underlying parameter type
+   * is actually void** and not void*.
+   * But since the qsort compare function prototype expects void* parameters,
+   * we declared them as void* here. Then we do the necessary type casting to
+   * cast them to actual void* pointers, before we pass them to the
+   * user-defined compare function.
    */
   return ((kk_list_cmp_f) arg) (*((const void *const *) a), *((const void *const *) b));
 }
 
 static int
-_kk_list_enlarge (kk_list_t *list)
+list_enlarge (kk_list_t *list)
 {
   const size_t cap = kk_get_next_pow2 (list->cap);
 
@@ -50,7 +52,7 @@ _kk_list_enlarge (kk_list_t *list)
   if (cap > 0x8000)
     return -1;
 
-  list->items = realloc (list->items, cap *sizeof (void *));
+  list->items = realloc (list->items, cap * sizeof (void *));
   if (list->items == NULL)
     return -1;
 
@@ -67,6 +69,11 @@ kk_list_init (kk_list_t **list)
   if (result == NULL)
     goto error;
 
+  /**
+   * Start with a default capacity of 32 items. The list capacity grows by
+   * powers of 2 whenever the current capacity is not large enough to hold
+   * the required number of list items.
+   */
   result->cap = 32;
   result->len = 0;
 
@@ -107,8 +114,10 @@ kk_list_is_filled (kk_list_t *list)
 int
 kk_list_append (kk_list_t *list, void *item)
 {
-  if ((list->len >= list->cap) && (_kk_list_enlarge (list) != 0))
-    return -1;
+  if (list->len >= list->cap) {
+    if (list_enlarge (list) != 0)
+      return -1;
+  }
   list->items[list->len++] = item;
   return 0;
 }
@@ -121,14 +130,14 @@ kk_list_sort (kk_list_t *list, kk_list_cmp_f cmp)
 
 #ifdef HAVE_QSORT_R
 #  ifdef HAVE_QSORT_R_GNU
-  qsort_r (list->items, list->len, sizeof (void *), _kk_list_compare, cmp);
+  qsort_r (list->items, list->len, sizeof (void *), list_compare, cmp);
 #  else
-  qsort_r (list->items, list->len, sizeof (void *), cmp, _kk_list_compare);
+  qsort_r (list->items, list->len, sizeof (void *), cmp, list_compare);
 #  endif
 #else
   pthread_mutex_lock (&mutex);
   arg = cmp;
-  qsort (list->items, list->len, sizeof (void *), _kk_list_compare);
+  qsort (list->items, list->len, sizeof (void *), list_compare);
   arg = NULL;
   pthread_mutex_unlock (&mutex);
 #endif

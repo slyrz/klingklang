@@ -1,7 +1,8 @@
 #include <klingklang/ui/widget.h>
+#include <klingklang/util.h>
 
 int
-kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
+kk_widget_init (kk_widget_t **widget, size_t size)
 {
   kk_widget_t *result = NULL;
 
@@ -21,10 +22,8 @@ kk_widget_init (kk_widget_t **widget, size_t size, kk_widget_draw_f draw)
   if (kk_list_init (&result->children) != 0)
     goto error;
 
-  result->draw = draw;
-  result->resized = 1;
-  result->redraw = 1;
-
+  result->state.redraw = 1;
+  result->state.resized = 1;
   *widget = result;
   return 0;
 error:
@@ -45,18 +44,42 @@ kk_widget_free (kk_widget_t *widget)
 }
 
 int
+kk_widget_bind_draw (kk_widget_t *widget, kk_widget_draw_f func)
+{
+  if (widget->callback.draw)
+    kk_log (KK_LOG_DEBUG, "Overriding draw callback.");
+  widget->callback.draw = func;
+  return 0;
+}
+
+int
+kk_widget_bind_resize (kk_widget_t *widget, kk_widget_resize_f func)
+{
+  if (widget->callback.resize)
+    kk_log (KK_LOG_DEBUG, "Overriding resize callback.");
+  widget->callback.resize = func;
+  return 0;
+}
+
+static int
+widget_needs_redraw (kk_widget_t *widget)
+{
+  return (widget->state.resized || widget->state.redraw) && widget->callback.draw;
+}
+
+int
 kk_widget_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   size_t i;
 
-  if (((widget->resized) | (widget->redraw)) && (widget->draw))
-    widget->draw (widget, ctx);
+  if (widget_needs_redraw (widget))
+    widget->callback.draw (widget, ctx);
 
   for (i = 0; i < widget->children->len; i++)
     kk_widget_draw ((kk_widget_t *) widget->children->items[i], ctx);
 
-  widget->redraw = 0;
-  widget->resized = 0;
+  widget->state.redraw = 0;
+  widget->state.resized = 0;
   return 0;
 }
 
@@ -67,16 +90,17 @@ kk_widget_invalidate (kk_widget_t *widget)
 
   for (i = 0; i < widget->children->len; i++)
     kk_widget_invalidate ((kk_widget_t *) widget->children->items[i]);
-  widget->redraw = 1;
-  widget->resized = 1;
+
+  widget->state.redraw = 1;
+  widget->state.resized = 1;
   return 0;
 }
 
 int
 kk_widget_set_position (kk_widget_t *widget, int x, int y)
 {
-  if ((widget->x != x) | (widget->y != y))
-    widget->resized = 1;
+  if ((widget->x != x) || (widget->y != y))
+    widget->state.resized = 1;
 
   widget->x = x;
   widget->y = y;
@@ -86,11 +110,14 @@ kk_widget_set_position (kk_widget_t *widget, int x, int y)
 int
 kk_widget_set_size (kk_widget_t *widget, int width, int height)
 {
-  if ((widget->width != width) | (widget->height != height))
-    widget->resized = 1;
-
+  if ((widget->width != width) || (widget->height != height))
+    widget->state.resized = 1;
   widget->width = width;
   widget->height = height;
+  if (widget->state.resized) {
+    if (widget->callback.resize != NULL)
+      widget->callback.resize (widget, width, height);
+  }
   return 0;
 }
 
