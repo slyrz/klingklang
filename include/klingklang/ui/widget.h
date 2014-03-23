@@ -1,5 +1,5 @@
-#ifndef KK_WIDGET_H
-#define KK_WIDGET_H
+#ifndef KK_UI_WIDGET_H
+#define KK_UI_WIDGET_H
 
 #include <klingklang/base.h>
 #include <klingklang/list.h>

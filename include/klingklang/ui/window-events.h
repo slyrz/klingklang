@@ -1,5 +1,5 @@
-#ifndef KK_WINDOW_EVENTS_H
-#define KK_WINDOW_EVENTS_H
+#ifndef KK_UI_WINDOW_EVENTS_H
+#define KK_UI_WINDOW_EVENTS_H
 
 #include <klingklang/event.h>
 
