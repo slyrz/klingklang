@@ -23,21 +23,32 @@ window_draw (kk_window_t *win)
 }
 
 
+
 static void *
 window_draw_thread (kk_window_t *win) {
-  struct timespec sleep_time;
+  struct timespec wakeup;
+  int status;
 
   for (;;) {
     pthread_mutex_lock (&win->draw.mutex);
 
     /**
-     * Schedule wakeup for t + 1 second. If someone calls kk_window_update,
-     * we unblock immediately.
+     * Wakeup in t + 1 seconds to redraw the window. Unless someone calls
+     * the kk_window_update function, then we'll unblock and redraw immediately.
      */
-    clock_gettime(CLOCK_REALTIME, &sleep_time);
-    sleep_time.tv_sec += 1;
-    pthread_cond_timedwait (&win->draw.cond, &win->draw.mutex, &sleep_time);
-    kk_log (KK_LOG_DEBUG, "Draw thread woke up.");
+    clock_gettime(CLOCK_REALTIME, &wakeup);
+    wakeup.tv_sec++;
+
+    status = pthread_cond_timedwait (&win->draw.cond, &win->draw.mutex, &wakeup);
+    switch (status) {
+      case 0:
+        kk_log (KK_LOG_DEBUG, "User triggered redraw.");
+        break;
+      case ETIMEDOUT:
+        kk_log (KK_LOG_DEBUG, "Timeout triggered redraw.");
+        break;
+    }
+
     window_draw (win);
     pthread_mutex_unlock (&win->draw.mutex);
   }
