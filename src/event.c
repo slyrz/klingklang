@@ -194,6 +194,7 @@ event_loop_dispatch (kk_event_loop_t *loop)
   struct timeval tv;
   fd_set rfds;
   int r;
+  int e;
 
   FD_ZERO (&rfds);
   for (handler = loop->handler; handler < loop->handler + loop->len; handler++)
@@ -208,8 +209,21 @@ event_loop_dispatch (kk_event_loop_t *loop)
    */
   errno = 0;
   r = select (loop->mfd + 1, &rfds, NULL, NULL, &tv);
-  if (r <= 0)
-    return -(errno != EINTR);
+  e = errno;
+
+  /**
+   * The return value of select is zero if the timeout expired and nothing
+   * happened.
+   */
+  if (r == 0)
+    return 0;
+
+  /**
+   * On error, -1 is returned and errno is set the error code. We don't
+   * treat interrupts as errors here.
+   */
+  if (r < 0)
+    return -(e != EINTR);
 
   for (handler = loop->handler; handler < loop->handler + loop->len; handler++) {
     if (FD_ISSET (handler->fd, &rfds))
