@@ -3,12 +3,46 @@
 
 #include <errno.h>
 #include <pthread.h>
+#include <time.h>
 
 #ifdef HAVE_UNISTD_H
 #  include <unistd.h>
 #endif
 
+
 extern const kk_window_backend_t window_backend;
+
+static int
+window_draw (kk_window_t *win)
+{
+  kk_log (KK_LOG_DEBUG, "Drawing window.");
+
+  if (window_backend.draw (win) != 0)
+    return -1;
+  return 0;
+}
+
+
+static void *
+window_draw_thread (kk_window_t *win) {
+  struct timespec sleep_time;
+
+  for (;;) {
+    pthread_mutex_lock (&win->draw.mutex);
+
+    /**
+     * Schedule wakeup for t + 1 second. If someone calls kk_window_update,
+     * we unblock immediately.
+     */
+    clock_gettime(CLOCK_REALTIME, &sleep_time);
+    sleep_time.tv_sec += 1;
+    pthread_cond_timedwait (&win->draw.cond, &win->draw.mutex, &sleep_time);
+    kk_log (KK_LOG_DEBUG, "Draw thread woke up.");
+    window_draw (win);
+    pthread_mutex_unlock (&win->draw.mutex);
+  }
+  return NULL;
+}
 
 int
 kk_window_init (kk_window_t **win, int width, int height)
@@ -28,6 +62,15 @@ kk_window_init (kk_window_t **win, int width, int height)
   result->height = height;
 
   if (window_backend.init (result) < 0)
+    goto error;
+
+  if (pthread_cond_init (&result->draw.cond, NULL) != 0)
+    goto error;
+
+  if (pthread_mutex_init (&result->draw.mutex, NULL) != 0)
+    goto error;
+
+  if (pthread_create (&result->draw.thread, NULL, (void *(*)(void *)) window_draw_thread, result) != 0)
     goto error;
 
   *win = result;
@@ -65,16 +108,17 @@ kk_window_show (kk_window_t *win)
   if (!win->has_title)
     kk_window_set_title (win, PACKAGE_NAME);
 
-  kk_widget_invalidate ((kk_widget_t *) win);
-  kk_window_draw (win);
+  kk_window_update (win);
   return 0;
 }
 
 int
-kk_window_draw (kk_window_t *win)
+kk_window_update (kk_window_t *win)
 {
-  if (window_backend.draw (win) != 0)
-    return -1;
+  kk_widget_invalidate ((kk_widget_t *) win);
+  pthread_mutex_lock (&win->draw.mutex);
+  pthread_cond_signal (&win->draw.cond);
+  pthread_mutex_unlock (&win->draw.mutex);
   return 0;
 }
 

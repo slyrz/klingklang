@@ -22,7 +22,6 @@
 #include <klingklang/base.h>
 #include <klingklang/library.h>
 #include <klingklang/player.h>
-#include <klingklang/timer.h>
 #include <klingklang/ui/cover.h>
 #include <klingklang/ui/image.h>
 #include <klingklang/ui/progressbar.h>
@@ -43,7 +42,6 @@ struct kk_context_s {
   kk_event_loop_t *loop;
   kk_library_t *library;
   kk_player_t *player;
-  kk_timer_t *timer;
   kk_window_t *window;
   kk_cover_t *cover;
   kk_progressbar_t *progressbar;
@@ -91,10 +89,12 @@ static void
 on_player_start (kk_context_t *ctx, kk_player_event_start_t *event)
 {
   kk_log (KK_LOG_INFO, "Player started playing '%s'.", event->file->name);
+
   kk_progressbar_set_value (ctx->progressbar, 0.0);
   kk_cover_load (ctx->cover, event->file);
+
   kk_window_set_title (ctx->window, event->file->name);
-  kk_window_draw (ctx->window);
+  kk_window_update (ctx->window);
 }
 
 static void
@@ -104,15 +104,7 @@ on_player_stop (kk_context_t *ctx, kk_player_event_stop_t *event)
 
   kk_log (KK_LOG_INFO, "Player stopped.");
   kk_progressbar_set_value (ctx->progressbar, 1.0);
-  kk_window_draw (ctx->window);
-}
-
-static void
-on_timer_fired (kk_context_t *ctx, kk_timer_event_fired_t *event)
-{
-  (void) event;
-
-  kk_window_draw (ctx->window);
+  kk_window_update (ctx->window);
 }
 
 static void
@@ -224,32 +216,6 @@ on_player_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 }
 
 static void
-on_timer_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
-{
-  kk_event_t event;
-  ssize_t rs;
-
-  (void) loop;
-
-  while (rs = read (fd, &event, sizeof (kk_event_t)), rs > 0) {
-    /* Sanity check... should not be necessary */
-    if (rs != sizeof (kk_event_t)) {
-      kk_log (KK_LOG_WARNING, "Invalid size read from event loop.");
-      continue;
-    }
-
-    switch (event.type) {
-      case KK_TIMER_FIRED:
-        on_timer_fired (ctx, (kk_timer_event_fired_t *) &event);
-        break;
-      default:
-        kk_log (KK_LOG_WARNING, "Read unkown timer event.");
-        break;
-    }
-  }
-}
-
-static void
 on_window_event (kk_event_loop_t *loop, int fd, kk_context_t *ctx)
 {
   kk_event_t event;
@@ -312,9 +278,6 @@ main (int argc, char **argv)
   if (kk_progressbar_init (&context.progressbar) != 0)
     kk_err (EXIT_FAILURE, "Could not initialize progressbar widget.");
 
-  if (kk_timer_init (&context.timer) != 0)
-    kk_err (EXIT_FAILURE, "Could not initialize timer.");
-
   if (kk_event_loop_init (&context.loop, 3) != 0)
     kk_err (EXIT_FAILURE, "Could not initialize event loop.");
 
@@ -328,11 +291,6 @@ main (int argc, char **argv)
       (kk_event_func_f) on_player_event, &context);
   kk_event_loop_add (context.loop, kk_window_get_event_fd (context.window),
       (kk_event_func_f) on_window_event, &context);
-  kk_event_loop_add (context.loop, kk_timer_get_event_fd (context.timer),
-      (kk_event_func_f) on_timer_event, &context);
-
-  if (kk_timer_start (context.timer, 1) != 0)
-    kk_err (EXIT_FAILURE, "Could not start time.");
 
   kk_window_show (context.window);
 
@@ -343,7 +301,6 @@ main (int argc, char **argv)
   kk_event_loop_free (context.loop);
   kk_library_free (context.library);
   kk_player_free (context.player);
-  kk_timer_free (context.timer);
   kk_progressbar_free (context.progressbar);
   kk_cover_free (context.cover);
   kk_window_free (context.window);
