@@ -6,28 +6,25 @@
 
 #include <cairo.h>
 
-#define kk_widget_fields \
-  kk_list_t *children; \
-  int x; \
-  int y; \
-  int width; \
-  int height; \
-  struct { \
-    kk_widget_draw_f draw; \
-    kk_widget_resize_f resize; \
-  } callback; \
-  struct { \
-    unsigned redraw:1; \
-    unsigned resized:1; \
-  } state;
-
 typedef struct kk_widget_s kk_widget_t;
 
 typedef void (*kk_widget_draw_f) (kk_widget_t *, cairo_t *);
 typedef void (*kk_widget_resize_f) (kk_widget_t *, int, int);
 
 struct kk_widget_s {
-  kk_widget_fields;
+  kk_list_t *children;
+  int x;
+  int y;
+  int width;
+  int height;
+  struct {
+    kk_widget_draw_f draw;
+    kk_widget_resize_f resize;
+  } callback;
+  struct {
+    unsigned redraw:1;
+    unsigned resized:1;
+  } state;
 };
 
 int kk_widget_init (kk_widget_t **widget, size_t size);

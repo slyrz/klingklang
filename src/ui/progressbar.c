@@ -27,10 +27,10 @@ progressbar_draw (kk_widget_t *widget, cairo_t *ctx)
   if (progressbar_is_active (progressbar)) {
     cairo_set_source_rgb (ctx, 0.94, 0.85, 0.62);
     cairo_rectangle (ctx,
-        (double) progressbar->x,
-        (double) progressbar->y,
-        (double) progressbar->width * progressbar->progress,
-        (double) progressbar->height);
+        (double) progressbar->widget.x,
+        (double) progressbar->widget.y,
+        (double) progressbar->widget.width * progressbar->progress,
+        (double) progressbar->widget.height);
     cairo_fill (ctx);
   }
   else {
@@ -41,10 +41,10 @@ progressbar_draw (kk_widget_t *widget, cairo_t *ctx)
     if (widget->state.resized || widget->state.redraw) {
       cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
       cairo_rectangle (ctx,
-          (double) progressbar->x,
-          (double) progressbar->y,
-          (double) progressbar->width,
-          (double) progressbar->height);
+          (double) progressbar->widget.x,
+          (double) progressbar->widget.y,
+          (double) progressbar->widget.width,
+          (double) progressbar->widget.height);
       cairo_fill (ctx);
     }
   }
