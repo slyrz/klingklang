@@ -132,8 +132,14 @@ kk_window_free (kk_window_t *win)
   if (win == NULL)
     return 0;
 
-  if (win->state.alive)
-    pthread_cancel (win->draw.thread);
+  /**
+   * If draw thread is up, cancel it and wait until it terminated before we
+   * start freeing memory here.
+   */
+  if (win->state.alive) {
+    if (pthread_cancel (win->draw.thread) == 0)
+      pthread_join (win->draw.thread, NULL);
+  }
 
   pthread_cond_destroy (&win->draw.cond);
   pthread_mutex_destroy (&win->draw.mutex);
@@ -194,15 +200,15 @@ window_input_reader (kk_window_input_state_t *state)
   static char buffer[1024] = { 0 };
 
   int err = 0;
-  size_t tot = 0;
-  ssize_t ret = 0;
 
-  for (;;) {
-    if (tot >= sizeof (buffer))
-      break;
+  size_t max = sizeof (buffer) - 1;
+  size_t tot = 0;
+
+  while (tot < max) {
+    ssize_t ret;
 
     errno = 0;
-    ret = read (state->fd, buffer + tot, sizeof (buffer) - tot);
+    ret = read (state->fd, buffer + tot, max - tot);
     err = errno;
 
     /* Break on error, but keep going on interrupts. */
@@ -213,8 +219,12 @@ window_input_reader (kk_window_input_state_t *state)
       tot += (size_t) ret;
   }
 
-  if ((tot == 0) || (tot >= sizeof (buffer)))
+  /* Something went wrong */
+  if ((tot == 0) || (err != 0))
     goto cleanup;
+
+  /* Null-terminate string */
+  buffer[tot] = '\0';
 
   /* Remove trailing newline. */
   if (buffer[tot - 1] == '\n')
