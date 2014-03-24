@@ -84,7 +84,7 @@ device_setup (kk_device_t *dev_base, kk_format_t *format)
    * the device on every setup.
    */
   if (dev->fd > 0) {
-    kk_device_oss_drop (dev_base);
+    device_drop (dev_base);
     close (dev->fd);
   }
 
