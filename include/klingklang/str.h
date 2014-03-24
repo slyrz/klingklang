@@ -4,16 +4,16 @@
 #include <klingklang/base.h>
 
 typedef uint64_t kk_str_match_t;
-typedef struct kk_str_pattern_s kk_str_pattern_t;
-typedef struct kk_str_search_s kk_str_search_t;
+typedef struct kk_str_pattern kk_str_pattern_t;
+typedef struct kk_str_search kk_str_search_t;
 
-struct kk_str_pattern_s {
+struct kk_str_pattern {
   uint32_t h;
   size_t l;
   unsigned char *s;
 };
 
-struct kk_str_search_s {
+struct kk_str_search {
   uint64_t bloom;
   size_t cap;
   size_t len;

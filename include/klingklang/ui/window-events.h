@@ -9,20 +9,20 @@ enum {
   KK_WINDOW_KEY_PRESS,
 };
 
-typedef struct kk_window_event_close_s kk_window_event_close_t;
-typedef struct kk_window_event_input_s kk_window_event_input_t;
-typedef struct kk_window_event_key_press_s kk_window_event_key_press_t;
+typedef struct kk_window_event_close kk_window_event_close_t;
+typedef struct kk_window_event_input kk_window_event_input_t;
+typedef struct kk_window_event_key_press kk_window_event_key_press_t;
 
-struct kk_window_event_close_s {
+struct kk_window_event_close {
   kk_event_fields;
 };
 
-struct kk_window_event_input_s {
+struct kk_window_event_input {
   kk_event_fields;
   char *text;
 };
 
-struct kk_window_event_key_press_s {
+struct kk_window_event_key_press {
   kk_event_fields;
   int mod;
   int key;

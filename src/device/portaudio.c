@@ -5,9 +5,9 @@
 
 #include <portaudio.h>
 
-typedef struct kk_device_portaudio_s kk_device_portaudio_t;
+typedef struct kk_device_portaudio kk_device_portaudio_t;
 
-struct kk_device_portaudio_s {
+struct kk_device_portaudio {
   kk_device_t base;
   PaStream *handle;
 };

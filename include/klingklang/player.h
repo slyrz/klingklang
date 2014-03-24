@@ -10,9 +10,9 @@
 
 #include <pthread.h>
 
-typedef struct kk_player_s kk_player_t;
+typedef struct kk_player kk_player_t;
 
-struct kk_player_s {
+struct kk_player {
   kk_player_queue_t *queue;
   kk_event_queue_t *events;
   kk_input_t *input;

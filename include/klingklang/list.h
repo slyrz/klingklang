@@ -11,9 +11,9 @@
  */
 typedef int (*kk_list_cmp_f) (const void *, const void *);
 
-typedef struct kk_list_s kk_list_t;
+typedef struct kk_list kk_list_t;
 
-struct kk_list_s {
+struct kk_list {
   size_t len;
   size_t cap;
   void **items;

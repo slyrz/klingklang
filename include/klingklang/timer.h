@@ -10,9 +10,9 @@
 #  include <sys/time.h>
 #endif
 
-typedef struct kk_timer_s kk_timer_t;
+typedef struct kk_timer kk_timer_t;
 
-struct kk_timer_s {
+struct kk_timer {
 #ifdef HAVE_POSIX_TIMER_API
   timer_t id;
 #endif

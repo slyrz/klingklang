@@ -5,9 +5,9 @@
 
 #include <ao/ao.h>
 
-typedef struct kk_device_ao_s kk_device_ao_t;
+typedef struct kk_device_ao kk_device_ao_t;
 
-struct kk_device_ao_s {
+struct kk_device_ao {
   kk_device_t base;
   kk_frame_t *buffer;
   ao_device *device;

@@ -16,9 +16,9 @@
 #define KK_WINDOW_MAX_TITLE_LEN         0x80u
 #define KK_WINDOW_MAX_ATOM_LEN          0x80u
 
-typedef struct kk_window_xcb_s kk_window_xcb_t;
+typedef struct kk_window_xcb kk_window_xcb_t;
 
-struct kk_window_xcb_s {
+struct kk_window_xcb {
   kk_window_t base;
   xcb_connection_t *connection;
   xcb_screen_t *screen;

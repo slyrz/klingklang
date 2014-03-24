@@ -27,7 +27,7 @@
 
 int libav_initialized = 0;
 
-struct kk_input_s {
+struct kk_input {
   AVCodec *codec;
   AVCodecContext *cctx;
   AVFormatContext *fctx;

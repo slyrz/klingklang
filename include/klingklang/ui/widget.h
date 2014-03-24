@@ -6,12 +6,12 @@
 
 #include <cairo.h>
 
-typedef struct kk_widget_s kk_widget_t;
+typedef struct kk_widget kk_widget_t;
 
 typedef void (*kk_widget_draw_f) (kk_widget_t *, cairo_t *);
 typedef void (*kk_widget_resize_f) (kk_widget_t *, int, int);
 
-struct kk_widget_s {
+struct kk_widget {
   kk_list_t *children;
   int x;
   int y;

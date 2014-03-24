@@ -4,7 +4,7 @@
 #include <klingklang/format.h>
 #include <klingklang/frame.h>
 
-typedef struct kk_input_s kk_input_t;
+typedef struct kk_input kk_input_t;
 
 int kk_input_init (kk_input_t **inp, const char *filename);
 int kk_input_free (kk_input_t *inp);

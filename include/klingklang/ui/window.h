@@ -10,16 +10,16 @@
 
 #include <pthread.h>
 
-typedef struct kk_window_backend_s kk_window_backend_t;
-typedef struct kk_window_input_state_s kk_window_input_state_t;
-typedef struct kk_window_s kk_window_t;
+typedef struct kk_window_backend kk_window_backend_t;
+typedef struct kk_window_input_state kk_window_input_state_t;
+typedef struct kk_window kk_window_t;
 
-struct kk_window_input_state_s {
+struct kk_window_input_state {
   kk_window_t *window;
   int fd;
 };
 
-struct kk_window_s {
+struct kk_window {
   kk_widget_t widget;
   kk_event_queue_t *events;
   kk_keys_t *keys;
@@ -37,7 +37,7 @@ struct kk_window_s {
   } state;
 };
 
-struct kk_window_backend_s {
+struct kk_window_backend {
   size_t size;
   int (*init) (kk_window_t *win);
   int (*free) (kk_window_t *win);

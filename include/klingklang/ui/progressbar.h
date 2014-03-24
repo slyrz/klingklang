@@ -4,9 +4,9 @@
 #include <klingklang/base.h>
 #include <klingklang/ui/widget.h>
 
-typedef struct kk_progressbar_s kk_progressbar_t;
+typedef struct kk_progressbar kk_progressbar_t;
 
-struct kk_progressbar_s {
+struct kk_progressbar {
   kk_widget_t widget;
   double progress;
 };

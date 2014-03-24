@@ -8,9 +8,9 @@
 
 #include <cairo.h>
 
-typedef struct kk_cover_s kk_cover_t;
+typedef struct kk_cover kk_cover_t;
 
-struct kk_cover_s {
+struct kk_cover {
   kk_widget_t widget;
   kk_image_t *foreground;
   kk_image_t *background;

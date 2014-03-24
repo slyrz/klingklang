@@ -6,17 +6,17 @@
 
 #include <pthread.h>
 
-typedef struct kk_player_queue_s kk_player_queue_t;
-typedef struct kk_player_item_s kk_player_item_t;
+typedef struct kk_player_queue kk_player_queue_t;
+typedef struct kk_player_item kk_player_item_t;
 
-struct kk_player_queue_s {
+struct kk_player_queue {
   kk_player_item_t *fst;
   kk_player_item_t *lst;
   kk_player_item_t *cur;
   pthread_mutex_t mutex;
 };
 
-struct kk_player_item_s {
+struct kk_player_item {
   kk_player_item_t *prev;
   kk_player_item_t *next;
   kk_library_file_t *file;

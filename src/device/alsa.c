@@ -5,9 +5,9 @@
 
 #include <alsa/asoundlib.h>
 
-typedef struct kk_device_alsa_s kk_device_alsa_t;
+typedef struct kk_device_alsa kk_device_alsa_t;
 
-struct kk_device_alsa_s {
+struct kk_device_alsa {
   kk_device_t base;
   snd_pcm_t *handle;
 };

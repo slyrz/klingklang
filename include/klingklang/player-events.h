@@ -12,32 +12,32 @@ enum {
   KK_PLAYER_STOP,
 };
 
-typedef struct kk_player_event_pause_s kk_player_event_pause_t;
-typedef struct kk_player_event_progress_s kk_player_event_progress_t;
-typedef struct kk_player_event_seek_s kk_player_event_seek_t;
-typedef struct kk_player_event_start_s kk_player_event_start_t;
-typedef struct kk_player_event_stop_s kk_player_event_stop_t;
+typedef struct kk_player_event_pause kk_player_event_pause_t;
+typedef struct kk_player_event_progress kk_player_event_progress_t;
+typedef struct kk_player_event_seek kk_player_event_seek_t;
+typedef struct kk_player_event_start kk_player_event_start_t;
+typedef struct kk_player_event_stop kk_player_event_stop_t;
 
-struct kk_player_event_pause_s {
+struct kk_player_event_pause {
   kk_event_fields;
 };
 
-struct kk_player_event_progress_s {
+struct kk_player_event_progress {
   kk_event_fields;
   float progress;
 };
 
-struct kk_player_event_seek_s {
+struct kk_player_event_seek {
   kk_event_fields;
   float perc;
 };
 
-struct kk_player_event_start_s {
+struct kk_player_event_start {
   kk_event_fields;
   kk_library_file_t *file;
 };
 
-struct kk_player_event_stop_s {
+struct kk_player_event_stop {
   kk_event_fields;
 };
 

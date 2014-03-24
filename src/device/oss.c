@@ -10,9 +10,9 @@
 #include <sys/soundcard.h>
 #include <sys/stat.h>
 
-typedef struct kk_device_oss_s kk_device_oss_t;
+typedef struct kk_device_oss kk_device_oss_t;
 
-struct kk_device_oss_s {
+struct kk_device_oss {
   kk_device_t base;
   kk_frame_t *buffer;
   int fd;

@@ -3,9 +3,9 @@
 
 #include <cairo.h>
 
-typedef struct kk_image_s kk_image_t;
+typedef struct kk_image kk_image_t;
 
-struct kk_image_s {
+struct kk_image {
   cairo_surface_t *surface;
   unsigned char *buffer;
   int width;

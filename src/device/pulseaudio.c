@@ -7,9 +7,9 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 
-typedef struct kk_device_pulseaudio_s kk_device_pulseaudio_t;
+typedef struct kk_device_pulseaudio kk_device_pulseaudio_t;
 
-struct kk_device_pulseaudio_s {
+struct kk_device_pulseaudio {
   kk_device_t base;
   kk_frame_t *buffer;
   pa_simple *handle;

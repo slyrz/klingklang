@@ -67,9 +67,9 @@ enum {
   KK_KEY_Z = XKB_KEY_z
 };
 
-typedef struct kk_keys_s kk_keys_t;
+typedef struct kk_keys kk_keys_t;
 
-struct kk_keys_s {
+struct kk_keys {
   struct xkb_context *context;
   struct xkb_keymap *keymap;
   struct xkb_state *state;

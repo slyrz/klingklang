@@ -35,9 +35,9 @@
 #define KK_WINDOW_WIDTH         300
 #define KK_WINDOW_HEIGHT        220
 
-typedef struct kk_context_s kk_context_t;
+typedef struct kk_context kk_context_t;
 
-struct kk_context_s {
+struct kk_context {
   kk_event_loop_t *loop;
   kk_library_t *library;
   kk_player_t *player;

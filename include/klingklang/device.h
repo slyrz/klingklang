@@ -7,15 +7,15 @@
 
 #include <pthread.h>
 
-typedef struct kk_device_s kk_device_t;
-typedef struct kk_device_backend_s kk_device_backend_t;
+typedef struct kk_device kk_device_t;
+typedef struct kk_device_backend kk_device_backend_t;
 
-struct kk_device_s {
+struct kk_device {
   kk_format_t *format;
   pthread_mutex_t mutex;
 };
 
-struct kk_device_backend_s {
+struct kk_device_backend {
   size_t size;
   int (*init) (kk_device_t *dev);
   int (*free) (kk_device_t *dev);

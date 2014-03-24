@@ -6,29 +6,29 @@
 #define kk_event_fields \
   unsigned int type;
 
-typedef struct kk_event_queue_s kk_event_queue_t;
-typedef struct kk_event_handler_s kk_event_handler_t;
-typedef struct kk_event_loop_s kk_event_loop_t;
-typedef struct kk_event_s kk_event_t;
+typedef struct kk_event_queue kk_event_queue_t;
+typedef struct kk_event_handler kk_event_handler_t;
+typedef struct kk_event_loop kk_event_loop_t;
+typedef struct kk_event kk_event_t;
 
 typedef void (*kk_event_func_f) (kk_event_loop_t *, int, void *);
 
-struct kk_event_s {
+struct kk_event {
   kk_event_fields;
   unsigned int padding[15];
 };
 
-struct kk_event_queue_s {
+struct kk_event_queue {
   int fd[2];
 };
 
-struct kk_event_handler_s {
+struct kk_event_handler {
   int fd;
   void *arg;
   kk_event_func_f func;
 };
 
-struct kk_event_loop_s {
+struct kk_event_loop {
   size_t cap;
   size_t len;
   int mfd;

@@ -6,9 +6,9 @@
 
 #define KK_FRAME_MAX_PLANES		2
 
-typedef struct kk_frame_s kk_frame_t;
+typedef struct kk_frame kk_frame_t;
 
-struct kk_frame_s {
+struct kk_frame {
   float prog;
   size_t size;
   size_t samples;

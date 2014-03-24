@@ -10,9 +10,9 @@
 
 #include <unistd.h> /* usleep */
 
-typedef struct kk_window_wayland_s kk_window_wayland_t;
+typedef struct kk_window_wayland kk_window_wayland_t;
 
-struct kk_window_wayland_s {
+struct kk_window_wayland {
   kk_window_t base;
   struct wl_callback *callback;
   struct wl_compositor *compositor;

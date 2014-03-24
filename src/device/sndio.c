@@ -5,9 +5,9 @@
 
 #include <sndio.h>
 
-typedef struct kk_device_sndio_s kk_device_sndio_t;
+typedef struct kk_device_sndio kk_device_sndio_t;
 
-struct kk_device_sndio_s {
+struct kk_device_sndio {
   kk_device_t base;
   kk_frame_t *buffer;
   struct sio_hdl *device;
