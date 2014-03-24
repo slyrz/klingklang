@@ -33,12 +33,21 @@ window_resize (kk_window_t *win, int width, int height)
   kk_widget_set_position ((kk_widget_t *) win->progressbar, 0, height - 4);
 }
 
+static void
+window_draw_thread_cleanup (kk_window_t *win)
+{
+  win->state.alive = 0;
+}
+
 static void *
-window_draw_thread (kk_window_t *win) {
+window_draw_thread (kk_window_t *win)
+{
   struct timespec wakeup;
   int status;
 
   win->state.alive = 1;
+
+  pthread_cleanup_push ((void (*)(void *)) window_draw_thread_cleanup, win);
   for (;;) {
     pthread_mutex_lock (&win->draw.mutex);
 
@@ -63,7 +72,7 @@ window_draw_thread (kk_window_t *win) {
     window_draw (win);
     pthread_mutex_unlock (&win->draw.mutex);
   }
-  win->state.alive = 0;
+  pthread_cleanup_pop (0);
   return NULL;
 }
 
