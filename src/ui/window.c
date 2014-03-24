@@ -44,7 +44,8 @@ window_draw_thread (kk_window_t *win) {
 
     /**
      * Wakeup in t + 1 seconds to redraw the window. Unless someone calls
-     * the kk_window_update function, then we'll unblock and redraw immediately.
+     * the kk_window_update function, then we'll unblock and redraw
+     * immediately.
      */
     clock_gettime(CLOCK_REALTIME, &wakeup);
     wakeup.tv_sec++;
@@ -89,9 +90,7 @@ kk_window_init (kk_window_t **win, int width, int height)
   if (window_backend.init (result) < 0)
     goto error;
 
-  /**
-   * Initialize the window content.
-   */
+  /* Initialize the window content. */
   if (kk_cover_init (&result->cover) != 0)
     goto error;
 
@@ -102,13 +101,12 @@ kk_window_init (kk_window_t **win, int width, int height)
   kk_widget_add_child ((kk_widget_t*) result, (kk_widget_t*) result->progressbar);
 
   /**
-   * Update the size of the children, otherwise it's uninitialized.
+   * Update the size of the children, otherwise their position and size will
+   * be uninitialized.
    */
    window_resize (result, width, height);
 
-  /**
-   * Fire up the draw thread.
-   */
+  /* Fire up the draw thread. */
   if (pthread_cond_init (&result->draw.cond, NULL) != 0)
     goto error;
 
@@ -199,10 +197,9 @@ window_input_reader (kk_window_input_state_t *state)
 {
   static char buffer[1024] = { 0 };
 
-  int err = 0;
-
   size_t max = sizeof (buffer) - 1;
   size_t tot = 0;
+  int err = 0;
 
   while (tot < max) {
     ssize_t ret;
@@ -219,11 +216,11 @@ window_input_reader (kk_window_input_state_t *state)
       tot += (size_t) ret;
   }
 
-  /* Something went wrong */
+  /* Something went wrong. */
   if ((tot == 0) || (err != 0))
     goto cleanup;
 
-  /* Null-terminate string */
+  /* Null-terminate string. */
   buffer[tot] = '\0';
 
   /* Remove trailing newline. */
