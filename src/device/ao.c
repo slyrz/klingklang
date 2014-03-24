@@ -118,7 +118,7 @@ device_write (kk_device_t *dev_base, kk_frame_t *frame)
       break;
   }
 
-  if (ao_play (dev->device, data, nuint32_t) frame->size) == 0)
+  if (ao_play (dev->device, data, (uint32_t) frame->size) == 0)
     return -1;
   return 0;
 }
