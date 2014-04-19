@@ -96,10 +96,8 @@ AM_CONDITIONAL([DISPLAY_SERVER_WAYLAND], [test "x$display_server" = "xwayland"])
 #-----------------------------------------------------------------------------
 # Checks For Audio Backend
 #-----------------------------------------------------------------------------
-
-# Check which audio backends are present
 AC_CHECK_HEADERS([sndio.h], [have_sndio="yes"], [have_sndio="no"])
-AC_CHECK_HEADERS([sys/soundcard.h], [have_oss="yes"], [have_oss="no"])
+AC_CHECK_HEADERS([sys/soundcard.h], [AC_CHECK_FILE([/etc/oss.conf], [have_oss="yes"], [have_oss="no"])], [have_oss="no"])
 PKG_CHECK_MODULES([libasound], [alsa], [have_alsa="yes"], [have_alsa="no"])
 PKG_CHECK_MODULES([libao], [ao], [have_ao="yes"], [have_ao="no"])
 PKG_CHECK_MODULES([portaudio], [portaudio-2.0], [have_portaudio="yes"], [have_portaudio="no"])
