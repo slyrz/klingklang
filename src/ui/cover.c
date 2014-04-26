@@ -47,8 +47,17 @@ cover_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   kk_cover_t *cover = (kk_cover_t *) widget;
 
-  if ((cover->foreground == NULL) || (cover->background == NULL))
+  if ((cover->foreground == NULL) || (cover->background == NULL)) {
+    /* Clear content */
+    cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
+    cairo_rectangle (ctx,
+        (double) cover->widget.x,
+        (double) cover->widget.y,
+        (double) cover->widget.width,
+        (double) cover->widget.height);
+    cairo_fill (ctx);
     return;
+  }
 
   /* Draw blurred background image */
   cairo_save (ctx);
@@ -157,18 +166,26 @@ kk_cover_free (kk_cover_t *cover)
 int
 kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
 {
-  size_t len;
-  size_t out;
+  size_t len = 1024;
+  size_t out = 0;
 
   char *path = NULL;
 
-  len = 512;
-  path = calloc (len, sizeof (char));
-  if (path == NULL)
-    goto error;
+  /**
+   * Whether this function fails or succeeds, the current content of this widget
+   * should become invalid with a call of kk_cover_load().
+   */
+  kk_widget_invalidate ((kk_widget_t *) cover);
 
-  out = kk_library_file_get_album_cover_path (file, path, len);
-  if (out >= len) {
+  for (;;) {
+    path = calloc (len, sizeof (char));
+    if (path == NULL)
+      goto error;
+
+    out = kk_library_file_get_album_cover_path (file, path, len);
+    if (out < len)
+      break;
+
     if (out >= 8192)
       goto error;
 
@@ -177,18 +194,13 @@ kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
 
     /* Try one last time */
     len = out + 1;
-    path = calloc (len, sizeof (char));
-    if (path == NULL)
-      goto error;
-
-    out = kk_library_file_get_album_cover_path (file, path, len);
-    if (out >= len)
-      goto error;
   }
 
   /* No album cover found? We can stop */
-  if (out == 0)
+  if (out <= 0) {
+    kk_log (KK_LOG_WARNING, "No album cover found.");
     goto error;
+  }
 
   if (cover->path) {
     /* Image already loaded. No need to change it. */
@@ -210,10 +222,9 @@ kk_cover_load (kk_cover_t *cover, kk_library_file_t *file)
     goto error;
 
   kk_image_blur (cover->background, cover->blur);
-  kk_widget_invalidate ((kk_widget_t *) cover);
   return 0;
 error:
-  if ((path) && (*path))
+  if ((out > 0) && (out < len) && (path != NULL))
     kk_log (KK_LOG_WARNING, "Could not load cover '%s'.", path);
   cover->path = NULL;
   cover->foreground = NULL;
