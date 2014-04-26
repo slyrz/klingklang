@@ -22,8 +22,20 @@ progressbar_draw (kk_widget_t *widget, cairo_t *ctx)
   kk_progressbar_t *progressbar = (kk_progressbar_t *) widget;
 
   /**
-   * If there's some progress, paint colored progress bar.
+   * If the widget needs a redraw, fill background black to override the
+   * previously displayed progress.
    */
+  if (widget->state.resized || widget->state.redraw) {
+    cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
+    cairo_rectangle (ctx,
+        (double) progressbar->widget.x,
+        (double) progressbar->widget.y,
+        (double) progressbar->widget.width,
+        (double) progressbar->widget.height);
+    cairo_fill (ctx);
+  }
+
+  /* If there's some progress, paint colored progress bar. */
   if (progressbar_is_active (progressbar)) {
     cairo_set_source_rgb (ctx, 0.94, 0.85, 0.62);
     cairo_rectangle (ctx,
@@ -32,21 +44,6 @@ progressbar_draw (kk_widget_t *widget, cairo_t *ctx)
         (double) progressbar->widget.width * progressbar->progress,
         (double) progressbar->widget.height);
     cairo_fill (ctx);
-  }
-  else {
-    /**
-     * If progress is zero or the widget needs a redraw, fill background black
-     * to override the previously displayed progress.
-     */
-    if (widget->state.resized || widget->state.redraw) {
-      cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
-      cairo_rectangle (ctx,
-          (double) progressbar->widget.x,
-          (double) progressbar->widget.y,
-          (double) progressbar->widget.width,
-          (double) progressbar->widget.height);
-      cairo_fill (ctx);
-    }
   }
 }
 
