@@ -65,6 +65,7 @@ static void
 on_player_seek (kk_context_t *ctx, kk_player_event_seek_t *event)
 {
   kk_log (KK_LOG_DEBUG, "Player seeked position %f [0,1].", (double) event->perc);
+  kk_progressbar_set_value (ctx->window->progressbar, event->perc);
   kk_widget_invalidate ((kk_widget_t*) ctx->window->progressbar);
 }
 
