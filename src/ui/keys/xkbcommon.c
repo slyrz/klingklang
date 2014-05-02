@@ -1,12 +1,21 @@
 #include <klingklang/ui/keys.h>
-#include <klingklang/base.h>
 
 const struct xkb_rule_names rules = {
-  .rules = KK_KEYS_RULES,
-  .model = KK_KEYS_MODEL,
-  .layout = KK_KEYS_LAYOUT,
-  .variant = KK_KEYS_VARIANT,
-  .options = KK_KEYS_OPTIONS
+  .rules   = "evdev",
+  .model   = "evdev",
+  .layout  = "us",
+  .variant = "",
+  .options = ""
+};
+
+struct kk_keys {
+  struct xkb_context *context;
+  struct xkb_keymap *keymap;
+  struct xkb_state *state;
+  struct {
+    xkb_mod_mask_t control;
+    xkb_mod_mask_t shift;
+  } mask;
 };
 
 static xkb_mod_mask_t

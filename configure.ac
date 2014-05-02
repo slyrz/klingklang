@@ -72,7 +72,9 @@ PKG_CHECK_MODULES([libavutil], [libavutil])
 PKG_CHECK_MODULES([libswscale], [libswscale])
 
 PKG_CHECK_MODULES([cairo], [cairo])
-PKG_CHECK_MODULES([xkbcommon], [xkbcommon])
+
+PKG_CHECK_MODULES([xkbcommon], [xkbcommon], [have_xkbcommon="yes"], [have_xkbcommon="no"])
+PKG_CHECK_MODULES([xcb_keysyms], [xcb-keysyms], [have_xcb_keysyms="yes"], [have_xcb_keysyms="no"])
 
 # X11 build requirements
 AS_IF([test "x$display_server" = "xx11"], [
@@ -92,6 +94,25 @@ AS_IF([test "x$display_server" = "xwayland"], [
 
 AM_CONDITIONAL([DISPLAY_SERVER_X11], [test "x$display_server" = "xx11"])
 AM_CONDITIONAL([DISPLAY_SERVER_WAYLAND], [test "x$display_server" = "xwayland"])
+
+#-----------------------------------------------------------------------------
+# Check For Key Handling Library
+#-----------------------------------------------------------------------------
+AS_IF([test "x$have_xcb_keysyms" = "xyes"], [keys="xcb_keysyms"])
+AS_IF([test "x$have_xkbcommon" = "xyes"], [keys="xkbcommon"])
+
+AS_CASE([x$keys],
+  [xxcb_keysyms], [
+    AC_DEFINE([HAVE_XCB_KEYSYMS], [1], [Don't change this.])
+  ],
+  [xxkbcommon], [
+    AC_DEFINE([HAVE_XKBCOMMON], [1], [Don't change this.])
+  ], [
+    AC_MSG_ERROR([need xkbcommon or xcb_keysyms.])
+  ])
+
+AM_CONDITIONAL([KEYS_XCB_KEYSYMS], [test "x$keys" = "xxcb_keysyms"])
+AM_CONDITIONAL([KEYS_XKBCOMMON], [test "x$keys" = "xxkbcommon"])
 
 #-----------------------------------------------------------------------------
 # Checks For Audio Backend
@@ -270,6 +291,7 @@ AC_MSG_RESULT([
         cflags: ............... ${CFLAGS}
 
         display server: ....... ${display_server}
+        keyboard handling: .... ${keys}
         audio backend: ........ ${backend}
 
         logging: .............. ${logging}

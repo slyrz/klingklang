@@ -17,7 +17,6 @@ klingklang_SOURCES = \
   src/timer.c \
   src/ui/cover.c \
   src/ui/image.c \
-  src/ui/keys.c \
   src/ui/progressbar.c \
   src/ui/widget.c \
   src/ui/window-events.c \
@@ -73,6 +72,18 @@ if DISPLAY_SERVER_WAYLAND
   klingklang_SOURCES += src/ui/window/wayland.c
   klingklang_CFLAGS += $(cairo_gl_CFLAGS) $(egl_CFLAGS) $(wayland_client_CFLAGS) $(wayland_cursor_CFLAGS) $(wayland_egl_CFLAGS)
   klingklang_LDADD += $(cairo_gl_LIBS) $(egl_LIBS) $(wayland_client_LIBS) $(wayland_cursor_LIBS) $(wayland_egl_LIBS)
+endif
+
+if KEYS_XCB_KEYSYMS
+  klingklang_SOURCES += src/ui/keys/xcb.c
+  klingklang_CFLAGS += $(xcb_keysyms_CFLAGS)
+  klingklang_LDADD += $(xcb_keysyms_LIBS)
+endif
+
+if KEYS_XKBCOMMON
+  klingklang_SOURCES += src/ui/keys/xkbcommon.c
+  klingklang_CFLAGS += $(xkbcommon_CFLAGS)
+  klingklang_LDADD += $(xkbcommon_LIBS)
 endif
 
 if BACKEND_ALSA
