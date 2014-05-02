@@ -72,15 +72,14 @@ PKG_CHECK_MODULES([libavutil], [libavutil])
 PKG_CHECK_MODULES([libswscale], [libswscale])
 
 PKG_CHECK_MODULES([cairo], [cairo])
-
-PKG_CHECK_MODULES([xkbcommon], [xkbcommon], [have_xkbcommon="yes"], [have_xkbcommon="no"])
-PKG_CHECK_MODULES([xcb_keysyms], [xcb-keysyms], [have_xcb_keysyms="yes"], [have_xcb_keysyms="no"])
+PKG_CHECK_MODULES([xkbcommon], [xkbcommon], [have_xkbcommon="yes"])
 
 # X11 build requirements
 AS_IF([test "x$display_server" = "xx11"], [
   PKG_CHECK_MODULES([xcb], [xcb])
   PKG_CHECK_MODULES([xcb_event], [xcb-event])
   PKG_CHECK_MODULES([xcb_icccm], [xcb-icccm])
+  PKG_CHECK_MODULES([xcb_keysyms], [xcb-keysyms], [have_xcb_keysyms="yes"])
 ])
 
 # Wayland build requirements
