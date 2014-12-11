@@ -14,7 +14,6 @@ struct kk_cover {
   kk_widget_t widget;
   kk_image_t *foreground;
   kk_image_t *background;
-  cairo_pattern_t *contour;
   double radius;
   double darkness;
   double blur;

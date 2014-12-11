@@ -23,23 +23,11 @@ cover_resize (kk_widget_t *widget, int width, int height)
   kk_cover_t *cover = (kk_cover_t *) widget;
 
   const double margin = 40.0;
-  const double cx = cover->widget.x + (width / 2);
-  const double cy = cover->widget.y + (height / 2);
 
   if (width < height)
     cover->radius = (width - margin) / 2.0;
   else
     cover->radius = (height - margin) / 2.0;
-
-  if (cover->contour)
-    cairo_pattern_destroy (cover->contour);
-
-  cover->contour = cairo_pattern_create_linear (cx, cy - cover->radius, cx, cy + cover->radius);
-  cairo_pattern_add_color_stop_rgba (cover->contour, 0.0, 1.0, 1.0, 1.0, 0.4);
-  cairo_pattern_add_color_stop_rgba (cover->contour, 0.1, 1.0, 1.0, 1.0, 0.1);
-  cairo_pattern_add_color_stop_rgba (cover->contour, 0.5, 0.5, 0.5, 0.5, 0.0);
-  cairo_pattern_add_color_stop_rgba (cover->contour, 0.9, 0.0, 0.0, 0.0, 0.1);
-  cairo_pattern_add_color_stop_rgba (cover->contour, 1.0, 0.0, 0.0, 0.0, 0.4);
 }
 
 static void
@@ -103,21 +91,6 @@ cover_draw (kk_widget_t *widget, cairo_t *ctx)
   cairo_close_path (ctx);
   cairo_reset_clip (ctx);
   cairo_restore (ctx);
-
-  /* Draw unobstrusive border around foreground */
-  if (cover->contour) {
-    cairo_save (ctx);
-    cairo_rounded_rectangle (ctx,
-        (double) cover->widget.width / 2.0 - cover->radius,
-        (double) cover->widget.height / 2.0 - cover->radius,
-        cover->radius * 2.0,
-        cover->radius * 2.0,
-        cover->radius / 30.0);
-    cairo_set_line_width (ctx, 1.0);
-    cairo_set_source (ctx, cover->contour);
-    cairo_stroke (ctx);
-    cairo_restore (ctx);
-  }
 }
 
 int
@@ -154,9 +127,6 @@ kk_cover_free (kk_cover_t *cover)
 
   if (cover->background)
     kk_image_free (cover->background);
-
-  if (cover->contour)
-    cairo_pattern_destroy (cover->contour);
 
   free (cover->path);
   kk_widget_free ((kk_widget_t *) cover);
