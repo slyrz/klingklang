@@ -107,8 +107,8 @@ kk_cover_init (kk_cover_t **cover)
   if (kk_widget_bind_resize ((kk_widget_t *) result, cover_resize) != 0)
     goto error;
 
-  result->darkness = 0.333;
-  result->blur = 0.08;
+  result->darkness = 0.5;
+  result->blur = 0.12;
   *cover = result;
   return 0;
 error:
