@@ -39,7 +39,7 @@
  * libavutil versions >= 51.42.0:
  * Renamed PixelFormat to AVPixelFormat and all PIX_FMT_* to AV_PIX_FMT_*.
  */
-#if !((LIBAVUTIL_VERSION_MAJOR >= 51) && (LIBAVUTIL_VERSION_MINOR >= 42))
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54,42,0)
 #  define AVPixelFormat PixelFormat
 #  define AV_PIX_FMT_RGB24 PIX_FMT_RGB24
 #endif
@@ -49,7 +49,7 @@
  * Introduced avcodec_free_frame() function which must now be used for freeing
  * an AVFrame.
  */
-#if !((LIBAVCODEC_VERSION_MAJOR >= 54) && (LIBAVCODEC_VERSION_MINOR >= 28))
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54,28,0)
 #  define avcodec_free_frame(x) av_free(*(x))
 #endif
 
@@ -60,7 +60,7 @@
  * avcodec_free_frame() respectively. The latter three functions are
  * deprecated.
  */
-#if !((LIBAVCODEC_VERSION_MAJOR >= 55) && (LIBAVCODEC_VERSION_MINOR >= 28))
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
 #  define av_frame_free(x) avcodec_free_frame(x)
 #  define av_frame_alloc(x) avcodec_alloc_frame(x)
 #endif

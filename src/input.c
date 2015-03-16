@@ -20,7 +20,7 @@
  * avcodec_free_frame() respectively. The latter three functions are
  * deprecated.
  */
-#if !((LIBAVCODEC_VERSION_MAJOR >= 55) && (LIBAVCODEC_VERSION_MINOR >= 28))
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
 #  define av_frame_alloc(x) avcodec_alloc_frame(x)
 #  define av_frame_unref(x) avcodec_get_frame_defaults(x)
 #endif
