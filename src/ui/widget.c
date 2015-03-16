@@ -72,8 +72,11 @@ kk_widget_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   size_t i;
 
-  if (widget_needs_redraw (widget))
+  if (widget_needs_redraw (widget)) {
+    cairo_save (ctx);
     widget->callback.draw (widget, ctx);
+    cairo_restore (ctx);
+  }
 
   for (i = 0; i < widget->children->len; i++)
     kk_widget_draw ((kk_widget_t *) widget->children->items[i], ctx);
