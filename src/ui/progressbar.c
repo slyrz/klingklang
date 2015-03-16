@@ -21,30 +21,39 @@ progressbar_draw (kk_widget_t *widget, cairo_t *ctx)
 {
   kk_progressbar_t *progressbar = (kk_progressbar_t *) widget;
 
-  /**
-   * If the widget needs a redraw, fill background black to override the
-   * previously displayed progress.
-   */
-  if (widget->state.resized || widget->state.redraw) {
-    cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
-    cairo_rectangle (ctx,
-        (double) progressbar->widget.x,
-        (double) progressbar->widget.y,
-        (double) progressbar->widget.width,
-        (double) progressbar->widget.height);
-    cairo_fill (ctx);
-  }
+  cairo_pattern_t *pat;
 
-  /* If there's some progress, paint colored progress bar. */
-  if (progressbar_is_active (progressbar)) {
-    cairo_set_source_rgb (ctx, 0.94, 0.85, 0.62);
-    cairo_rectangle (ctx,
-        (double) progressbar->widget.x,
-        (double) progressbar->widget.y,
-        (double) progressbar->widget.width * progressbar->progress,
-        (double) progressbar->widget.height);
-    cairo_fill (ctx);
-  }
+  pat = cairo_pattern_create_linear (
+      (double) 0.0,
+      (double) 0.0,
+      (double) progressbar->widget.width,
+      (double) 0.0);
+
+  if (cairo_pattern_status (pat) != CAIRO_STATUS_SUCCESS)
+    return;
+
+  cairo_pattern_add_color_stop_rgba (pat, 0.0, 0.75, 0.00, 0.98, 0.5);
+  cairo_pattern_add_color_stop_rgba (pat, 0.5, 0.92, 0.03, 0.41, 0.5);
+  cairo_pattern_add_color_stop_rgba (pat, 1.0, 0.18, 0.09, 0.21, 0.5);
+
+  cairo_rectangle (ctx,
+      (double) progressbar->widget.x,
+      (double) progressbar->widget.y,
+      (double) progressbar->widget.width,
+      (double) progressbar->widget.height);
+
+  cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
+  cairo_fill_preserve (ctx);
+  cairo_set_source (ctx, pat);
+  cairo_fill (ctx);
+  cairo_pattern_destroy (pat);
+  cairo_set_source_rgb (ctx, 0.0, 0.0, 0.0);
+  cairo_rectangle (ctx,
+      (double) progressbar->widget.x + ((double) progressbar->widget.width * progressbar->progress),
+      (double) progressbar->widget.y,
+      (double) progressbar->widget.width * 1.0 - (double) progressbar->progress,
+      (double) progressbar->widget.height);
+  cairo_fill (ctx);
 }
 
 int
