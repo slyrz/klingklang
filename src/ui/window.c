@@ -27,10 +27,12 @@ window_draw (kk_window_t *win)
 static void
 window_resize (kk_window_t *win, int width, int height)
 {
-  kk_widget_set_size ((kk_widget_t *) win->cover,  width, height - 4);
+  pthread_mutex_lock (&win->draw.mutex);
+  kk_widget_set_size ((kk_widget_t *) win->cover, width, height - 4);
   kk_widget_set_size ((kk_widget_t *) win->progressbar, width, 4);
   kk_widget_set_position ((kk_widget_t *) win->cover, 0, 0);
   kk_widget_set_position ((kk_widget_t *) win->progressbar, 0, height - 4);
+  pthread_mutex_unlock (&win->draw.mutex);
 }
 
 static void
