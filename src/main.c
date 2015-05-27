@@ -219,18 +219,17 @@ int
 main (int argc, char **argv)
 {
   static kk_context_t context;
+  char *path;
 
-#ifndef KK_LIBRARY_PATH
-#define KK_LIBRARY_PATH argv[1]
   if (argc < 2)
-    kk_err (EXIT_FAILURE,
-        "Call %s MUSICFOLDER or compile with KK_LIBRARY_PATH.", argv[0]);
-#endif
+    path = getenv ("MUSICPATH");
+  else
+    path = argv[1];
 
   if (kk_player_init (&context.player) < 0)
     kk_err (EXIT_FAILURE, "Could not init player.");
 
-  if (kk_library_init (&context.library, KK_LIBRARY_PATH) < 0)
+  if (kk_library_init (&context.library, path) < 0)
     kk_err (EXIT_FAILURE, "Could not open music library.");
 
   if (kk_window_init (&context.window, KK_WINDOW_WIDTH, KK_WINDOW_HEIGHT) < 0)

@@ -279,7 +279,10 @@ error:
 int
 kk_library_init (kk_library_t **lib, const char *path)
 {
-  kk_library_dir_t *result;
+  kk_library_dir_t *result = NULL;
+
+  if (path == NULL)
+    goto error;
 
   result = calloc (1, sizeof (kk_library_dir_t));
   if (result == NULL)
@@ -288,7 +291,6 @@ kk_library_init (kk_library_t **lib, const char *path)
   /* strdup these so we can call free on all strings later  */
   result->root = strdup (path);
   result->base = strdup ("");
-
   if ((result->root == NULL) || (result->base == NULL))
     goto error;
 
